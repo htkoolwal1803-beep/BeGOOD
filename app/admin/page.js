@@ -114,8 +114,18 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="container mx-auto px-4">
         <div className="mb-8">
-          <h1 className="font-playfair text-4xl font-bold mb-2">Admin Dashboard</h1>
-          <p className="text-gray-600">Manage orders and view analytics</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="font-playfair text-4xl font-bold mb-2">Admin Dashboard</h1>
+              <p className="text-gray-600">Manage orders and view analytics</p>
+            </div>
+            <Link href="/admin/reviews">
+              <Button variant="outline">
+                <Star className="w-4 h-4 mr-2" />
+                Manage Reviews & Notifications
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Stats Cards */}
