@@ -164,6 +164,22 @@ export async function POST(request) {
       return NextResponse.json({ success: true, order })
     }
 
+    // POST /api/notify - Store email for upcoming product notifications
+    if (segments[0] === 'notify' && segments.length === 1) {
+      const body = await request.json()
+      const { db } = await connectToDatabase()
+      
+      const notification = {
+        email: body.email,
+        product: body.product || 'P-Bar',
+        createdAt: new Date().toISOString()
+      }
+      
+      await db.collection('notifications').insertOne(notification)
+      
+      return NextResponse.json({ success: true, message: 'Email saved successfully' })
+    }
+
     // POST /api/admin/auth - Admin authentication
     if (segments[0] === 'admin' && segments[1] === 'auth') {
       const { password } = await request.json()
@@ -173,6 +189,25 @@ export async function POST(request) {
       }
       
       return NextResponse.json({ success: false, message: 'Invalid password' }, { status: 401 })
+    }
+
+    // POST /api/admin/reviews - Add review (admin only)
+    if (segments[0] === 'admin' && segments[1] === 'reviews') {
+      const body = await request.json()
+      const { db } = await connectToDatabase()
+      
+      const review = {
+        productId: body.productId,
+        name: body.name,
+        rating: body.rating,
+        comment: body.comment,
+        date: new Date().toISOString(),
+        approved: true
+      }
+      
+      await db.collection('reviews').insertOne(review)
+      
+      return NextResponse.json({ success: true, review })
     }
 
     // POST /api/analytics/track - Track analytics events
