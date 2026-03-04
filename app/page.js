@@ -4,11 +4,15 @@ import Image from 'next/image'
 import Link from 'next/link'
 import Button from '@/components/Button'
 import ProductCard from '@/components/ProductCard'
-import { products } from '@/lib/products'
-import { ArrowRight, CheckCircle, Star, Brain, Focus, Heart, Zap } from 'lucide-react'
-import { useEffect } from 'react'
+import { getFeaturedProducts, getUpcomingProducts } from '@/lib/products'
+import { ArrowRight, CheckCircle, Star, Brain, Focus, Heart, Zap, Bell } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 export default function Home() {
+  const [notifyEmail, setNotifyEmail] = useState('')
+  const [notifySuccess, setNotifySuccess] = useState(false)
+  const [notifyError, setNotifyError] = useState('')
+
   useEffect(() => {
     // Track page view
     if (typeof window !== 'undefined' && window.gtag) {
@@ -32,6 +36,37 @@ export default function Home() {
     }).catch(err => console.error('Analytics error:', err))
   }, [])
 
+  const handleNotifySubmit = async (e) => {
+    e.preventDefault()
+    setNotifyError('')
+    
+    try {
+      const response = await fetch('/api/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email: notifyEmail,
+          product: 'P-Bar'
+        })
+      })
+
+      const data = await response.json()
+      
+      if (data.success) {
+        setNotifySuccess(true)
+        setNotifyEmail('')
+        setTimeout(() => setNotifySuccess(false), 3000)
+      } else {
+        setNotifyError(data.message || 'Failed to save email')
+      }
+    } catch (error) {
+      setNotifyError('An error occurred. Please try again.')
+    }
+  }
+
+  const featuredProducts = getFeaturedProducts()
+  const upcomingProducts = getUpcomingProducts()
+
   return (
     <div className="animate-fade-in">
       {/* Hero Section */}
@@ -52,7 +87,7 @@ export default function Home() {
               
               <p className="text-xl text-gray-600 leading-relaxed">
                 A premium functional chocolate that reduces anxiety and brings calm focus 
-                when it matters most. No pills. No powders. Just delicious, science-backed wellness.
+                when it matters most. 100% natural ingredients. No pills. No powders. Just delicious, science-backed wellness.
               </p>
 
               {/* CTA Buttons */}
@@ -82,7 +117,7 @@ export default function Home() {
                       <Star key={i} className="w-4 h-4 fill-[#C8A97E] text-[#C8A97E]" />
                     ))}
                   </div>
-                  <p className="text-sm text-gray-600">Loved by 10,000+ customers</p>
+                  <p className="text-sm text-gray-600">Trusted by thousands</p>
                 </div>
               </div>
             </div>
@@ -94,7 +129,7 @@ export default function Home() {
                   src="https://customer-assets.emergentagent.com/job_aba2787e-1b7f-4ca4-8c0f-6bdec7418ef0/artifacts/e2gmlali_A%20chocolate%20that%20Induces%20Calm%20and%20Focus..jpg"
                   alt="BeGood A-Bar"
                   fill
-                  className="object-contain drop-shadow-2xl"
+                  className="object-contain drop-shadow-2xl p-4"
                   priority
                 />
               </div>
@@ -118,7 +153,7 @@ export default function Home() {
               { title: 'Before Your Exam', icon: Brain, desc: 'Stay calm and focused during tests' },
               { title: 'Before Your Interview', icon: Focus, desc: 'Project confidence and clarity' },
               { title: 'Before Presentations', icon: Zap, desc: 'Speak with poise and assurance' },
-              { title: 'Stressful Days', icon: Heart, desc: 'Maintain balance and composure' }
+              { title: 'When Feeling Anxious', icon: Heart, desc: 'Restore calm and composure' }
             ].map((occasion, idx) => (
               <div key={idx} className="bg-[#F5F0E8] p-8 rounded-2xl hover:shadow-lg transition-shadow">
                 <occasion.icon className="w-12 h-12 text-[#C8A97E] mb-4" />
@@ -130,13 +165,41 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Benefits Section */}
+      {/* Key Aspects Section */}
       <section className="py-20 bg-gradient-to-br from-[#F5F0E8] to-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="font-playfair text-4xl md:text-5xl font-bold mb-4">Why Choose BeGood?</h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Premium quality you can trust
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto mb-12">
+            {[
+              '100% Natural Ingredients',
+              'No Added Sugar',
+              'No Added Preservatives',
+              'Science-Backed Formula',
+              'Quick Acting (15-20 min)',
+              'Delicious & Convenient'
+            ].map((aspect, idx) => (
+              <div key={idx} className="flex items-start space-x-4">
+                <CheckCircle className="w-6 h-6 text-[#C8A97E] flex-shrink-0 mt-1" />
+                <p className="text-lg text-gray-700">{aspect}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Benefits Section */}
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="font-playfair text-4xl md:text-5xl font-bold mb-4">Science Meets Taste</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Premium ingredients that work, wrapped in delicious dark chocolate
+              Functional ingredients that work, wrapped in delicious chocolate
             </p>
           </div>
 
@@ -146,8 +209,8 @@ export default function Home() {
               'Enhances mental clarity and focus',
               'Promotes calm without drowsiness',
               'Improves performance under pressure',
-              'Delicious and convenient',
-              'Science-backed ingredients'
+              'Shifts brain from panic to alpha-wave calm',
+              'Regulates cortisol and stress hormones'
             ].map((benefit, idx) => (
               <div key={idx} className="flex items-start space-x-4">
                 <CheckCircle className="w-6 h-6 text-[#C8A97E] flex-shrink-0 mt-1" />
@@ -159,7 +222,7 @@ export default function Home() {
       </section>
 
       {/* Product Highlight */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-gradient-to-br from-[#F5F0E8] to-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="font-playfair text-4xl md:text-5xl font-bold mb-4">Our Products</h2>
@@ -167,23 +230,15 @@ export default function Home() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {products.filter(p => p.featured).map(product => (
+            {featuredProducts.map(product => (
               <ProductCard key={product.id} product={product} />
             ))}
-          </div>
-
-          <div className="text-center mt-12">
-            <Link href="/shop">
-              <Button size="lg">
-                View All Products <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-            </Link>
           </div>
         </div>
       </section>
 
       {/* Testimonials */}
-      <section className="py-20 bg-[#F5F0E8]">
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="font-playfair text-4xl md:text-5xl font-bold mb-4">What Our Customers Say</h2>
@@ -200,17 +255,17 @@ export default function Home() {
               {
                 name: 'Rahul M.',
                 role: 'Professional',
-                comment: 'Had my job interview and was super nervous. Had this bar 30 mins before and felt noticeably more relaxed. Got the job!',
+                comment: 'Had my job interview and was super nervous. Had this bar 20 mins before and felt noticeably more relaxed. Got the job!',
                 rating: 5
               },
               {
                 name: 'Ananya K.',
                 role: 'Working Professional',
-                comment: 'Works really well for my anxiety. The dark chocolate flavor is rich and premium. Worth every penny!',
+                comment: 'Works really well for my anxiety. The chocolate is rich and delicious. Worth every rupee!',
                 rating: 5
               }
             ].map((testimonial, idx) => (
-              <div key={idx} className="bg-white p-8 rounded-2xl shadow-sm">
+              <div key={idx} className="bg-[#F5F0E8] p-8 rounded-2xl shadow-sm">
                 <div className="flex items-center space-x-1 mb-4">
                   {[...Array(testimonial.rating)].map((_, i) => (
                     <Star key={i} className="w-5 h-5 fill-[#C8A97E] text-[#C8A97E]" />
@@ -227,15 +282,63 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Upcoming Product - P-Bar */}
+      {upcomingProducts.length > 0 && (
+        <section className="py-20 bg-gradient-to-br from-[#C8A97E] to-[#B8956E] text-white">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto text-center">
+              <Bell className="w-16 h-16 mx-auto mb-6 animate-pulse" />
+              <h2 className="font-playfair text-4xl md:text-5xl font-bold mb-4">Coming Soon: P-Bar</h2>
+              <p className="text-xl mb-8 opacity-90">
+                A functional chocolate bar designed to help manage menstrual discomfort. 
+                Be the first to know when we launch!
+              </p>
+
+              {/* Notify Me Form */}
+              <form onSubmit={handleNotifySubmit} className="max-w-md mx-auto">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <input
+                    type="email"
+                    value={notifyEmail}
+                    onChange={(e) => setNotifyEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    required
+                    className="flex-1 px-6 py-4 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-white"
+                  />
+                  <Button 
+                    type="submit" 
+                    variant="secondary" 
+                    size="lg"
+                    className="whitespace-nowrap"
+                  >
+                    Notify Me
+                  </Button>
+                </div>
+                {notifySuccess && (
+                  <p className="mt-4 text-white font-semibold">✓ Thanks! We'll notify you when P-Bar launches.</p>
+                )}
+                {notifyError && (
+                  <p className="mt-4 text-red-200">{notifyError}</p>
+                )}
+              </form>
+
+              <p className="mt-6 text-sm opacity-75">
+                Join the waitlist and get exclusive early access
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-[#C8A97E] to-[#B8956E] text-white">
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-4 text-center">
           <h2 className="font-playfair text-4xl md:text-5xl font-bold mb-6">Ready To Feel Your Best?</h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90">
+          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
             Join thousands who trust BeGood for their most important moments
           </p>
           <Link href="/shop">
-            <Button variant="secondary" size="lg">
+            <Button size="lg">
               Shop Now <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
           </Link>
