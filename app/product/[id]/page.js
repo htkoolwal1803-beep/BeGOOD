@@ -80,7 +80,7 @@ export default function ProductPage() {
               src={product.image}
               alt={product.name}
               fill
-              className="object-cover"
+              className="object-contain p-4"
               priority
             />
           </div>
