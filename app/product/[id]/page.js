@@ -128,24 +128,23 @@ export default function ProductPage() {
               </div>
             )}
 
-              {/* Quantity */}
-              <div>
-                <label className="block text-sm font-semibold mb-2">Quantity</label>
-                <div className="flex items-center space-x-3">
-                  <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-10 h-10 rounded-lg border-2 border-gray-300 hover:border-[#C8A97E] transition-colors"
-                  >
-                    -
-                  </button>
-                  <span className="w-12 text-center font-semibold">{quantity}</span>
-                  <button
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="w-10 h-10 rounded-lg border-2 border-gray-300 hover:border-[#C8A97E] transition-colors"
-                  >
-                    +
-                  </button>
-                </div>
+            {/* Quantity */}
+            <div>
+              <label className="block text-sm font-semibold mb-2">Quantity</label>
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="w-10 h-10 rounded-lg border-2 border-gray-300 hover:border-[#C8A97E] transition-colors"
+                >
+                  -
+                </button>
+                <span className="w-12 text-center font-semibold">{quantity}</span>
+                <button
+                  onClick={() => setQuantity(quantity + 1)}
+                  className="w-10 h-10 rounded-lg border-2 border-gray-300 hover:border-[#C8A97E] transition-colors"
+                >
+                  +
+                </button>
               </div>
             </div>
 
