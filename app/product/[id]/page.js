@@ -14,7 +14,6 @@ export default function ProductPage() {
   const product = getProductById(params.id)
   const { addToCart } = useCart()
   
-  const [selectedVariant, setSelectedVariant] = useState(product?.variants[0] || {})
   const [quantity, setQuantity] = useState(1)
   const [added, setAdded] = useState(false)
 
@@ -26,7 +25,7 @@ export default function ProductPage() {
           items: [{
             item_id: product.id,
             item_name: product.name,
-            price: selectedVariant.price
+            price: product.price
           }]
         })
       }
@@ -44,7 +43,7 @@ export default function ProductPage() {
         })
       }).catch(err => console.error('Analytics error:', err))
     }
-  }, [product, selectedVariant])
+  }, [product])
 
   if (!product) {
     return (
@@ -60,13 +59,13 @@ export default function ProductPage() {
   }
 
   const handleAddToCart = () => {
-    addToCart(product, selectedVariant, quantity)
+    addToCart(product, { size: product.weight, price: product.price }, quantity)
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)
   }
 
   const handleBuyNow = () => {
-    addToCart(product, selectedVariant, quantity)
+    addToCart(product, { size: product.weight, price: product.price }, quantity)
     window.location.href = '/checkout'
   }
 
