@@ -209,7 +209,9 @@ export default function ProductPage() {
           {/* How It Works */}
           <section>
             <h2 className="font-playfair text-3xl font-bold mb-6">How It Works</h2>
-            <p className="text-gray-700 text-lg leading-relaxed">{product.howItWorks}</p>
+            <div className="text-gray-700 text-lg leading-relaxed whitespace-pre-line">
+              {product.howItWorks}
+            </div>
           </section>
 
           {/* When To Use */}
