@@ -117,6 +117,22 @@ export async function GET(request) {
       })
     }
 
+    // GET /api/admin/reviews - Get all reviews
+    if (segments[0] === 'admin' && segments[1] === 'reviews') {
+      const { db } = await connectToDatabase()
+      const reviews = await db.collection('reviews').find({}).sort({ date: -1 }).toArray()
+      
+      return NextResponse.json({ success: true, reviews })
+    }
+
+    // GET /api/admin/notifications - Get all notification signups
+    if (segments[0] === 'admin' && segments[1] === 'notifications') {
+      const { db } = await connectToDatabase()
+      const notifications = await db.collection('notifications').find({}).sort({ createdAt: -1 }).toArray()
+      
+      return NextResponse.json({ success: true, notifications })
+    }
+
     return NextResponse.json({ success: false, message: 'Not found' }, { status: 404 })
   } catch (error) {
     console.error('API Error:', error)
