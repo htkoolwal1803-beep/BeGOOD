@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Lock, TrendingUp, ShoppingCart, Users, MapPin, Smartphone, Monitor } from 'lucide-react'
+import { Lock, TrendingUp, ShoppingCart, Users, MapPin, Smartphone, Monitor, Star } from 'lucide-react'
 import Button from '@/components/Button'
+import Link from 'next/link'
 
 export default function AdminDashboard() {
   const [authenticated, setAuthenticated] = useState(false)
