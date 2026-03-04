@@ -1,104 +1,230 @@
+import { NextResponse } from 'next/server'
 import { MongoClient } from 'mongodb'
 import { v4 as uuidv4 } from 'uuid'
-import { NextResponse } from 'next/server'
 
 // MongoDB connection
-let client
-let db
+let cachedClient = null
+let cachedDb = null
 
-async function connectToMongo() {
-  if (!client) {
-    client = new MongoClient(process.env.MONGO_URL)
-    await client.connect()
-    db = client.db(process.env.DB_NAME)
+async function connectToDatabase() {
+  if (cachedClient && cachedDb) {
+    return { client: cachedClient, db: cachedDb }
   }
-  return db
+
+  const client = await MongoClient.connect(process.env.MONGO_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+
+  const db = client.db()
+  cachedClient = client
+  cachedDb = db
+
+  return { client, db }
 }
 
-// Helper function to handle CORS
-function handleCORS(response) {
-  response.headers.set('Access-Control-Allow-Origin', process.env.CORS_ORIGINS || '*')
-  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-  response.headers.set('Access-Control-Allow-Credentials', 'true')
-  return response
+// Helper to extract path segments
+function getPathSegments(pathname) {
+  return pathname.replace('/api/', '').split('/').filter(Boolean)
 }
 
-// OPTIONS handler for CORS
-export async function OPTIONS() {
-  return handleCORS(new NextResponse(null, { status: 200 }))
-}
-
-// Route handler function
-async function handleRoute(request, { params }) {
-  const { path = [] } = params
-  const route = `/${path.join('/')}`
-  const method = request.method
+export async function GET(request) {
+  const pathname = request.nextUrl.pathname
+  const segments = getPathSegments(pathname)
 
   try {
-    const db = await connectToMongo()
-
-    // Root endpoint - GET /api/root (since /api/ is not accessible with catch-all)
-    if (route === '/root' && method === 'GET') {
-      return handleCORS(NextResponse.json({ message: "Hello World" }))
+    // GET /api/products
+    if (segments[0] === 'products' && segments.length === 1) {
+      // In a real app, this would come from database
+      // For now, using static product data from lib/products.js
+      return NextResponse.json({
+        success: true,
+        message: 'Use client-side products from lib/products.js'
+      })
     }
-    // Root endpoint - GET /api/root (since /api/ is not accessible with catch-all)
-    if (route === '/' && method === 'GET') {
-      return handleCORS(NextResponse.json({ message: "Hello World" }))
-    }
 
-    // Status endpoints - POST /api/status
-    if (route === '/status' && method === 'POST') {
-      const body = await request.json()
+    // GET /api/orders/:id
+    if (segments[0] === 'orders' && segments.length === 2) {
+      const { db } = await connectToDatabase()
+      const order = await db.collection('orders').findOne({ orderId: segments[1] })
       
-      if (!body.client_name) {
-        return handleCORS(NextResponse.json(
-          { error: "client_name is required" }, 
-          { status: 400 }
-        ))
+      if (!order) {
+        return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 })
       }
 
-      const statusObj = {
-        id: uuidv4(),
-        client_name: body.client_name,
-        timestamp: new Date()
-      }
-
-      await db.collection('status_checks').insertOne(statusObj)
-      return handleCORS(NextResponse.json(statusObj))
+      return NextResponse.json({ success: true, order })
     }
 
-    // Status endpoints - GET /api/status
-    if (route === '/status' && method === 'GET') {
-      const statusChecks = await db.collection('status_checks')
-        .find({})
-        .limit(1000)
-        .toArray()
-
-      // Remove MongoDB's _id field from response
-      const cleanedStatusChecks = statusChecks.map(({ _id, ...rest }) => rest)
+    // GET /api/admin/orders
+    if (segments[0] === 'admin' && segments[1] === 'orders') {
+      const { db } = await connectToDatabase()
+      const orders = await db.collection('orders').find({}).sort({ createdAt: -1 }).toArray()
       
-      return handleCORS(NextResponse.json(cleanedStatusChecks))
+      return NextResponse.json({ success: true, orders })
     }
 
-    // Route not found
-    return handleCORS(NextResponse.json(
-      { error: `Route ${route} not found` }, 
-      { status: 404 }
-    ))
+    // GET /api/admin/analytics
+    if (segments[0] === 'admin' && segments[1] === 'analytics') {
+      const { db } = await connectToDatabase()
+      
+      // Get orders for revenue calculation
+      const orders = await db.collection('orders').find({}).toArray()
+      const totalRevenue = orders.reduce((sum, order) => sum + order.totalAmount, 0)
+      
+      // Get analytics events
+      const events = await db.collection('analytics').find({}).toArray()
+      
+      // Calculate funnel metrics
+      const pageViews = events.filter(e => e.event === 'page_view').length
+      const addToCartEvents = events.filter(e => e.event === 'add_to_cart').length
+      const checkoutEvents = events.filter(e => e.event === 'checkout_initiated').length
+      const completedOrders = orders.length
+      
+      // Get unique visitors (simplified - based on userAgent)
+      const uniqueVisitors = new Set(events.map(e => e.userAgent)).size
+      
+      // Get device breakdown
+      const mobileEvents = events.filter(e => e.userAgent && e.userAgent.includes('Mobile')).length
+      const desktopEvents = events.length - mobileEvents
+      
+      // Get top locations (by pincode from orders)
+      const locationCounts = {}
+      orders.forEach(order => {
+        if (order.pincode) {
+          locationCounts[order.pincode] = (locationCounts[order.pincode] || 0) + 1
+        }
+      })
+      const topLocations = Object.entries(locationCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(([pincode, count]) => ({ pincode, orders: count }))
+      
+      return NextResponse.json({
+        success: true,
+        analytics: {
+          totalOrders: orders.length,
+          totalRevenue,
+          uniqueVisitors,
+          funnel: {
+            pageViews,
+            addToCart: addToCartEvents,
+            checkout: checkoutEvents,
+            completed: completedOrders
+          },
+          devices: {
+            mobile: mobileEvents,
+            desktop: desktopEvents
+          },
+          topLocations
+        }
+      })
+    }
 
+    return NextResponse.json({ success: false, message: 'Not found' }, { status: 404 })
   } catch (error) {
     console.error('API Error:', error)
-    return handleCORS(NextResponse.json(
-      { error: "Internal server error" }, 
-      { status: 500 }
-    ))
+    return NextResponse.json({ success: false, message: error.message }, { status: 500 })
   }
 }
 
-// Export all HTTP methods
-export const GET = handleRoute
-export const POST = handleRoute
-export const PUT = handleRoute
-export const DELETE = handleRoute
-export const PATCH = handleRoute
+export async function POST(request) {
+  const pathname = request.nextUrl.pathname
+  const segments = getPathSegments(pathname)
+
+  try {
+    // POST /api/orders - Create new order
+    if (segments[0] === 'orders' && segments.length === 1) {
+      const body = await request.json()
+      const { db } = await connectToDatabase()
+      
+      const order = {
+        orderId: uuidv4(),
+        customerName: body.customerName,
+        email: body.email,
+        phone: body.phone,
+        address: body.address,
+        pincode: body.pincode,
+        products: body.products,
+        totalAmount: body.totalAmount,
+        status: 'Pending',
+        paymentId: body.paymentId || null,
+        createdAt: new Date().toISOString()
+      }
+      
+      await db.collection('orders').insertOne(order)
+      
+      // Track order completion in analytics
+      await db.collection('analytics').insertOne({
+        event: 'order_completed',
+        params: {
+          orderId: order.orderId,
+          amount: order.totalAmount
+        },
+        timestamp: new Date().toISOString(),
+        userAgent: request.headers.get('user-agent')
+      })
+      
+      return NextResponse.json({ success: true, order })
+    }
+
+    // POST /api/admin/auth - Admin authentication
+    if (segments[0] === 'admin' && segments[1] === 'auth') {
+      const { password } = await request.json()
+      
+      if (password === process.env.ADMIN_PASSWORD) {
+        return NextResponse.json({ success: true, authenticated: true })
+      }
+      
+      return NextResponse.json({ success: false, message: 'Invalid password' }, { status: 401 })
+    }
+
+    // POST /api/analytics/track - Track analytics events
+    if (segments[0] === 'analytics' && segments[1] === 'track') {
+      const body = await request.json()
+      const { db } = await connectToDatabase()
+      
+      await db.collection('analytics').insertOne({
+        event: body.event,
+        params: body.params || {},
+        timestamp: body.timestamp || new Date().toISOString(),
+        userAgent: body.userAgent || request.headers.get('user-agent')
+      })
+      
+      return NextResponse.json({ success: true })
+    }
+
+    return NextResponse.json({ success: false, message: 'Not found' }, { status: 404 })
+  } catch (error) {
+    console.error('API Error:', error)
+    return NextResponse.json({ success: false, message: error.message }, { status: 500 })
+  }
+}
+
+export async function PUT(request) {
+  const pathname = request.nextUrl.pathname
+  const segments = getPathSegments(pathname)
+
+  try {
+    // PUT /api/admin/orders/:id - Update order status
+    if (segments[0] === 'admin' && segments[1] === 'orders' && segments.length === 3) {
+      const { status } = await request.json()
+      const { db } = await connectToDatabase()
+      
+      const result = await db.collection('orders').updateOne(
+        { orderId: segments[2] },
+        { $set: { status, updatedAt: new Date().toISOString() } }
+      )
+      
+      if (result.matchedCount === 0) {
+        return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 })
+      }
+      
+      return NextResponse.json({ success: true })
+    }
+
+    return NextResponse.json({ success: false, message: 'Not found' }, { status: 404 })
+  } catch (error) {
+    console.error('API Error:', error)
+    return NextResponse.json({ success: false, message: error.message }, { status: 500 })
+  }
+}
