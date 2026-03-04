@@ -103,31 +103,30 @@ export default function ProductPage() {
               <span className="text-gray-600">({product.reviews?.length || 0} reviews)</span>
             </div>
 
-            {/* Price */}
-            <div className="text-4xl font-bold text-[#C8A97E]">₹{selectedVariant.price}</div>
-
-            {/* Variant Selection */}
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold mb-2">Size & Flavor</label>
-                <div className="grid grid-cols-2 gap-3">
-                  {product.variants.map((variant, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setSelectedVariant(variant)}
-                      className={`p-4 border-2 rounded-lg text-left transition-all ${
-                        selectedVariant === variant
-                          ? 'border-[#C8A97E] bg-[#C8A97E]/5'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <div className="font-semibold">{variant.size}</div>
-                      <div className="text-sm text-gray-600">{variant.flavor}</div>
-                      <div className="text-[#C8A97E] font-bold mt-1">₹{variant.price}</div>
-                    </button>
-                  ))}
-                </div>
+            {/* Price and Weight */}
+            <div>
+              <div className="flex items-baseline gap-3 mb-2">
+                <div className="text-4xl font-bold text-[#C8A97E]">₹{product.price}</div>
+                {product.weight && (
+                  <span className="text-xl text-gray-600">({product.weight})</span>
+                )}
               </div>
+            </div>
+
+            {/* Key Aspects */}
+            {product.keyAspects && (
+              <div className="bg-[#F5F0E8] p-6 rounded-xl">
+                <h3 className="font-semibold mb-3">Key Features:</h3>
+                <ul className="space-y-2">
+                  {product.keyAspects.map((aspect, idx) => (
+                    <li key={idx} className="flex items-center text-sm">
+                      <Check className="w-4 h-4 text-[#C8A97E] mr-2 flex-shrink-0" />
+                      {aspect}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
               {/* Quantity */}
               <div>
