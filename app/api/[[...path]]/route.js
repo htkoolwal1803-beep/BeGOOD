@@ -133,6 +133,26 @@ export async function GET(request) {
       return NextResponse.json({ success: true, notifications })
     }
 
+    // GET /api/products - Get all products
+    if (segments[0] === 'products' && segments.length === 1) {
+      const { db } = await connectToDatabase()
+      const products = await db.collection('products').find({}).toArray()
+      
+      return NextResponse.json({ success: true, products })
+    }
+
+    // GET /api/products/:id - Get single product
+    if (segments[0] === 'products' && segments.length === 2) {
+      const { db } = await connectToDatabase()
+      const product = await db.collection('products').findOne({ id: segments[1] })
+      
+      if (!product) {
+        return NextResponse.json({ success: false, message: 'Product not found' }, { status: 404 })
+      }
+      
+      return NextResponse.json({ success: true, product })
+    }
+
     return NextResponse.json({ success: false, message: 'Not found' }, { status: 404 })
   } catch (error) {
     console.error('API Error:', error)
