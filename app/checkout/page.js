@@ -7,6 +7,7 @@ import Button from '@/components/Button'
 import Image from 'next/image'
 import { Lock, Package } from 'lucide-react'
 import Link from 'next/link'
+import emailjs from '@emailjs/browser'
 
 export default function CheckoutPage() {
   const { cart, cartTotal, clearCart } = useCart()
@@ -21,6 +22,11 @@ export default function CheckoutPage() {
   })
 
   useEffect(() => {
+    // Initialize EmailJS
+    if (process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY) {
+      emailjs.init(process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY)
+    }
+
     // Track checkout initiated
     if (cart.length > 0 && typeof window !== 'undefined') {
       if (window.gtag) {
@@ -70,63 +76,155 @@ export default function CheckoutPage() {
     })
   }
 
-  const handleSubmit = async (e) => {
+  const sendConfirmationEmail = async (orderDetails) => {
+    try {
+      const orderItemsList = orderDetails.products.map(p => 
+        `${p.productName} (${p.variant.size}) x ${p.quantity} = ₹${p.price * p.quantity}`
+      ).join('\n')
+
+      const templateParams = {
+        customer_name: orderDetails.customerName,
+        order_id: orderDetails.orderId,
+        total_amount: orderDetails.totalAmount,
+        order_details: orderItemsList,
+        address: orderDetails.address,
+        pincode: orderDetails.pincode,
+        to_email: orderDetails.email
+      }
+
+      await emailjs.send(
+        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
+        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID,
+        templateParams
+      )
+
+      console.log('✅ Confirmation email sent successfully')
+    } catch (error) {
+      console.error('❌ Email sending failed:', error)
+      // Don't block the order if email fails
+    }
+  }
+
+  const handleRazorpayPayment = async (e) => {
     e.preventDefault()
+    
+    // Validation
+    if (!formData.customerName || !formData.email || !formData.phone || !formData.address || !formData.pincode) {
+      alert('Please fill all fields')
+      return
+    }
+
+    if (formData.phone.length !== 10) {
+      alert('Please enter a valid 10-digit phone number')
+      return
+    }
+
+    if (formData.pincode.length !== 6) {
+      alert('Please enter a valid 6-digit pincode')
+      return
+    }
+
     setLoading(true)
 
     try {
-      // For now, we'll create the order directly
-      // In production, you'd integrate Razorpay here
-      const orderData = {
-        ...formData,
-        products: cart.map(item => ({
-          productId: item.id,
-          productName: item.name,
-          variant: item.variant,
-          quantity: item.quantity,
-          price: item.variant.price
-        })),
-        totalAmount: cartTotal
-      }
-
-      const response = await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orderData)
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        // Track purchase
-        if (typeof window !== 'undefined' && window.gtag) {
-          window.gtag('event', 'purchase', {
-            transaction_id: data.order.orderId,
-            value: cartTotal,
-            currency: 'INR',
-            items: cart.map(item => ({
-              item_id: item.id,
-              item_name: item.name,
-              price: item.variant.price,
-              quantity: item.quantity
-            }))
-          })
-        }
-
-        // Send confirmation email (EmailJS integration would go here)
-        // For now, just console log
-        console.log('Order placed:', data.order.orderId)
-
-        // Clear cart and redirect
-        clearCart()
-        router.push(`/order/${data.order.orderId}`)
-      } else {
-        alert('Failed to place order. Please try again.')
+      // Check if Razorpay is loaded
+      if (typeof window.Razorpay === 'undefined') {
+        alert('Payment gateway is loading. Please try again in a moment.')
         setLoading(false)
+        return
       }
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: cartTotal * 100, // Razorpay expects amount in paise
+        currency: 'INR',
+        name: 'BeGood',
+        description: 'Functional Chocolate Order',
+        image: 'https://customer-assets.emergentagent.com/job_aba2787e-1b7f-4ca4-8c0f-6bdec7418ef0/artifacts/1q24108e_WhatsApp_Image_2025-12-21_at_2.03.26_PM-removebg-preview.png',
+        prefill: {
+          name: formData.customerName,
+          email: formData.email,
+          contact: formData.phone
+        },
+        theme: {
+          color: '#C8A97E'
+        },
+        handler: async function (response) {
+          // Payment successful
+          const paymentId = response.razorpay_payment_id
+
+          // Create order in database
+          const orderData = {
+            ...formData,
+            products: cart.map(item => ({
+              productId: item.id,
+              productName: item.name,
+              variant: item.variant,
+              quantity: item.quantity,
+              price: item.variant.price
+            })),
+            totalAmount: cartTotal,
+            paymentId: paymentId
+          }
+
+          try {
+            const orderResponse = await fetch('/api/orders', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(orderData)
+            })
+
+            const orderResult = await orderResponse.json()
+
+            if (orderResult.success) {
+              // Track purchase
+              if (window.gtag) {
+                window.gtag('event', 'purchase', {
+                  transaction_id: orderResult.order.orderId,
+                  value: cartTotal,
+                  currency: 'INR',
+                  items: cart.map(item => ({
+                    item_id: item.id,
+                    item_name: item.name,
+                    price: item.variant.price,
+                    quantity: item.quantity
+                  }))
+                })
+              }
+
+              // Send confirmation email
+              await sendConfirmationEmail(orderResult.order)
+
+              // Clear cart and redirect
+              clearCart()
+              router.push(`/order/${orderResult.order.orderId}`)
+            } else {
+              alert('Failed to create order. Please contact support with payment ID: ' + paymentId)
+            }
+          } catch (error) {
+            console.error('Order creation error:', error)
+            alert('Order processing error. Your payment was successful. Payment ID: ' + paymentId + '. Please contact support.')
+          }
+
+          setLoading(false)
+        },
+        modal: {
+          ondismiss: function() {
+            setLoading(false)
+          }
+        }
+      }
+
+      const razorpay = new window.Razorpay(options)
+      razorpay.on('payment.failed', function (response) {
+        alert('Payment failed: ' + response.error.description)
+        setLoading(false)
+      })
+      razorpay.open()
+
     } catch (error) {
-      console.error('Checkout error:', error)
-      alert('An error occurred. Please try again.')
+      console.error('Razorpay error:', error)
+      alert('Payment initialization failed. Please try again.')
       setLoading(false)
     }
   }
@@ -145,7 +243,7 @@ export default function CheckoutPage() {
                 <h2 className="font-playfair text-2xl font-bold">Shipping Information</h2>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleRazorpayPayment} className="space-y-4">
                 <div>
                   <label className="block text-sm font-semibold mb-2">Full Name *</label>
                   <input
@@ -181,6 +279,7 @@ export default function CheckoutPage() {
                     onChange={handleChange}
                     required
                     pattern="[0-9]{10}"
+                    maxLength="10"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C8A97E]"
                     placeholder="10-digit mobile number"
                   />
@@ -208,6 +307,7 @@ export default function CheckoutPage() {
                     onChange={handleChange}
                     required
                     pattern="[0-9]{6}"
+                    maxLength="6"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C8A97E]"
                     placeholder="6-digit pincode"
                   />
@@ -220,10 +320,10 @@ export default function CheckoutPage() {
                     className="w-full"
                     disabled={loading}
                   >
-                    {loading ? 'Processing...' : `Place Order - ₹${cartTotal}`}
+                    {loading ? 'Processing...' : `Pay ₹${cartTotal} with Razorpay`}
                   </Button>
                   <p className="text-xs text-gray-500 text-center mt-3">
-                    By placing this order, you agree to our Terms & Conditions
+                    Secure payment powered by Razorpay. By placing this order, you agree to our Terms & Conditions
                   </p>
                 </div>
               </form>
@@ -250,7 +350,7 @@ export default function CheckoutPage() {
                     <div className="flex-1">
                       <p className="font-semibold text-sm">{item.name}</p>
                       <p className="text-xs text-gray-600">
-                        {item.variant.size} - {item.variant.flavor}
+                        {item.variant.size}
                       </p>
                       <p className="text-xs text-gray-600">Qty: {item.quantity}</p>
                     </div>
@@ -281,7 +381,7 @@ export default function CheckoutPage() {
               <div className="mt-6 pt-6 border-t border-gray-300 space-y-2 text-sm text-gray-600">
                 <p className="flex items-center">
                   <Lock className="w-4 h-4 mr-2 text-green-600" />
-                  Secure Payment
+                  Secure Payment via Razorpay
                 </p>
                 <p className="flex items-center">
                   <span className="text-green-600 mr-2">✓</span>
