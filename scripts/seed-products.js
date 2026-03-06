@@ -108,7 +108,7 @@ const products = [
 async function seedProducts() {
   try {
     console.log('Connecting to MongoDB...')
-    const client = await MongoClient.connect(process.env.MONGO_URL)
+    const client = await MongoClient.connect(MONGO_URL)
     const db = client.db()
 
     console.log('Checking existing products...')
