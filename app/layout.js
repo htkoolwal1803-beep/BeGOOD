@@ -9,9 +9,9 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' })
 
 export const metadata = {
-  title: 'BeGood - Just Feel It | Premium Functional Chocolate',
-  description: 'A Functional Chocolate Bar that reduces anxiety and induces calm and focus. Perfect for exams, interviews, presentations, and stressful situations.',
-  keywords: 'functional chocolate, anxiety relief, calm, focus, wellness, ashwagandha, l-theanine',
+  title: 'BeGood - Just Feel It | Balance Your Emotions',
+  description: 'The only brand that helps you balance your emotions in the most convenient and fast way. Science-backed functional foods that work when you need them most.',
+  keywords: 'functional chocolate, anxiety relief, calm, focus, wellness, emotional balance, natural ingredients',
 }
 
 export default function RootLayout({ children }) {
@@ -34,6 +34,11 @@ export default function RootLayout({ children }) {
               gtag('config', '${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}');
             `,
           }}
+        />
+        {/* Razorpay Script */}
+        <Script
+          src="https://checkout.razorpay.com/v1/checkout.js"
+          strategy="lazyOnload"
         />
       </head>
       <body className={`${inter.variable} ${playfair.variable} antialiased`}>
