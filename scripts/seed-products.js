@@ -4,7 +4,9 @@
 // Run this once: node /app/scripts/seed-products.js
 
 const { MongoClient } = require('mongodb')
-require('dotenv').config({ path: '/app/.env' })
+
+// Read MONGO_URL from environment or use default
+const MONGO_URL = process.env.MONGO_URL || 'mongodb://localhost:27017/begood'
 
 const products = [
   {
