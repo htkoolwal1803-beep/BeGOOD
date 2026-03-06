@@ -69,6 +69,50 @@ export default function Home() {
 
   return (
     <div className="animate-fade-in">
+      {/* Brand Introduction Section */}
+      <section className="bg-white py-16 border-b border-gray-200">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center space-y-6">
+            <div className="inline-block px-6 py-2 bg-[#F5F0E8] rounded-full mb-4">
+              <span className="text-[#C8A97E] font-semibold text-sm">Introducing BeGood</span>
+            </div>
+            
+            <h1 className="font-playfair text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
+              Balance Your Emotions,
+              <br />
+              <span className="text-[#C8A97E]">The Convenient Way</span>
+            </h1>
+            
+            <p className="text-xl md:text-2xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
+              The only brand that helps you balance your emotions in the most convenient and fast way
+            </p>
+
+            <p className="text-lg text-gray-600 leading-relaxed max-w-2xl mx-auto">
+              We create science-backed functional foods that help you manage your emotions naturally. 
+              No therapy sessions, no complicated routines—just convenient, delicious products that work when you need them most.
+            </p>
+
+            <div className="grid md:grid-cols-3 gap-6 mt-12 max-w-3xl mx-auto">
+              <div className="text-center">
+                <div className="text-3xl mb-2">🧠</div>
+                <h3 className="font-semibold mb-1">Science-Backed</h3>
+                <p className="text-sm text-gray-600">Research-based formulations</p>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl mb-2">⚡</div>
+                <h3 className="font-semibold mb-1">Fast Acting</h3>
+                <p className="text-sm text-gray-600">Works in 15-20 minutes</p>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl mb-2">🍫</div>
+                <h3 className="font-semibold mb-1">Delicious</h3>
+                <p className="text-sm text-gray-600">Tastes like premium chocolate</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-[#F5F0E8] to-white py-20 md:py-32 overflow-hidden">
         <div className="container mx-auto px-4">
