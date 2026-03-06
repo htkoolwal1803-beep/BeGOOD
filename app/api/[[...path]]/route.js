@@ -246,6 +246,27 @@ export async function POST(request) {
       return NextResponse.json({ success: true, review })
     }
 
+    // POST /api/admin/products - Add new product (admin only)
+    if (segments[0] === 'admin' && segments[1] === 'products') {
+      const body = await request.json()
+      const { db } = await connectToDatabase()
+      
+      // Check if product ID already exists
+      const existing = await db.collection('products').findOne({ id: body.id })
+      if (existing) {
+        return NextResponse.json({ success: false, message: 'Product ID already exists' }, { status: 400 })
+      }
+      
+      const product = {
+        ...body,
+        createdAt: new Date().toISOString()
+      }
+      
+      await db.collection('products').insertOne(product)
+      
+      return NextResponse.json({ success: true, product })
+    }
+
     // POST /api/analytics/track - Track analytics events
     if (segments[0] === 'analytics' && segments[1] === 'track') {
       const body = await request.json()
