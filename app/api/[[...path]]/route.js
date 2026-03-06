@@ -311,6 +311,51 @@ export async function PUT(request) {
       return NextResponse.json({ success: true })
     }
 
+    // PUT /api/admin/products/:id - Update product (admin only)
+    if (segments[0] === 'admin' && segments[1] === 'products' && segments.length === 3) {
+      const body = await request.json()
+      const { db } = await connectToDatabase()
+      
+      const { _id, ...updateData } = body
+      updateData.updatedAt = new Date().toISOString()
+      
+      const result = await db.collection('products').updateOne(
+        { id: segments[2] },
+        { $set: updateData }
+      )
+      
+      if (result.matchedCount === 0) {
+        return NextResponse.json({ success: false, message: 'Product not found' }, { status: 404 })
+      }
+      
+      return NextResponse.json({ success: true })
+    }
+
+    return NextResponse.json({ success: false, message: 'Not found' }, { status: 404 })
+  } catch (error) {
+    console.error('API Error:', error)
+    return NextResponse.json({ success: false, message: error.message }, { status: 500 })
+  }
+}
+
+export async function DELETE(request) {
+  const pathname = request.nextUrl.pathname
+  const segments = getPathSegments(pathname)
+
+  try {
+    // DELETE /api/admin/products/:id - Delete product (admin only)
+    if (segments[0] === 'admin' && segments[1] === 'products' && segments.length === 3) {
+      const { db } = await connectToDatabase()
+      
+      const result = await db.collection('products').deleteOne({ id: segments[2] })
+      
+      if (result.deletedCount === 0) {
+        return NextResponse.json({ success: false, message: 'Product not found' }, { status: 404 })
+      }
+      
+      return NextResponse.json({ success: true, message: 'Product deleted successfully' })
+    }
+
     return NextResponse.json({ success: false, message: 'Not found' }, { status: 404 })
   } catch (error) {
     console.error('API Error:', error)
