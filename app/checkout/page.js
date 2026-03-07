@@ -5,9 +5,10 @@ import { useCart } from '@/lib/CartContext'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/Button'
 import Image from 'next/image'
-import { Lock, Package } from 'lucide-react'
+import { Lock, Package, Truck } from 'lucide-react'
 import Link from 'next/link'
 import emailjs from '@emailjs/browser'
+import { calculateShipping, calculateOrderTotal, SHIPPING_CONFIG } from '@/lib/constants'
 
 export default function CheckoutPage() {
   const { cart, cartTotal, clearCart } = useCart()
