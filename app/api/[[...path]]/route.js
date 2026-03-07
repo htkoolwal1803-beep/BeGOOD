@@ -55,7 +55,7 @@ export async function GET(request) {
     // GET /api/admin/orders
     if (segments[0] === 'admin' && segments[1] === 'orders') {
       const { db } = await connectToDatabase()
-      const orders = await db.collection('orders').find({}).sort({ createdAt: -1 }).toArray()
+      const orders = await db.collection('orders').find({}).sort({ createdAt: -1 }).limit(500).toArray()
       
       return NextResponse.json({ success: true, orders })
     }
@@ -64,12 +64,12 @@ export async function GET(request) {
     if (segments[0] === 'admin' && segments[1] === 'analytics') {
       const { db } = await connectToDatabase()
       
-      // Get orders for revenue calculation
-      const orders = await db.collection('orders').find({}).toArray()
+      // Get orders for revenue calculation (limit to recent 1000)
+      const orders = await db.collection('orders').find({}).sort({ createdAt: -1 }).limit(1000).toArray()
       const totalRevenue = orders.reduce((sum, order) => sum + order.totalAmount, 0)
       
-      // Get analytics events
-      const events = await db.collection('analytics').find({}).toArray()
+      // Get analytics events (limit to recent 5000)
+      const events = await db.collection('analytics').find({}).sort({ timestamp: -1 }).limit(5000).toArray()
       
       // Calculate funnel metrics
       const pageViews = events.filter(e => e.event === 'page_view').length
@@ -120,7 +120,7 @@ export async function GET(request) {
     // GET /api/admin/reviews - Get all reviews
     if (segments[0] === 'admin' && segments[1] === 'reviews') {
       const { db } = await connectToDatabase()
-      const reviews = await db.collection('reviews').find({}).sort({ date: -1 }).toArray()
+      const reviews = await db.collection('reviews').find({}).sort({ date: -1 }).limit(200).toArray()
       
       return NextResponse.json({ success: true, reviews })
     }
@@ -128,7 +128,7 @@ export async function GET(request) {
     // GET /api/admin/notifications - Get all notification signups
     if (segments[0] === 'admin' && segments[1] === 'notifications') {
       const { db } = await connectToDatabase()
-      const notifications = await db.collection('notifications').find({}).sort({ createdAt: -1 }).toArray()
+      const notifications = await db.collection('notifications').find({}).sort({ createdAt: -1 }).limit(500).toArray()
       
       return NextResponse.json({ success: true, notifications })
     }
