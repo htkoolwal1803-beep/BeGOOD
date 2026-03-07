@@ -255,9 +255,8 @@ def test_delete_address(address_id):
         print("❌ No address ID provided for deletion")
         return False
     
-    # URL encode the phone number for query parameter
-    encoded_phone = quote(TEST_PHONE, safe='')
-    params = {"phone": encoded_phone}
+    # Pass the phone number as-is (not URL encoded) in query parameter
+    params = {"phone": TEST_PHONE}
     
     status, response = make_request("DELETE", f"/users/addresses/{address_id}", params=params)
     
