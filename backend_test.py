@@ -318,6 +318,107 @@ def run_all_tests():
     # Test 4: Add Address
     success, address_id = test_add_address()
     results.append(("Add Address", success))
+def test_user_profile_update_upsert():
+    """Test User Profile Update API with upsert functionality (from review request)"""
+    
+    print("\n🧪 TESTING USER PROFILE UPDATE API (UPSERT FUNCTIONALITY)")
+    print("=" * 60)
+    
+    # Test phone number for all tests
+    test_phone = UPSERT_TEST_PHONE
+    encoded_phone = quote(test_phone, safe='')
+    
+    try:
+        # Test 1: Create New User via Update (Upsert)
+        print("\n1️⃣ TEST: Create New User via Update (Upsert)")
+        print("-" * 50)
+        
+        # First, clean up any existing user
+        get_response = make_request("GET", f"/users/{encoded_phone}")
+        if get_response and get_response.get('success'):
+            print(f"⚠️  User already exists, testing update functionality")
+        
+        # Test creating new user via update endpoint
+        response = make_request("POST", "/users/update", UPSERT_CREATE_DATA)
+        if not response or not response.get('success'):
+            print(f"❌ FAILED: Could not create/update user via update endpoint")
+            return False
+        
+        user = response['user']
+        print(f"✅ SUCCESS: User created/updated successfully")
+        print(f"   - User ID: {user.get('id')}")
+        print(f"   - Name: {user.get('name')}")
+        print(f"   - Email: {user.get('email')}")
+        print(f"   - Age: {user.get('age')}")
+        print(f"   - Phone: {user.get('phone')}")
+        if 'isNewUser' in response:
+            print(f"   - Is New User: {response['isNewUser']}")
+        
+        # Test 2: Update Existing User
+        print("\n2️⃣ TEST: Update Existing User")
+        print("-" * 50)
+        
+        response = make_request("POST", "/users/update", UPSERT_UPDATE_DATA)
+        if not response or not response.get('success'):
+            print(f"❌ FAILED: Could not update existing user")
+            return False
+        
+        user = response['user']
+        print(f"✅ SUCCESS: User updated successfully")
+        print(f"   - Name: {user.get('name')}")
+        print(f"   - Email: {user.get('email')}")
+        print(f"   - Age: {user.get('age')}")
+        print(f"   - Updated At: {user.get('updatedAt')}")
+        
+        # Verify the update worked
+        if user.get('name') == "Updated Name" and user.get('email') == "updated@email.com" and user.get('age') == 30:
+            print(f"✅ VERIFIED: All fields updated correctly")
+        else:
+            print(f"❌ FAILED: Fields not updated correctly")
+            return False
+        
+        # Test 3: Get User to Verify
+        print("\n3️⃣ TEST: Get User to Verify Updates")
+        print("-" * 50)
+        
+        response = make_request("GET", f"/users/{encoded_phone}")
+        if not response or not response.get('success'):
+            print(f"❌ FAILED: Could not retrieve user")
+            return False
+        
+        user = response['user']
+        print(f"✅ SUCCESS: User retrieved successfully")
+        print(f"   - Name: {user.get('name')}")
+        print(f"   - Email: {user.get('email')}")
+        print(f"   - Age: {user.get('age')}")
+        
+        # Verify the name is "Updated Name"
+        if user.get('name') == "Updated Name":
+            print(f"✅ VERIFIED: User has updated name 'Updated Name'")
+        else:
+            print(f"❌ FAILED: Expected name 'Updated Name', got '{user.get('name')}'")
+            return False
+        
+        # Test 4: Test with Empty Phone (Should Fail)
+        print("\n4️⃣ TEST: Empty Phone Number (Should Fail)")
+        print("-" * 50)
+        
+        invalid_data = {"name": "No Phone User"}
+        
+        # This should return None due to 400 status code
+        response = make_request("POST", "/users/update", invalid_data)
+        if response is None:
+            print(f"✅ SUCCESS: Correctly rejected request without phone number (400 status)")
+        else:
+            print(f"❌ FAILED: Should have rejected request without phone number")
+            return False
+        
+        print("\n🎉 ALL UPSERT TESTS PASSED!")
+        return True
+        
+    except Exception as e:
+        print(f"❌ ERROR in upsert tests: {str(e)}")
+        return False
     
     # Test 5: Update Address (only if we have an address ID)
     if address_id:
