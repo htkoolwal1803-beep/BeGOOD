@@ -13,11 +13,12 @@ import { calculateShipping, calculateOrderTotal, SHIPPING_CONFIG } from '@/lib/c
 
 export default function CheckoutPage() {
   const { cart, cartTotal, clearCart } = useCart()
-  const { user, userProfile, sendOTP, verifyOTP, loading: authLoading, updateUserProfile } = useAuth()
+  const { user, userProfile, sendOTP, verifyOTP, loading: authLoading, updateUserProfile, refreshProfile } = useAuth()
   const router = useRouter()
   
   const [loading, setLoading] = useState(false)
-  const [step, setStep] = useState('auth') // 'auth' | 'otp' | 'profile' | 'address' | 'payment'
+  const [step, setStep] = useState('loading') // 'loading' | 'auth' | 'otp' | 'profile' | 'address' | 'payment'
+  const [initialized, setInitialized] = useState(false)
   
   // Auth state
   const [phone, setPhone] = useState('')
