@@ -189,8 +189,9 @@ export default function CheckoutPage() {
               if (window.gtag) {
                 window.gtag('event', 'purchase', {
                   transaction_id: orderResult.order.orderId,
-                  value: cartTotal,
+                  value: orderTotal,
                   currency: 'INR',
+                  shipping: shippingFee,
                   items: cart.map(item => ({
                     item_id: item.id,
                     item_name: item.name,
