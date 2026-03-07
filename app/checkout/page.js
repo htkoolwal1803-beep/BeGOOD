@@ -22,6 +22,11 @@ export default function CheckoutPage() {
     pincode: ''
   })
 
+  // Calculate shipping and order total
+  const shippingFee = calculateShipping(cartTotal)
+  const orderTotal = calculateOrderTotal(cartTotal)
+  const amountToFreeShipping = SHIPPING_CONFIG.FREE_SHIPPING_THRESHOLD - cartTotal
+
   useEffect(() => {
     // Initialize EmailJS
     if (process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY) {
