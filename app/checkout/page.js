@@ -329,7 +329,7 @@ export default function CheckoutPage() {
                     className="w-full"
                     disabled={loading}
                   >
-                    {loading ? 'Processing...' : `Pay ₹${cartTotal} with Razorpay`}
+                    {loading ? 'Processing...' : `Pay ₹${orderTotal} with Razorpay`}
                   </Button>
                   <p className="text-xs text-gray-500 text-center mt-3">
                     Secure payment powered by Razorpay. By placing this order, you agree to our Terms & Conditions
