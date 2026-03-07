@@ -133,6 +133,44 @@ export async function GET(request) {
       return NextResponse.json({ success: true, notifications })
     }
 
+    // GET /api/users/:phone - Get user by phone number
+    if (segments[0] === 'users' && segments.length === 2) {
+      const { db } = await connectToDatabase()
+      const phone = decodeURIComponent(segments[1])
+      const user = await db.collection('users').findOne({ phone })
+      
+      if (!user) {
+        return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 })
+      }
+      
+      return NextResponse.json({ success: true, user })
+    }
+
+    // GET /api/users/:phone/orders - Get user's order history
+    if (segments[0] === 'users' && segments.length === 3 && segments[2] === 'orders') {
+      const { db } = await connectToDatabase()
+      const phone = decodeURIComponent(segments[1])
+      
+      // Find orders by phone number
+      const orders = await db.collection('orders').find({ phone }).sort({ createdAt: -1 }).toArray()
+      
+      return NextResponse.json({ success: true, orders })
+    }
+
+    // GET /api/users/:phone/addresses - Get user's saved addresses
+    if (segments[0] === 'users' && segments.length === 3 && segments[2] === 'addresses') {
+      const { db } = await connectToDatabase()
+      const phone = decodeURIComponent(segments[1])
+      
+      const user = await db.collection('users').findOne({ phone })
+      
+      if (!user) {
+        return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 })
+      }
+      
+      return NextResponse.json({ success: true, addresses: user.addresses || [] })
+    }
+
     // GET /api/products - Get all products
     if (segments[0] === 'products' && segments.length === 1) {
       const { db } = await connectToDatabase()
