@@ -174,15 +174,18 @@ backend:
 
   - task: "Shipping Fee Calculation"
     implemented: true
-    working: "NA"
+    working: true
     file: "lib/constants.js"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implemented calculateShipping() and calculateOrderTotal() functions with ₹50 fee below ₹500"
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Shipping fee calculation logic working correctly. ₹50 fee for orders below ₹500, free shipping for orders ₹500 and above. All test cases passed including edge cases at ₹499 and ₹500 thresholds."
 
 frontend:
   - task: "Login Page with OTP"
