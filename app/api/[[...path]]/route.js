@@ -483,6 +483,50 @@ export async function PUT(request) {
       return NextResponse.json({ success: true })
     }
 
+    // PUT /api/users/addresses/:addressId - Update address
+    if (segments[0] === 'users' && segments[1] === 'addresses' && segments.length === 3) {
+      const body = await request.json()
+      const { db } = await connectToDatabase()
+      
+      const { phone, address } = body
+      const addressId = segments[2]
+      
+      if (!phone) {
+        return NextResponse.json({ success: false, message: 'Phone is required' }, { status: 400 })
+      }
+      
+      // If setting as default, remove default from all addresses first
+      if (address.isDefault) {
+        await db.collection('users').updateOne(
+          { phone },
+          { $set: { 'addresses.$[].isDefault': false } }
+        )
+      }
+      
+      // Update the specific address
+      const result = await db.collection('users').updateOne(
+        { phone, 'addresses.id': addressId },
+        { 
+          $set: { 
+            'addresses.$.label': address.label,
+            'addresses.$.fullAddress': address.fullAddress,
+            'addresses.$.pincode': address.pincode,
+            'addresses.$.city': address.city,
+            'addresses.$.state': address.state,
+            'addresses.$.isDefault': address.isDefault,
+            'addresses.$.updatedAt': new Date().toISOString()
+          }
+        }
+      )
+      
+      if (result.matchedCount === 0) {
+        return NextResponse.json({ success: false, message: 'Address not found' }, { status: 404 })
+      }
+      
+      const updatedUser = await db.collection('users').findOne({ phone })
+      return NextResponse.json({ success: true, addresses: updatedUser.addresses })
+    }
+
     return NextResponse.json({ success: false, message: 'Not found' }, { status: 404 })
   } catch (error) {
     console.error('API Error:', error)
