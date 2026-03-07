@@ -366,7 +366,7 @@ export async function POST(request) {
       return NextResponse.json({ success: true, user: newUser, isNewUser: true })
     }
 
-    // POST /api/users/update - Update user profile
+    // POST /api/users/update - Update user profile (upsert - creates if not exists)
     if (segments[0] === 'users' && segments[1] === 'update') {
       const body = await request.json()
       const { db } = await connectToDatabase()
@@ -377,22 +377,38 @@ export async function POST(request) {
         return NextResponse.json({ success: false, message: 'Phone number is required' }, { status: 400 })
       }
       
-      const updateFields = { updatedAt: new Date().toISOString() }
-      if (name !== undefined) updateFields.name = name
-      if (email !== undefined) updateFields.email = email
-      if (age !== undefined) updateFields.age = age
+      // Check if user exists
+      const existingUser = await db.collection('users').findOne({ phone })
       
-      const result = await db.collection('users').updateOne(
-        { phone },
-        { $set: updateFields }
-      )
-      
-      if (result.matchedCount === 0) {
-        return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 })
+      if (existingUser) {
+        // Update existing user
+        const updateFields = { updatedAt: new Date().toISOString() }
+        if (name !== undefined) updateFields.name = name
+        if (email !== undefined) updateFields.email = email
+        if (age !== undefined) updateFields.age = age
+        
+        await db.collection('users').updateOne(
+          { phone },
+          { $set: updateFields }
+        )
+        
+        const updatedUser = await db.collection('users').findOne({ phone })
+        return NextResponse.json({ success: true, user: updatedUser })
+      } else {
+        // Create new user if doesn't exist (upsert)
+        const newUser = {
+          id: uuidv4(),
+          phone,
+          name: name || '',
+          email: email || '',
+          age: age || null,
+          addresses: [],
+          createdAt: new Date().toISOString()
+        }
+        
+        await db.collection('users').insertOne(newUser)
+        return NextResponse.json({ success: true, user: newUser, isNewUser: true })
       }
-      
-      const updatedUser = await db.collection('users').findOne({ phone })
-      return NextResponse.json({ success: true, user: updatedUser })
     }
 
     // POST /api/users/addresses - Add new address
