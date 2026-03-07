@@ -142,7 +142,7 @@ export default function CheckoutPage() {
 
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: cartTotal * 100, // Razorpay expects amount in paise
+        amount: orderTotal * 100, // Razorpay expects amount in paise
         currency: 'INR',
         name: 'BeGood',
         description: 'Functional Chocolate Order',
@@ -169,7 +169,9 @@ export default function CheckoutPage() {
               quantity: item.quantity,
               price: item.variant.price
             })),
-            totalAmount: cartTotal,
+            subtotal: cartTotal,
+            shippingFee: shippingFee,
+            totalAmount: orderTotal,
             paymentId: paymentId
           }
 
