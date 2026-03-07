@@ -84,7 +84,18 @@ export default function CheckoutPage() {
 
   // Check if user is already logged in
   useEffect(() => {
-    if (!authLoading && user && userProfile) {
+    // Wait for auth to finish loading
+    if (authLoading) {
+      setStep('loading')
+      return
+    }
+    
+    // Only run initialization once
+    if (initialized) return
+    setInitialized(true)
+    
+    if (user && userProfile) {
+      // User is logged in, set their data
       setProfileData({
         name: userProfile.name || '',
         email: userProfile.email || '',
@@ -92,10 +103,11 @@ export default function CheckoutPage() {
       })
       setSavedAddresses(userProfile.addresses || [])
       
-      // Skip to address step if profile is complete
-      if (userProfile.name) {
+      // Skip to appropriate step based on profile completeness
+      if (userProfile.name && userProfile.email) {
         if (userProfile.addresses?.length > 0) {
-          setSelectedAddressId(userProfile.addresses.find(a => a.isDefault)?.id || userProfile.addresses[0].id)
+          const defaultAddr = userProfile.addresses.find(a => a.isDefault) || userProfile.addresses[0]
+          setSelectedAddressId(defaultAddr.id)
           setStep('payment')
         } else {
           setUseNewAddress(true)
@@ -104,8 +116,14 @@ export default function CheckoutPage() {
       } else {
         setStep('profile')
       }
+    } else if (user && !userProfile) {
+      // User authenticated but no profile yet
+      setStep('profile')
+    } else {
+      // No user, show login
+      setStep('auth')
     }
-  }, [user, userProfile, authLoading])
+  }, [authLoading, user, userProfile, initialized])
 
   // Empty cart view
   if (cart.length === 0) {
