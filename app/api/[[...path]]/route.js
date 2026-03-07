@@ -552,6 +552,31 @@ export async function DELETE(request) {
       return NextResponse.json({ success: true, message: 'Product deleted successfully' })
     }
 
+    // DELETE /api/users/addresses/:addressId - Delete address
+    if (segments[0] === 'users' && segments[1] === 'addresses' && segments.length === 3) {
+      const { searchParams } = new URL(request.url)
+      const phone = searchParams.get('phone')
+      const addressId = segments[2]
+      
+      if (!phone) {
+        return NextResponse.json({ success: false, message: 'Phone is required' }, { status: 400 })
+      }
+      
+      const { db } = await connectToDatabase()
+      
+      const result = await db.collection('users').updateOne(
+        { phone },
+        { $pull: { addresses: { id: addressId } } }
+      )
+      
+      if (result.matchedCount === 0) {
+        return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 })
+      }
+      
+      const updatedUser = await db.collection('users').findOne({ phone })
+      return NextResponse.json({ success: true, addresses: updatedUser.addresses })
+    }
+
     return NextResponse.json({ success: false, message: 'Not found' }, { status: 404 })
   } catch (error) {
     console.error('API Error:', error)
