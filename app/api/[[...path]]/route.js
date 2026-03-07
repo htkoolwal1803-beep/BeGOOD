@@ -320,6 +320,120 @@ export async function POST(request) {
       return NextResponse.json({ success: true })
     }
 
+    // POST /api/users - Create or update user (after OTP verification)
+    if (segments[0] === 'users' && segments.length === 1) {
+      const body = await request.json()
+      const { db } = await connectToDatabase()
+      
+      const { phone, name, email, age } = body
+      
+      if (!phone) {
+        return NextResponse.json({ success: false, message: 'Phone number is required' }, { status: 400 })
+      }
+      
+      // Check if user already exists
+      const existingUser = await db.collection('users').findOne({ phone })
+      
+      if (existingUser) {
+        // Update existing user
+        await db.collection('users').updateOne(
+          { phone },
+          { 
+            $set: { 
+              name: name || existingUser.name,
+              email: email || existingUser.email,
+              age: age || existingUser.age,
+              updatedAt: new Date().toISOString()
+            }
+          }
+        )
+        const updatedUser = await db.collection('users').findOne({ phone })
+        return NextResponse.json({ success: true, user: updatedUser, isNewUser: false })
+      }
+      
+      // Create new user
+      const newUser = {
+        id: uuidv4(),
+        phone,
+        name: name || '',
+        email: email || '',
+        age: age || null,
+        addresses: [],
+        createdAt: new Date().toISOString()
+      }
+      
+      await db.collection('users').insertOne(newUser)
+      return NextResponse.json({ success: true, user: newUser, isNewUser: true })
+    }
+
+    // POST /api/users/update - Update user profile
+    if (segments[0] === 'users' && segments[1] === 'update') {
+      const body = await request.json()
+      const { db } = await connectToDatabase()
+      
+      const { phone, name, email, age } = body
+      
+      if (!phone) {
+        return NextResponse.json({ success: false, message: 'Phone number is required' }, { status: 400 })
+      }
+      
+      const updateFields = { updatedAt: new Date().toISOString() }
+      if (name !== undefined) updateFields.name = name
+      if (email !== undefined) updateFields.email = email
+      if (age !== undefined) updateFields.age = age
+      
+      const result = await db.collection('users').updateOne(
+        { phone },
+        { $set: updateFields }
+      )
+      
+      if (result.matchedCount === 0) {
+        return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 })
+      }
+      
+      const updatedUser = await db.collection('users').findOne({ phone })
+      return NextResponse.json({ success: true, user: updatedUser })
+    }
+
+    // POST /api/users/addresses - Add new address
+    if (segments[0] === 'users' && segments[1] === 'addresses') {
+      const body = await request.json()
+      const { db } = await connectToDatabase()
+      
+      const { phone, address } = body
+      
+      if (!phone || !address) {
+        return NextResponse.json({ success: false, message: 'Phone and address are required' }, { status: 400 })
+      }
+      
+      const newAddress = {
+        id: uuidv4(),
+        label: address.label || 'Home',
+        fullAddress: address.fullAddress,
+        pincode: address.pincode,
+        city: address.city || '',
+        state: address.state || '',
+        isDefault: address.isDefault || false,
+        createdAt: new Date().toISOString()
+      }
+      
+      // If this is set as default, remove default from other addresses
+      if (newAddress.isDefault) {
+        await db.collection('users').updateOne(
+          { phone },
+          { $set: { 'addresses.$[].isDefault': false } }
+        )
+      }
+      
+      await db.collection('users').updateOne(
+        { phone },
+        { $push: { addresses: newAddress } }
+      )
+      
+      const updatedUser = await db.collection('users').findOne({ phone })
+      return NextResponse.json({ success: true, addresses: updatedUser.addresses })
+    }
+
     return NextResponse.json({ success: false, message: 'Not found' }, { status: 404 })
   } catch (error) {
     console.error('API Error:', error)
