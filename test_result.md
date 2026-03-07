@@ -144,15 +144,18 @@ backend:
 
   - task: "Address API - CRUD Operations"
     implemented: true
-    working: "NA"
+    working: true
     file: "app/api/[[...path]]/route.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implemented POST /api/users/addresses, PUT /api/users/addresses/:id, DELETE /api/users/addresses/:id"
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: All address CRUD operations working perfectly. POST /api/users/addresses adds addresses with UUID generation and default handling. PUT /api/users/addresses/:id updates addresses correctly. DELETE /api/users/addresses/:id removes addresses with proper phone parameter handling."
 
   - task: "User Orders API"
     implemented: true
