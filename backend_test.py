@@ -2,6 +2,7 @@
 """
 Backend API Testing for BeGood E-commerce User Management APIs
 Tests all user management endpoints according to the test sequence provided.
+UPDATED: Added specific User Profile Update (Upsert) functionality tests
 """
 
 import requests
@@ -23,6 +24,22 @@ TEST_USER_DATA = {
 
 UPDATED_USER_DATA = {
     "phone": TEST_PHONE,
+    "name": "Updated Name",
+    "email": "updated@email.com",
+    "age": 30
+}
+
+# Specific test data for upsert functionality (from review request)
+UPSERT_TEST_PHONE = "+919999888877"
+UPSERT_CREATE_DATA = {
+    "phone": UPSERT_TEST_PHONE,
+    "name": "Test User New",
+    "email": "testnew@email.com",
+    "age": 25
+}
+
+UPSERT_UPDATE_DATA = {
+    "phone": UPSERT_TEST_PHONE,
     "name": "Updated Name",
     "email": "updated@email.com",
     "age": 30
