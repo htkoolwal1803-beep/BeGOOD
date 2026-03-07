@@ -378,11 +378,23 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Shipping</span>
-                  <span className="font-semibold text-green-600">FREE</span>
+                  {shippingFee === 0 ? (
+                    <span className="font-semibold text-green-600">FREE</span>
+                  ) : (
+                    <span className="font-semibold">₹{shippingFee}</span>
+                  )}
                 </div>
+                {amountToFreeShipping > 0 && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm">
+                    <p className="text-amber-800">
+                      <Truck className="w-4 h-4 inline mr-1" />
+                      Add ₹{amountToFreeShipping} more for <strong>FREE shipping!</strong>
+                    </p>
+                  </div>
+                )}
                 <div className="border-t border-gray-300 pt-3 flex justify-between">
                   <span className="font-bold text-lg">Total</span>
-                  <span className="font-bold text-2xl text-[#C8A97E]">₹{cartTotal}</span>
+                  <span className="font-bold text-2xl text-[#C8A97E]">₹{orderTotal}</span>
                 </div>
               </div>
 
@@ -393,8 +405,8 @@ export default function CheckoutPage() {
                   Secure Payment via Razorpay
                 </p>
                 <p className="flex items-center">
-                  <span className="text-green-600 mr-2">✓</span>
-                  Free Shipping
+                  <Truck className="w-4 h-4 mr-2 text-green-600" />
+                  {shippingFee === 0 ? 'Free Shipping' : `Free Shipping on orders above ₹${SHIPPING_CONFIG.FREE_SHIPPING_THRESHOLD}`}
                 </p>
                 <p className="flex items-center">
                   <span className="text-green-600 mr-2">✓</span>
