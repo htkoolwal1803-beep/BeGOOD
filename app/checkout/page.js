@@ -456,7 +456,19 @@ export default function CheckoutPage() {
     { id: 'payment', label: 'Payment', icon: Lock }
   ]
   
-  const currentStepIndex = steps.findIndex(s => s.id === step || (step === 'otp' && s.id === 'auth'))
+  const currentStepIndex = steps.findIndex(s => s.id === step || (step === 'otp' && s.id === 'auth') || (step === 'loading' && s.id === 'auth'))
+
+  // Show loading while checking auth state
+  if (step === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-[#C8A97E] mx-auto mb-4" />
+          <p className="text-gray-600">Loading checkout...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen py-12 md:py-20">
