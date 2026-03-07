@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/lib/AuthContext'
 import Button from '@/components/Button'
 import { User, Package, MapPin, Edit2, Trash2, Plus, Loader2, Check } from 'lucide-react'
 import Link from 'next/link'
 
-export default function ProfilePage() {
+function ProfileContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const initialTab = searchParams.get('tab') || 'profile'
