@@ -129,15 +129,18 @@ backend:
 
   - task: "User API - Update Profile"
     implemented: true
-    working: "NA"
+    working: true
     file: "app/api/[[...path]]/route.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implemented POST /api/users/update for profile updates"
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: POST /api/users/update correctly updates user profile fields (name, email, age), handles partial updates, returns updated user object with updatedAt timestamp. Working perfectly."
 
   - task: "Address API - CRUD Operations"
     implemented: true
