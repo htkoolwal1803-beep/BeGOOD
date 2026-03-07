@@ -258,10 +258,12 @@ export default function CheckoutPage() {
           setStep('address')
         }
       } else {
-        setAuthError('Failed to save profile. Please try again.')
+        setAuthError(data.message || 'Failed to save profile. Please try again.')
+        console.error('Profile save failed:', data)
       }
     } catch (err) {
       setAuthError('An error occurred. Please try again.')
+      console.error('Profile save error:', err)
     }
     
     setLoading(false)
