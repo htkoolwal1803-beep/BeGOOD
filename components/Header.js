@@ -1,14 +1,17 @@
 'use client'
 
 import Link from 'next/link'
-import { ShoppingCart, Menu, X } from 'lucide-react'
+import { ShoppingCart, Menu, X, User, LogOut } from 'lucide-react'
 import { useCart } from '@/lib/CartContext'
+import { useAuth } from '@/lib/AuthContext'
 import { useState } from 'react'
 import Image from 'next/image'
 
 export default function Header() {
   const { cartCount } = useCart()
+  const { user, userProfile, signOut, loading } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
 
   const navLinks = [
     { href: '/', label: 'Home' },
@@ -17,6 +20,11 @@ export default function Header() {
     { href: '/faq', label: 'FAQ' },
     { href: '/contact', label: 'Contact' }
   ]
+
+  const handleSignOut = async () => {
+    await signOut()
+    setUserMenuOpen(false)
+  }
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
@@ -46,8 +54,70 @@ export default function Header() {
             ))}
           </nav>
 
-          {/* Cart & Mobile Menu */}
+          {/* Cart, User & Mobile Menu */}
           <div className="flex items-center space-x-4">
+            {/* User Account */}
+            {!loading && (
+              <div className="relative">
+                {user ? (
+                  <>
+                    <button
+                      onClick={() => setUserMenuOpen(!userMenuOpen)}
+                      className="flex items-center space-x-2 text-gray-700 hover:text-[#C8A97E] transition-colors"
+                    >
+                      <User className="w-6 h-6" />
+                      <span className="hidden md:inline text-sm font-medium">
+                        {userProfile?.name || 'Account'}
+                      </span>
+                    </button>
+                    
+                    {/* User Dropdown Menu */}
+                    {userMenuOpen && (
+                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                        <Link
+                          href="/profile"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          onClick={() => setUserMenuOpen(false)}
+                        >
+                          My Profile
+                        </Link>
+                        <Link
+                          href="/profile?tab=orders"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          onClick={() => setUserMenuOpen(false)}
+                        >
+                          Order History
+                        </Link>
+                        <Link
+                          href="/profile?tab=addresses"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          onClick={() => setUserMenuOpen(false)}
+                        >
+                          Saved Addresses
+                        </Link>
+                        <hr className="my-2" />
+                        <button
+                          onClick={handleSignOut}
+                          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center space-x-2"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          <span>Sign Out</span>
+                        </button>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <Link
+                    href="/login"
+                    className="flex items-center space-x-2 text-gray-700 hover:text-[#C8A97E] transition-colors"
+                  >
+                    <User className="w-6 h-6" />
+                    <span className="hidden md:inline text-sm font-medium">Login</span>
+                  </Link>
+                )}
+              </div>
+            )}
+
             <Link href="/cart" className="relative group">
               <ShoppingCart className="w-6 h-6 text-gray-700 group-hover:text-[#C8A97E] transition-colors" />
               {cartCount > 0 && (
@@ -84,6 +154,34 @@ export default function Header() {
                 {link.label}
               </Link>
             ))}
+            {user ? (
+              <>
+                <Link
+                  href="/profile"
+                  className="block py-3 text-gray-700 hover:text-[#C8A97E] transition-colors font-medium"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  My Profile
+                </Link>
+                <button
+                  onClick={() => {
+                    handleSignOut()
+                    setMobileMenuOpen(false)
+                  }}
+                  className="block py-3 text-red-600 hover:text-red-700 transition-colors font-medium"
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <Link
+                href="/login"
+                className="block py-3 text-[#C8A97E] hover:text-[#b8996e] transition-colors font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Login / Sign Up
+              </Link>
+            )}
           </nav>
         )}
       </div>
