@@ -3,6 +3,7 @@ import './globals.css'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { CartProvider } from '@/lib/CartContext'
+import { AuthProvider } from '@/lib/AuthContext'
 import Script from 'next/script'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
@@ -42,11 +43,15 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className={`${inter.variable} ${playfair.variable} antialiased`}>
-        <CartProvider>
-          <Header />
-          <main className="min-h-screen">{children}</main>
-          <Footer />
-        </CartProvider>
+        <AuthProvider>
+          <CartProvider>
+            <Header />
+            <main className="min-h-screen">{children}</main>
+            <Footer />
+            {/* Recaptcha Container for Firebase OTP */}
+            <div id="recaptcha-container"></div>
+          </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   )
