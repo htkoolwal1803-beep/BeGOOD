@@ -4,11 +4,17 @@ import { useCart } from '@/lib/CartContext'
 import Image from 'next/image'
 import Link from 'next/link'
 import Button from '@/components/Button'
-import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react'
+import { Trash2, Plus, Minus, ShoppingBag, Truck } from 'lucide-react'
 import { useEffect } from 'react'
+import { calculateShipping, calculateOrderTotal, SHIPPING_CONFIG } from '@/lib/constants'
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, cartTotal, cartCount } = useCart()
+
+  // Calculate shipping and order total
+  const shippingFee = calculateShipping(cartTotal)
+  const orderTotal = calculateOrderTotal(cartTotal)
+  const amountToFreeShipping = SHIPPING_CONFIG.FREE_SHIPPING_THRESHOLD - cartTotal
 
   useEffect(() => {
     // Track page view
@@ -60,7 +66,7 @@ export default function CartPage() {
                 <div className="flex-1">
                   <h3 className="font-semibold text-lg mb-1">{item.name}</h3>
                   <p className="text-gray-600 text-sm mb-3">
-                    {item.variant.size} - {item.variant.flavor}
+                    {item.variant.size} {item.variant.flavor && `- ${item.variant.flavor}`}
                   </p>
 
                   <div className="flex items-center justify-between">
@@ -114,11 +120,23 @@ export default function CartPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Shipping</span>
-                  <span className="font-semibold text-green-600">FREE</span>
+                  {shippingFee === 0 ? (
+                    <span className="font-semibold text-green-600">FREE</span>
+                  ) : (
+                    <span className="font-semibold">₹{shippingFee}</span>
+                  )}
                 </div>
+                {amountToFreeShipping > 0 && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm">
+                    <p className="text-amber-800">
+                      <Truck className="w-4 h-4 inline mr-1" />
+                      Add ₹{amountToFreeShipping} more for <strong>FREE shipping!</strong>
+                    </p>
+                  </div>
+                )}
                 <div className="border-t border-gray-300 pt-3 flex justify-between">
                   <span className="font-bold text-lg">Total</span>
-                  <span className="font-bold text-2xl text-[#C8A97E]">₹{cartTotal}</span>
+                  <span className="font-bold text-2xl text-[#C8A97E]">₹{orderTotal}</span>
                 </div>
               </div>
 
@@ -141,8 +159,8 @@ export default function CartPage() {
                   Secure Checkout
                 </p>
                 <p className="flex items-center">
-                  <span className="text-green-600 mr-2">✓</span>
-                  Free Shipping
+                  <Truck className="w-4 h-4 mr-2 text-green-600" />
+                  {shippingFee === 0 ? 'Free Shipping' : `Free Shipping above ₹${SHIPPING_CONFIG.FREE_SHIPPING_THRESHOLD}`}
                 </p>
                 <p className="flex items-center">
                   <span className="text-green-600 mr-2">✓</span>
