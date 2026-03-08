@@ -9,15 +9,15 @@ export default function FAQPage() {
   const faqs = [
     {
       question: 'What is BeGood A-Bar?',
-      answer: 'BeGood A-Bar is a premium functional chocolate bar infused with science-backed ingredients like Ashwagandha, L-Theanine, Dark Cocoa, and Magnesium. It\'s designed to help reduce anxiety and promote calm focus during high-stakes moments.'
+      answer: 'BeGood A-Bar is a premium functional chocolate bar infused with science-backed ingredients like L-Theanine, Dark Cocoa, Omega-3 and Magnesium. It\'s designed to help reduce anxiety and promote calm focus during high-stakes moments.'
     },
     {
       question: 'How does it work?',
-      answer: 'The combination of Ashwagandha and L-Theanine works synergistically to reduce cortisol levels and promote alpha brain waves associated with relaxation and focus. Magnesium supports your nervous system, while dark cocoa provides natural mood enhancement.'
+      answer: 'The combination of Magnesium and L-Theanine works synergistically to reduce cortisol levels and promote alpha brain waves associated with relaxation and focus. Magnesium supports your nervous system, while dark cocoa provides natural mood enhancement.'
     },
     {
       question: 'When should I consume it?',
-      answer: 'For best results, consume one bar 30-45 minutes before a high-stakes situation like an exam, interview, presentation, or any stressful event. It can also be enjoyed daily as part of your wellness routine.'
+      answer: 'For best results, consume one whole bar 15-20 minutes before a high-stakes situation like an exam, interview, presentation, or any stressful event. People also consume it when they feel short-term fear or stressed.'
     },
     {
       question: 'Will it make me drowsy?',
@@ -25,7 +25,7 @@ export default function FAQPage() {
     },
     {
       question: 'How long does the effect last?',
-      answer: 'The calming effects typically begin within 30-45 minutes and can last for 4-6 hours, though individual results may vary based on factors like body weight, metabolism, and stress levels.'
+      answer: 'The calming effects typically begin within 15-20 minutes and can last for 4-6 hours, though individual results may vary based on factors like body weight, metabolism, and stress levels.'
     },
     {
       question: 'Is it safe for daily consumption?',
@@ -33,11 +33,11 @@ export default function FAQPage() {
     },
     {
       question: 'Are there any side effects?',
-      answer: 'BeGood A-Bar is made with natural ingredients and is generally well-tolerated. Some people may experience mild digestive discomfort if consumed on an empty stomach. If you have any concerns, consult your healthcare provider.'
+      answer: 'BeGood A-Bar is made with natural ingredients and is generally well-tolerated. Some people may experience mild digestive discomfort. If you have any concerns, consult your healthcare provider.'
     },
     {
       question: 'What sizes and flavors are available?',
-      answer: 'We currently offer BeGood A-Bar in two sizes (50g and 100g) and two flavors (Dark Chocolate and Mint Dark Chocolate). Both flavors contain the same functional ingredients.'
+      answer: 'We currently offer BeGood A-Bar in a single 40g bar. No options for flavors are available.
     },
     {
       question: 'How should I store the bars?',
@@ -49,7 +49,7 @@ export default function FAQPage() {
     },
     {
       question: 'What is your return/refund policy?',
-      answer: 'We offer a 7-day return policy for unopened products. If you\'re not satisfied with your purchase, please contact us within 7 days of delivery. See our Refund Policy page for complete details.'
+      answer: 'We do not have a return policy for our products.'
     },
     {
       question: 'Is this product vegetarian/vegan?',
