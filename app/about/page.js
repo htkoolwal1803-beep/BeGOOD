@@ -20,7 +20,7 @@ export default function AboutPage() {
             </h1>
             <p className="text-xl md:text-2xl text-gray-600 leading-relaxed">
               We believe wellness should be delicious, convenient, and effective. 
-              That's why we created BeGood—functional chocolate that helps you stay calm and focused 
+              That's why we created BeGood—functional consumables that helps you improve your human performance
               when it matters most.
             </p>
           </div>
@@ -35,16 +35,17 @@ export default function AboutPage() {
               <h2 className="font-playfair text-4xl font-bold mb-6">Our Story</h2>
               <div className="space-y-4 text-gray-700 text-lg leading-relaxed">
                 <p>
-                  BeGood was born from a simple observation: life's biggest moments often come with the most stress. 
-                  Exams, interviews, presentations—these are when we need to be at our best, but anxiety can get in the way.
+                  BeGood was born from a simple observation: everyone focuses on gaining knowledge,
+                  improving health or just are not in own control. But nobody focuses on emotions despite it been the 
+                  major stakeholder for our decisions and relations.
                 </p>
                 <p>
-                  We asked ourselves: what if there was a way to stay calm and focused that didn't involve pills or powders? 
-                  What if it was something you actually enjoyed?
+                  We asked ourselves: why is that so and we figured that that's because we have been told that emotions can 
+                  only be controlled or balanced with your will and mind persistance. It was hard and inconvinient. So we asked
+                  ourselves, What if it was something you actually enjoyed and is fast and convinient?
                 </p>
                 <p>
-                  That's how BeGood came to life—premium dark chocolate infused with science-backed ingredients like 
-                  Ashwagandha, L-Theanine, and Magnesium. Delicious. Effective. Convenient.
+                  That's how BeGood came to life—premium products with science-backed ingredients. Delicious. Effective. Convenient.
                 </p>
               </div>
             </div>
@@ -66,7 +67,7 @@ export default function AboutPage() {
           <div className="text-center mb-16">
             <h2 className="font-playfair text-4xl md:text-5xl font-bold mb-4">Our Mission & Values</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              We're on a mission to make wellness accessible, enjoyable, and effective
+              We're on a mission to make emotional wellness convinient, enjoyable, and effective.
             </p>
           </div>
 
@@ -99,8 +100,7 @@ export default function AboutPage() {
               </div>
               <h3 className="font-playfair text-2xl font-bold mb-4">Premium Quality</h3>
               <p className="text-gray-700">
-                From our dark chocolate to our functional ingredients, we use only the finest, 
-                ethically sourced materials.
+                All our ingredients are of premium quality and 100% natural.
               </p>
             </div>
           </div>
@@ -115,15 +115,6 @@ export default function AboutPage() {
             <p className="text-xl text-gray-600 mb-12 text-center">
               Our formula combines traditional adaptogens with modern nutritional science
             </p>
-
-            <div className="space-y-8">
-              <div className="bg-white border border-gray-200 rounded-xl p-8">
-                <h3 className="text-2xl font-bold mb-3">Ashwagandha</h3>
-                <p className="text-gray-700 leading-relaxed">
-                  An ancient adaptogen proven to reduce cortisol levels and combat stress. 
-                  Studies show it significantly reduces anxiety and improves mental clarity.
-                </p>
-              </div>
 
               <div className="bg-white border border-gray-200 rounded-xl p-8">
                 <h3 className="text-2xl font-bold mb-3">L-Theanine</h3>
