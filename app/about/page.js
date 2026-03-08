@@ -49,12 +49,12 @@ export default function AboutPage() {
                 </p>
               </div>
             </div>
-            <div className="relative aspect-square bg-[#F5F0E8] rounded-2xl overflow-hidden">
+            <div className="relative bg-[#F5F0E8] rounded-2xl overflow-hidden">
               <Image
                 src="https://customer-assets.emergentagent.com/job_aba2787e-1b7f-4ca4-8c0f-6bdec7418ef0/artifacts/e2gmlali_A%20chocolate%20that%20Induces%20Calm%20and%20Focus..jpg"
                 alt="BeGood Product"
                 fill
-                className="object-cover"
+                className="object-contain"
               />
             </div>
           </div>
@@ -141,7 +141,6 @@ export default function AboutPage() {
               </div>
             </div>
           </div>
-        </div>
       </section>
 
       {/* CTA Section */}
