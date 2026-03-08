@@ -129,8 +129,8 @@ export default function RefundPage() {
             <h2 className="font-playfair text-3xl font-bold mb-4">12. Contact Us</h2>
             <p className="text-gray-700 leading-relaxed">
               For any questions about returns or refunds, please contact our customer support team:<br /><br />
-              <strong>Email:</strong> support@begood.com<br />
-              <strong>Phone:</strong> +91 XXXXX XXXXX<br />
+              <strong>Email:</strong> healhat25@gmail.com<br />
+              <strong>Phone:</strong> +91 8000366966<br />
               <strong>Hours:</strong> Monday - Friday, 9:00 AM - 6:00 PM IST<br />
               <strong>Response Time:</strong> Within 24-48 hours
             </p>
