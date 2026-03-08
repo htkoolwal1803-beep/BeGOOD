@@ -254,7 +254,7 @@ export default function Home() {
               'Promotes calm without drowsiness',
               'Improves performance under pressure',
               'Shifts brain from panic to alpha-wave calm',
-              'Regulates cortisol and stress hormones'
+              'Balances cortisol and stress hormones'
             ].map((benefit, idx) => (
               <div key={idx} className="flex items-start space-x-4">
                 <CheckCircle className="w-6 h-6 text-[#C8A97E] flex-shrink-0 mt-1" />
@@ -291,21 +291,21 @@ export default function Home() {
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {[
               {
-                name: 'Priya S.',
+                name: 'Siddhant',
                 role: 'Student',
-                comment: 'This saved me during my board exams! Felt so much calmer and could focus better. Plus it tastes amazing!',
+                comment: 'I was not able to concentrate due to overthinking.After eat the bar within like just 15-20min. it felt so relaxed and calm. Plus it tastes amazing!',
                 rating: 5
               },
               {
-                name: 'Rahul M.',
-                role: 'Professional',
-                comment: 'Had my job interview and was super nervous. Had this bar 20 mins before and felt noticeably more relaxed. Got the job!',
+                name: 'Shubhe Aditya',
+                role: 'Person',
+                comment: 'I had a fight with my girlfriend and i was thinking so much about it. I wasted an hour thinking about it and then I ate it and it just all felt so normal and relaxing. I think it just save me time.',
                 rating: 5
               },
               {
-                name: 'Ananya K.',
+                name: 'Saksham Jain',
                 role: 'Working Professional',
-                comment: 'Works really well for my anxiety. The chocolate is rich and delicious. Worth every rupee!',
+                comment: 'I had an interview and I was not fully prepared and so was very nervous, but after eating it I gave answers very calmly and luckily cracked it too. Worth every rupee!',
                 rating: 5
               }
             ].map((testimonial, idx) => (
