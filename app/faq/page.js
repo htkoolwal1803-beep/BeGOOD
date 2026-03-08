@@ -37,7 +37,7 @@ export default function FAQPage() {
     },
     {
       question: 'What sizes and flavors are available?',
-      answer: 'We currently offer BeGood A-Bar in a single 40g bar. No options for flavors are available.
+      answer: 'We currently offer BeGood A-Bar in a single 40g bar. No options for flavors are available.'
     },
     {
       question: 'How should I store the bars?',
