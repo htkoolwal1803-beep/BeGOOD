@@ -34,7 +34,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="font-semibold mb-1">Email</p>
-                    <p className="text-gray-600">support@begood.com</p>
+                    <p className="text-gray-600">healhat25@gmail.com</p>
                     <p className="text-sm text-gray-500 mt-1">We'll respond within 24 hours</p>
                   </div>
                 </div>
@@ -45,8 +45,8 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="font-semibold mb-1">Phone</p>
-                    <p className="text-gray-600">+91 XXXXX XXXXX</p>
-                    <p className="text-sm text-gray-500 mt-1">Mon-Fri, 9AM-6PM IST</p>
+                    <p className="text-gray-600">+91 8000366966</p>
+                    <p className="text-sm text-gray-500 mt-1">Mon-Sun, 24 X 7</p>
                   </div>
                 </div>
 
@@ -57,9 +57,9 @@ export default function ContactPage() {
                   <div>
                     <p className="font-semibold mb-1">Address</p>
                     <p className="text-gray-600">
-                      BeGood Wellness Pvt. Ltd.<br />
-                      [Your Address Here]<br />
-                      [City, State, PIN]
+                      BeGood<br />
+                      [Vidhyadhar Nagar, Jaipur, Rajasthan]<br />
+                      [Jaipur, Rajasthan, 302039]
                     </p>
                   </div>
                 </div>
@@ -70,9 +70,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="font-semibold mb-1">Business Hours</p>
-                    <p className="text-gray-600">Monday - Friday: 9:00 AM - 6:00 PM</p>
-                    <p className="text-gray-600">Saturday: 10:00 AM - 4:00 PM</p>
-                    <p className="text-gray-600">Sunday: Closed</p>
+                    <p className="text-gray-600">Monday - Sunday: 24 X 7</p>
                   </div>
                 </div>
               </div>
