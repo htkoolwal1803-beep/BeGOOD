@@ -15,21 +15,15 @@ export default function RefundPage() {
             <h2 className="font-playfair text-3xl font-bold mb-4">1. Our Commitment</h2>
             <p className="text-gray-700 leading-relaxed">
               At BeGood, we stand behind the quality of our products. We want you to be completely satisfied with your 
-              purchase. If for any reason you're not happy, we offer a straightforward return and refund policy.
+              purchase.
             </p>
           </section>
 
           <section className="mb-8">
-            <h2 className="font-playfair text-3xl font-bold mb-4">2. 7-Day Return Policy</h2>
+            <h2 className="font-playfair text-3xl font-bold mb-4">2. No return Policy.</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              We offer a 7-day return policy from the date of delivery. To be eligible for a return:
             </p>
             <ul className="list-disc pl-6 space-y-2 text-gray-700">
-              <li>Products must be unopened and in their original, sealed packaging</li>
-              <li>Products must be in the same condition as received</li>
-              <li>Original packaging and labels must be intact</li>
-              <li>You must have the order receipt or proof of purchase</li>
-              <li>Return request must be initiated within 7 days of delivery</li>
             </ul>
           </section>
 
@@ -47,37 +41,11 @@ export default function RefundPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="font-playfair text-3xl font-bold mb-4">4. How to Initiate a Return</h2>
-            <p className="text-gray-700 leading-relaxed mb-4">
-              To initiate a return:
-            </p>
-            <ol className="list-decimal pl-6 space-y-3 text-gray-700">
-              <li>
-                <strong>Contact Us:</strong> Email support@begood.com or call +91 XXXXX XXXXX within 7 days of delivery
-              </li>
-              <li>
-                <strong>Provide Details:</strong> Include your order number, reason for return, and photos if applicable
-              </li>
-              <li>
-                <strong>Approval:</strong> We'll review your request and respond within 24-48 hours
-              </li>
-              <li>
-                <strong>Ship Back:</strong> Once approved, ship the product back to the address we provide
-              </li>
-              <li>
-                <strong>Confirmation:</strong> We'll process your refund once we receive and inspect the returned item
-              </li>
-            </ol>
-          </section>
-
-          <section className="mb-8">
             <h2 className="font-playfair text-3xl font-bold mb-4">5. Return Shipping</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
               Shipping costs:
             </p>
             <ul className="list-disc pl-6 space-y-2 text-gray-700">
-              <li><strong>Defective Products:</strong> We cover return shipping costs</li>
-              <li><strong>Change of Mind:</strong> Customer is responsible for return shipping costs</li>
               <li><strong>Wrong Item Sent:</strong> We cover return shipping and send the correct item free of charge</li>
             </ul>
           </section>
