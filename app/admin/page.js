@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Lock, TrendingUp, ShoppingCart, Users, MapPin, Smartphone, Monitor, Star } from 'lucide-react'
+import { Lock, TrendingUp, ShoppingCart, Users, MapPin, Smartphone, Monitor, Star, ChevronDown, ChevronUp, Phone, Package } from 'lucide-react'
 import Button from '@/components/Button'
 import Link from 'next/link'
 
@@ -12,6 +12,11 @@ export default function AdminDashboard() {
   const [orders, setOrders] = useState([])
   const [analytics, setAnalytics] = useState(null)
   const [error, setError] = useState('')
+  const [expandedOrderId, setExpandedOrderId] = useState(null)
+
+  const toggleOrderDetails = (orderId) => {
+    setExpandedOrderId(expandedOrderId === orderId ? null : orderId)
+  }
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -288,7 +293,6 @@ export default function AdminDashboard() {
                 <tr className="border-b border-gray-200">
                   <th className="text-left py-3 px-4 font-semibold text-sm">Order ID</th>
                   <th className="text-left py-3 px-4 font-semibold text-sm">Customer</th>
-                  <th className="text-left py-3 px-4 font-semibold text-sm">Email</th>
                   <th className="text-left py-3 px-4 font-semibold text-sm">Amount</th>
                   <th className="text-left py-3 px-4 font-semibold text-sm">Status</th>
                   <th className="text-left py-3 px-4 font-semibold text-sm">Date</th>
@@ -298,56 +302,157 @@ export default function AdminDashboard() {
               <tbody>
                 {orders.length === 0 ? (
                   <tr>
-                    <td colSpan="7" className="text-center py-8 text-gray-500">
+                    <td colSpan="6" className="text-center py-8 text-gray-500">
                       No orders yet
                     </td>
                   </tr>
                 ) : (
                   orders.map(order => (
-                    <tr key={order.orderId} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-4 px-4 text-sm font-mono">{order.orderId.slice(0, 8)}</td>
-                      <td className="py-4 px-4 text-sm">{order.customerName}</td>
-                      <td className="py-4 px-4 text-sm">{order.email}</td>
-                      <td className="py-4 px-4 text-sm font-semibold">₹{order.totalAmount}</td>
-                      <td className="py-4 px-4 text-sm">
-                        <select
-                          value={order.status}
-                          onChange={(e) => updateOrderStatus(order.orderId, e.target.value)}
-                          className="px-3 py-1 rounded-full text-xs font-semibold border-0 focus:outline-none focus:ring-2 focus:ring-[#C8A97E]"
-                          style={{
-                            backgroundColor: 
-                              order.status === 'Pending' ? '#FEF3C7' :
-                              order.status === 'Processing' ? '#DBEAFE' :
-                              order.status === 'Shipped' ? '#E0E7FF' :
-                              order.status === 'Delivered' ? '#D1FAE5' : '#FEE2E2',
-                            color:
-                              order.status === 'Pending' ? '#92400E' :
-                              order.status === 'Processing' ? '#1E40AF' :
-                              order.status === 'Shipped' ? '#4338CA' :
-                              order.status === 'Delivered' ? '#065F46' : '#991B1B'
-                          }}
-                        >
-                          <option value="Pending">Pending</option>
-                          <option value="Processing">Processing</option>
-                          <option value="Shipped">Shipped</option>
-                          <option value="Delivered">Delivered</option>
-                          <option value="Cancelled">Cancelled</option>
-                        </select>
-                      </td>
-                      <td className="py-4 px-4 text-sm text-gray-600">
-                        {new Date(order.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="py-4 px-4 text-sm">
-                        <a 
-                          href={`/order/${order.orderId}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-[#C8A97E] hover:underline"
-                        >
-                          View
-                        </a>
-                      </td>
-                    </tr>
+                    <>
+                      <tr key={order.orderId} className={`border-b border-gray-100 hover:bg-gray-50 ${expandedOrderId === order.orderId ? 'bg-gray-50' : ''}`}>
+                        <td className="py-4 px-4 text-sm font-mono">{order.orderId.slice(0, 8)}</td>
+                        <td className="py-4 px-4 text-sm">{order.customerName}</td>
+                        <td className="py-4 px-4 text-sm font-semibold">₹{order.totalAmount}</td>
+                        <td className="py-4 px-4 text-sm">
+                          <select
+                            value={order.status}
+                            onChange={(e) => updateOrderStatus(order.orderId, e.target.value)}
+                            className="px-3 py-1 rounded-full text-xs font-semibold border-0 focus:outline-none focus:ring-2 focus:ring-[#C8A97E]"
+                            style={{
+                              backgroundColor: 
+                                order.status === 'Pending' ? '#FEF3C7' :
+                                order.status === 'Processing' ? '#DBEAFE' :
+                                order.status === 'Shipped' ? '#E0E7FF' :
+                                order.status === 'Delivered' ? '#D1FAE5' : '#FEE2E2',
+                              color:
+                                order.status === 'Pending' ? '#92400E' :
+                                order.status === 'Processing' ? '#1E40AF' :
+                                order.status === 'Shipped' ? '#4338CA' :
+                                order.status === 'Delivered' ? '#065F46' : '#991B1B'
+                            }}
+                          >
+                            <option value="Pending">Pending</option>
+                            <option value="Processing">Processing</option>
+                            <option value="Shipped">Shipped</option>
+                            <option value="Delivered">Delivered</option>
+                            <option value="Cancelled">Cancelled</option>
+                          </select>
+                        </td>
+                        <td className="py-4 px-4 text-sm text-gray-600">
+                          {new Date(order.createdAt).toLocaleDateString()}
+                        </td>
+                        <td className="py-4 px-4 text-sm">
+                          <div className="flex items-center gap-3">
+                            <button
+                              onClick={() => toggleOrderDetails(order.orderId)}
+                              className="flex items-center text-[#C8A97E] hover:text-[#B8996E] font-medium"
+                            >
+                              {expandedOrderId === order.orderId ? (
+                                <>
+                                  <ChevronUp className="w-4 h-4 mr-1" />
+                                  Hide
+                                </>
+                              ) : (
+                                <>
+                                  <ChevronDown className="w-4 h-4 mr-1" />
+                                  Details
+                                </>
+                              )}
+                            </button>
+                            <a 
+                              href={`/order/${order.orderId}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:underline"
+                            >
+                              View
+                            </a>
+                          </div>
+                        </td>
+                      </tr>
+                      {/* Expanded Shipping Details Row */}
+                      {expandedOrderId === order.orderId && (
+                        <tr key={`${order.orderId}-details`} className="bg-gray-50">
+                          <td colSpan="6" className="py-4 px-4">
+                            <div className="grid md:grid-cols-3 gap-6">
+                              {/* Shipping Information */}
+                              <div className="bg-white rounded-lg p-4 border border-gray-200">
+                                <h4 className="font-semibold text-gray-800 mb-3 flex items-center">
+                                  <MapPin className="w-4 h-4 mr-2 text-[#C8A97E]" />
+                                  Shipping Address
+                                </h4>
+                                <div className="space-y-2 text-sm">
+                                  <p className="font-medium">{order.customerName}</p>
+                                  <p className="text-gray-600">{order.address || 'N/A'}</p>
+                                  <p className="text-gray-600">
+                                    {[order.city, order.state].filter(Boolean).join(', ') || ''}
+                                  </p>
+                                  <p className="text-gray-600">Pincode: {order.pincode || 'N/A'}</p>
+                                </div>
+                              </div>
+
+                              {/* Contact Information */}
+                              <div className="bg-white rounded-lg p-4 border border-gray-200">
+                                <h4 className="font-semibold text-gray-800 mb-3 flex items-center">
+                                  <Phone className="w-4 h-4 mr-2 text-[#C8A97E]" />
+                                  Contact Details
+                                </h4>
+                                <div className="space-y-2 text-sm">
+                                  <p>
+                                    <span className="text-gray-500">Phone:</span>{' '}
+                                    <span className="font-medium">{order.phone || 'N/A'}</span>
+                                  </p>
+                                  <p>
+                                    <span className="text-gray-500">Email:</span>{' '}
+                                    <span className="font-medium">{order.email || 'N/A'}</span>
+                                  </p>
+                                  <p>
+                                    <span className="text-gray-500">Payment ID:</span>{' '}
+                                    <span className="font-mono text-xs">{order.paymentId || 'N/A'}</span>
+                                  </p>
+                                </div>
+                              </div>
+
+                              {/* Order Items */}
+                              <div className="bg-white rounded-lg p-4 border border-gray-200">
+                                <h4 className="font-semibold text-gray-800 mb-3 flex items-center">
+                                  <Package className="w-4 h-4 mr-2 text-[#C8A97E]" />
+                                  Order Items
+                                </h4>
+                                <div className="space-y-2 text-sm max-h-32 overflow-y-auto">
+                                  {order.products && order.products.length > 0 ? (
+                                    order.products.map((product, idx) => (
+                                      <div key={idx} className="flex justify-between">
+                                        <span className="text-gray-600">
+                                          {product.productName || product.name} 
+                                          {product.variant?.size && ` (${product.variant.size})`} 
+                                          × {product.quantity}
+                                        </span>
+                                        <span className="font-medium">₹{product.price * product.quantity}</span>
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <p className="text-gray-500">No items</p>
+                                  )}
+                                  <div className="border-t pt-2 mt-2">
+                                    {order.shippingFee !== undefined && (
+                                      <div className="flex justify-between text-gray-500">
+                                        <span>Shipping</span>
+                                        <span>{order.shippingFee === 0 ? 'FREE' : `₹${order.shippingFee}`}</span>
+                                      </div>
+                                    )}
+                                    <div className="flex justify-between font-semibold">
+                                      <span>Total</span>
+                                      <span>₹{order.totalAmount}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </>
                   ))
                 )}
               </tbody>

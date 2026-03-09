@@ -111,6 +111,8 @@ user_problem_statement: |
   5. Order history in user profile
   6. All user data stored in MongoDB
 
+  RECENT TASK: Fix admin page to show shipping information for orders
+
 backend:
   - task: "User API - Create/Get User"
     implemented: true
@@ -187,6 +189,36 @@ backend:
         agent: "testing"
         comment: "✅ TESTED: Shipping fee calculation logic working correctly. ₹50 fee for orders below ₹500, free shipping for orders ₹500 and above. All test cases passed including edge cases at ₹499 and ₹500 thresholds."
 
+  - task: "Order Creation with Full Shipping Info"
+    implemented: true
+    working: true
+    file: "app/api/[[...path]]/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Updated POST /api/orders to store city, state, shippingFee, subtotal, and userId"
+      - working: true
+        agent: "main"
+        comment: "✅ Verified: Order creation now stores all shipping fields. Tested with curl and order contains city, state, pincode, shippingFee correctly."
+
+  - task: "Admin Orders API"
+    implemented: true
+    working: true
+    file: "app/api/[[...path]]/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "GET /api/admin/orders returns all orders with full shipping information"
+      - working: true
+        agent: "main"
+        comment: "✅ Verified: Admin orders API returns all order fields including shipping info"
+
 frontend:
   - task: "Login Page with OTP"
     implemented: true
@@ -247,6 +279,21 @@ frontend:
       - working: "NA"
         agent: "main"
         comment: "Checkout shows shipping fee, free shipping threshold message, and correct order total"
+
+  - task: "Admin Orders with Shipping Info Display"
+    implemented: true
+    working: true
+    file: "app/admin/page.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Updated admin page with expandable row to show shipping information"
+      - working: true
+        agent: "main"
+        comment: "✅ Verified: Admin page shows orders with Details button. Clicking Details expands row to show Shipping Address, Contact Details, and Order Items"
 
 metadata:
   created_by: "main_agent"

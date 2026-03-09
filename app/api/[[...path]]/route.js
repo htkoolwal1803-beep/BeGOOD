@@ -215,10 +215,15 @@ export async function POST(request) {
         phone: body.phone,
         address: body.address,
         pincode: body.pincode,
+        city: body.city || '',
+        state: body.state || '',
+        subtotal: body.subtotal || body.totalAmount,
+        shippingFee: body.shippingFee || 0,
         products: body.products,
         totalAmount: body.totalAmount,
         status: 'Pending',
         paymentId: body.paymentId || null,
+        userId: body.userId || null,
         createdAt: new Date().toISOString()
       }
       
