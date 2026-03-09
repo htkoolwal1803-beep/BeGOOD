@@ -11,7 +11,7 @@ import sys
 from urllib.parse import quote
 
 # Base URL from environment
-BASE_URL = "https://wellness-ecommerce.preview.emergentagent.com/api"
+BASE_URL = "https://fulfillment.preview.emergentagent.com/api"
 
 # Test data
 TEST_PHONE = "+919876543210"
