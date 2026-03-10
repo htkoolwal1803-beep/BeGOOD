@@ -27,7 +27,7 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
+    <header className="sticky top-0 z-50 bg-[#1A1A1A]/95 backdrop-blur-sm border-b border-gray-700"">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
@@ -35,9 +35,9 @@ export default function Header() {
             <Image
               src="/begood-logo.png"
               alt="BeGood Logo"
-              width={120}
-              height={40}
-              className="h-10 w-auto"
+              width={240}
+              height={80}
+              className="h-20 w-auto"
             />
           </Link>
 
