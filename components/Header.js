@@ -63,7 +63,6 @@ return (
         </div>
         <div className="flex items-center space-x-4">
           <UserIcon /> <a href="/account">Account</a> <CartIcon />
-        </div>
       </div>
     </div>
   </header>
