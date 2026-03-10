@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Mail, Phone, MapPin, Clock, Loader2, CheckCircle } from 'lucide-react'
 import emailjs from '@emailjs/browser'
 
@@ -15,6 +15,20 @@ export default function ContactPage() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
+  const [emailjsReady, setEmailjsReady] = useState(false)
+
+  // Initialize EmailJS on component mount
+  useEffect(() => {
+    const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
+    if (publicKey) {
+      try {
+        emailjs.init(publicKey)
+        setEmailjsReady(true)
+      } catch (err) {
+        console.error('EmailJS init error:', err)
+      }
+    }
+  }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -23,13 +37,15 @@ export default function ContactPage() {
     setSuccess(false)
 
     try {
-      // Initialize EmailJS
-      if (process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY) {
-        emailjs.init(process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY)
+      const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID
+      const templateId = process.env.NEXT_PUBLIC_EMAILJS_CONTACT_TEMPLATE_ID
+      const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
+
+      if (!serviceId || !templateId || !publicKey) {
+        throw new Error('EmailJS configuration missing')
       }
 
       // Send email via EmailJS
-      // Note: You need to create a contact template in EmailJS with these variables
       const templateParams = {
         from_name: formData.name,
         from_email: formData.email,
@@ -39,11 +55,7 @@ export default function ContactPage() {
         to_email: 'healhat25@gmail.com'
       }
 
-      await emailjs.send(
-        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
-        process.env.NEXT_PUBLIC_EMAILJS_CONTACT_TEMPLATE_ID || 'template_contact', // Use dedicated contact template
-        templateParams
-      )
+      await emailjs.send(serviceId, templateId, templateParams, publicKey)
 
       // Also save to database for record
       await fetch('/api/contact', {
