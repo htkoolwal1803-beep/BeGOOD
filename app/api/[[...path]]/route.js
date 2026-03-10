@@ -7,11 +7,21 @@ let cachedClient = null
 let cachedDb = null
 
 async function connectToDatabase() {
-  if (cachedClient && cachedDb) {
-    return { client: cachedClient, db: cachedDb }
+  // Clear cache if connection is stale or errored
+  if (cachedClient) {
+    try {
+      // Test if the connection is still valid
+      await cachedDb.command({ ping: 1 })
+      return { client: cachedClient, db: cachedDb }
+    } catch (e) {
+      // Connection is stale, clear cache
+      cachedClient = null
+      cachedDb = null
+    }
   }
 
-  const client = await MongoClient.connect(process.env.MONGO_URL || process.env.MONGO_URI)
+  const mongoUrl = process.env.MONGO_URL || process.env.MONGO_URI
+  const client = await MongoClient.connect(mongoUrl)
 
   const db = client.db()
   cachedClient = client

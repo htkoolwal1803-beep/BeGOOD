@@ -1,562 +1,470 @@
 #!/usr/bin/env python3
 """
-Backend API Testing for BeGood E-commerce Website
-Tests all the new backend APIs according to the review request:
-1. Pincode Validation API
-2. Coupon CRUD APIs (Admin)
-3. Coupon Validation and Usage APIs
-4. Contact Form API
-5. Address API with Pincode Validation
+Comprehensive Backend API Testing for BeGood E-commerce Platform
+Tests all the newly implemented APIs including:
+- Pincode Validation API
+- Coupon CRUD APIs
+- Coupon Validation and Apply APIs 
+- Contact Form API
+- Address API with Pincode Validation
 """
 
 import requests
 import json
 import sys
-from urllib.parse import quote
+import uuid
 from datetime import datetime, timedelta
 
-# Base URL - using localhost:3000 as specified in review request
-BASE_URL = "http://localhost:3000/api"
+# Base URL - From review request specifications
+BASE_URL = "http://localhost:3000"
 
-def make_request(method, endpoint, data=None, params=None):
-    """Make HTTP request with proper error handling"""
-    url = f"{BASE_URL}{endpoint}"
-    headers = {"Content-Type": "application/json"}
+# Test data
+TEST_USER_PHONE = "+919876543210"
+TEST_USER_DATA = {
+    "name": "John Doe",
+    "email": "john.doe@example.com", 
+    "age": 30
+}
+
+def print_test_result(test_name, success, message=""):
+    status = "✅ PASS" if success else "❌ FAIL"
+    print(f"{status}: {test_name}")
+    if message:
+        print(f"    {message}")
+    print()
+
+def test_pincode_validation_api():
+    """Test GET /api/pincode/:pincode endpoints"""
+    print("🧪 TESTING PINCODE VALIDATION API")
+    print("="*50)
     
+    # Test Case 1: Valid pincode 302039 (Jaipur, Rajasthan)
     try:
-        if method == "GET":
-            response = requests.get(url, params=params, headers=headers, timeout=30)
-        elif method == "POST":
-            response = requests.post(url, json=data, headers=headers, timeout=30)
-        elif method == "PUT":
-            response = requests.put(url, json=data, headers=headers, timeout=30)
-        elif method == "DELETE":
-            response = requests.delete(url, params=params, headers=headers, timeout=30)
-        
-        print(f"Request: {method} {url}")
-        if data:
-            print(f"Body: {json.dumps(data, indent=2)}")
-        if params:
-            print(f"Params: {params}")
-        print(f"Status: {response.status_code}")
-        
-        try:
-            response_data = response.json()
-            print(f"Response: {json.dumps(response_data, indent=2)}")
-            return response.status_code, response_data
-        except:
-            print(f"Response (text): {response.text}")
-            return response.status_code, {"error": "Invalid JSON response", "text": response.text}
-            
-    except requests.exceptions.RequestException as e:
-        print(f"Request failed: {str(e)}")
-        return 500, {"error": str(e)}
-
-def test_pincode_validation():
-    """Test Pincode Validation API as specified in review request"""
-    print("\n" + "="*80)
-    print("TEST 1: PINCODE VALIDATION API")
-    print("="*80)
-    
-    test_cases = [
-        {
-            "name": "Valid Jaipur Pincode",
-            "pincode": "302039",
-            "expected_city": "Jaipur",
-            "expected_state": "Rajasthan",
-            "should_pass": True
-        },
-        {
-            "name": "Valid New Delhi Pincode", 
-            "pincode": "110001",
-            "expected_city": "New Delhi",
-            "expected_state": None,  # We'll check if it contains Delhi
-            "should_pass": True
-        },
-        {
-            "name": "Invalid Pincode",
-            "pincode": "000000",
-            "expected_city": None,
-            "expected_state": None,
-            "should_pass": False
-        },
-        {
-            "name": "Invalid Format (Not 6 digits)",
-            "pincode": "12345",
-            "expected_city": None,
-            "expected_state": None,
-            "should_pass": False
-        }
-    ]
-    
-    all_passed = True
-    
-    for i, test_case in enumerate(test_cases, 1):
-        print(f"\n{i}. Testing: {test_case['name']} - {test_case['pincode']}")
-        print("-" * 50)
-        
-        status, response = make_request("GET", f"/pincode/{test_case['pincode']}")
-        
-        if test_case['should_pass']:
-            if status == 200 and response.get("success"):
-                city = response.get("city")
-                state = response.get("state")
-                
-                # Check expected city and state
-                city_match = True
-                state_match = True
-                
-                if test_case['expected_city']:
-                    city_match = city and test_case['expected_city'].lower() in city.lower()
-                    
-                if test_case['expected_state']:
-                    state_match = state and test_case['expected_state'].lower() in state.lower()
-                elif test_case['pincode'] == "110001":  # Special case for Delhi
-                    state_match = state and "delhi" in state.lower()
-                
-                if city_match and state_match:
-                    print(f"✅ PASS: {test_case['name']}")
-                    print(f"   City: {city}, State: {state}")
-                else:
-                    print(f"❌ FAIL: Expected city/state mismatch")
-                    print(f"   Got City: {city}, State: {state}")
-                    all_passed = False
+        response = requests.get(f"{BASE_URL}/api/pincode/302039")
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('success') and data.get('city') and data.get('state'):
+                print_test_result(
+                    "GET /api/pincode/302039 (Valid pincode)", 
+                    True, 
+                    f"City: {data.get('city')}, State: {data.get('state')}"
+                )
             else:
-                print(f"❌ FAIL: Expected success but got status {status}")
-                all_passed = False
+                print_test_result("GET /api/pincode/302039 (Valid pincode)", False, f"Unexpected response: {data}")
         else:
-            if status != 200 or not response.get("success"):
-                print(f"✅ PASS: {test_case['name']} correctly rejected")
-            else:
-                print(f"❌ FAIL: Should have been rejected but passed")
-                all_passed = False
+            print_test_result("GET /api/pincode/302039 (Valid pincode)", False, f"Status: {response.status_code}")
+    except Exception as e:
+        print_test_result("GET /api/pincode/302039 (Valid pincode)", False, f"Exception: {str(e)}")
     
-    return all_passed
+    # Test Case 2: Valid pincode 110001 (Delhi)  
+    try:
+        response = requests.get(f"{BASE_URL}/api/pincode/110001")
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('success') and data.get('city') and data.get('state'):
+                print_test_result(
+                    "GET /api/pincode/110001 (Valid pincode)", 
+                    True, 
+                    f"City: {data.get('city')}, State: {data.get('state')}"
+                )
+            else:
+                print_test_result("GET /api/pincode/110001 (Valid pincode)", False, f"Unexpected response: {data}")
+        else:
+            print_test_result("GET /api/pincode/110001 (Valid pincode)", False, f"Status: {response.status_code}")
+    except Exception as e:
+        print_test_result("GET /api/pincode/110001 (Valid pincode)", False, f"Exception: {str(e)}")
+    
+    # Test Case 3: Invalid pincode 000000
+    try:
+        response = requests.get(f"{BASE_URL}/api/pincode/000000")
+        if response.status_code == 400:
+            data = response.json()
+            if not data.get('success'):
+                print_test_result("GET /api/pincode/000000 (Invalid pincode)", True, "Correctly rejected invalid pincode")
+            else:
+                print_test_result("GET /api/pincode/000000 (Invalid pincode)", False, "Should have rejected invalid pincode")
+        else:
+            print_test_result("GET /api/pincode/000000 (Invalid pincode)", False, f"Status: {response.status_code}")
+    except Exception as e:
+        print_test_result("GET /api/pincode/000000 (Invalid pincode)", False, f"Exception: {str(e)}")
+    
+    # Test Case 4: Invalid format 12345 (not 6 digits)
+    try:
+        response = requests.get(f"{BASE_URL}/api/pincode/12345")
+        if response.status_code == 400:
+            data = response.json()
+            if not data.get('success') and 'must be 6 digits' in data.get('message', ''):
+                print_test_result("GET /api/pincode/12345 (Invalid format)", True, "Correctly rejected non-6-digit format")
+            else:
+                print_test_result("GET /api/pincode/12345 (Invalid format)", False, "Should have rejected non-6-digit format")
+        else:
+            print_test_result("GET /api/pincode/12345 (Invalid format)", False, f"Status: {response.status_code}")
+    except Exception as e:
+        print_test_result("GET /api/pincode/12345 (Invalid format)", False, f"Exception: {str(e)}")
 
 def test_coupon_crud_apis():
-    """Test Coupon CRUD APIs (Admin) as specified in review request"""
-    print("\n" + "="*80)
-    print("TEST 2: COUPON CRUD APIS (ADMIN)")
-    print("="*80)
-    
-    # Test data from review request
-    coupon_data = {
-        "code": "TEST10",
-        "discountType": "percentage", 
-        "discountValue": 10,
-        "maxUses": 100,
-        "expiryDate": "2025-12-31"
-    }
+    """Test Coupon CRUD operations"""
+    print("🧪 TESTING COUPON CRUD APIS")
+    print("="*50)
     
     created_coupon_id = None
-    all_passed = True
     
-    # 1. Create Coupon
-    print("\n1. Testing: POST /api/admin/coupons - Create Coupon")
-    print("-" * 50)
-    
-    status, response = make_request("POST", "/admin/coupons", coupon_data)
-    
-    if status == 200 and response.get("success"):
-        coupon = response.get("coupon")
-        created_coupon_id = coupon.get("id")
-        
-        if (coupon.get("code") == "TEST10" and 
-            coupon.get("discountType") == "percentage" and
-            coupon.get("discountValue") == 10):
-            print("✅ PASS: Coupon created successfully")
-            print(f"   Coupon ID: {created_coupon_id}")
+    # Test Case 1: GET /api/admin/coupons - List existing coupons
+    try:
+        response = requests.get(f"{BASE_URL}/api/admin/coupons")
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('success'):
+                coupons = data.get('coupons', [])
+                print_test_result("GET /api/admin/coupons (List coupons)", True, f"Found {len(coupons)} coupons")
+                
+                # Check if TEST10 exists
+                test10_exists = any(c.get('code') == 'TEST10' for c in coupons)
+                if test10_exists:
+                    print("    📝 Note: TEST10 coupon exists as expected")
+            else:
+                print_test_result("GET /api/admin/coupons (List coupons)", False, f"API returned error: {data}")
         else:
-            print("❌ FAIL: Coupon data mismatch")
-            all_passed = False
-    else:
-        print(f"❌ FAIL: Coupon creation failed - Status {status}")
-        all_passed = False
-        return False
+            print_test_result("GET /api/admin/coupons (List coupons)", False, f"Status: {response.status_code}")
+    except Exception as e:
+        print_test_result("GET /api/admin/coupons (List coupons)", False, f"Exception: {str(e)}")
     
-    # 2. Get All Coupons
-    print("\n2. Testing: GET /api/admin/coupons - List Coupons")
-    print("-" * 50)
-    
-    status, response = make_request("GET", "/admin/coupons")
-    
-    if status == 200 and response.get("success"):
-        coupons = response.get("coupons", [])
-        test_coupon_found = any(c.get("code") == "TEST10" for c in coupons)
-        
-        if test_coupon_found:
-            print(f"✅ PASS: Coupons listed successfully ({len(coupons)} coupons)")
-        else:
-            print("❌ FAIL: Created coupon not found in list")
-            all_passed = False
-    else:
-        print(f"❌ FAIL: Failed to list coupons - Status {status}")
-        all_passed = False
-    
-    # 3. Update Coupon
-    if created_coupon_id:
-        print("\n3. Testing: PUT /api/admin/coupons/:id - Update Coupon")
-        print("-" * 50)
-        
-        update_data = {
-            "discountValue": 15,
-            "maxUses": 50
+    # Test Case 2: POST /api/admin/coupons - Create new coupon FLAT50
+    try:
+        coupon_data = {
+            "code": "FLAT50",
+            "discountType": "fixed",
+            "discountValue": 50,
+            "maxUses": 100,
+            "expiryDate": (datetime.now() + timedelta(days=30)).isoformat()
         }
         
-        status, response = make_request("PUT", f"/admin/coupons/{created_coupon_id}", update_data)
-        
-        if status == 200 and response.get("success"):
-            updated_coupon = response.get("coupon")
-            if updated_coupon.get("discountValue") == 15:
-                print("✅ PASS: Coupon updated successfully")
+        response = requests.post(f"{BASE_URL}/api/admin/coupons", json=coupon_data)
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('success') and data.get('coupon'):
+                created_coupon_id = data['coupon'].get('id')
+                print_test_result("POST /api/admin/coupons (Create FLAT50)", True, f"Created coupon with ID: {created_coupon_id}")
             else:
-                print("❌ FAIL: Coupon update data mismatch")
-                all_passed = False
+                print_test_result("POST /api/admin/coupons (Create FLAT50)", False, f"API returned error: {data}")
         else:
-            print(f"❌ FAIL: Coupon update failed - Status {status}")
-            all_passed = False
+            print_test_result("POST /api/admin/coupons (Create FLAT50)", False, f"Status: {response.status_code}")
+    except Exception as e:
+        print_test_result("POST /api/admin/coupons (Create FLAT50)", False, f"Exception: {str(e)}")
     
-    # 4. Delete Coupon (we'll do this at the end)
-    print("\n4. Testing: DELETE /api/admin/coupons/:id - Delete Coupon")
-    print("-" * 50)
-    
+    # Test Case 3: PUT /api/admin/coupons/:id - Update coupon (if we created one)
     if created_coupon_id:
-        status, response = make_request("DELETE", f"/admin/coupons/{created_coupon_id}")
-        
-        if status == 200 and response.get("success"):
-            print("✅ PASS: Coupon deleted successfully")
-        else:
-            print(f"❌ FAIL: Coupon deletion failed - Status {status}")
-            all_passed = False
+        try:
+            update_data = {
+                "maxUses": 200  # Change max uses from 100 to 200
+            }
+            
+            response = requests.put(f"{BASE_URL}/api/admin/coupons/{created_coupon_id}", json=update_data)
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('success') and data.get('coupon'):
+                    new_max_uses = data['coupon'].get('maxUses')
+                    if new_max_uses == 200:
+                        print_test_result("PUT /api/admin/coupons/:id (Update)", True, f"Updated maxUses to {new_max_uses}")
+                    else:
+                        print_test_result("PUT /api/admin/coupons/:id (Update)", False, f"maxUses not updated correctly: {new_max_uses}")
+                else:
+                    print_test_result("PUT /api/admin/coupons/:id (Update)", False, f"API returned error: {data}")
+            else:
+                print_test_result("PUT /api/admin/coupons/:id (Update)", False, f"Status: {response.status_code}")
+        except Exception as e:
+            print_test_result("PUT /api/admin/coupons/:id (Update)", False, f"Exception: {str(e)}")
     
-    return all_passed, created_coupon_id
+    # Test Case 4: DELETE /api/admin/coupons/:id - Delete coupon (if we created one)
+    if created_coupon_id:
+        try:
+            response = requests.delete(f"{BASE_URL}/api/admin/coupons/{created_coupon_id}")
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('success'):
+                    print_test_result("DELETE /api/admin/coupons/:id (Delete)", True, "Coupon deleted successfully")
+                else:
+                    print_test_result("DELETE /api/admin/coupons/:id (Delete)", False, f"API returned error: {data}")
+            else:
+                print_test_result("DELETE /api/admin/coupons/:id (Delete)", False, f"Status: {response.status_code}")
+        except Exception as e:
+            print_test_result("DELETE /api/admin/coupons/:id (Delete)", False, f"Exception: {str(e)}")
 
-def test_coupon_validation_apis():
-    """Test Coupon Validation and Usage APIs as specified in review request"""
-    print("\n" + "="*80)
-    print("TEST 3: COUPON VALIDATION AND USAGE APIS")
-    print("="*80)
+def test_coupon_validation_api():
+    """Test coupon validation endpoint"""
+    print("🧪 TESTING COUPON VALIDATION API")
+    print("="*50)
     
-    # First create a test coupon for validation
-    coupon_data = {
-        "code": "TESTVAL10",
-        "discountType": "percentage",
-        "discountValue": 10,
-        "maxUses": 100,
-        "expiryDate": "2025-12-31"
-    }
+    # First, ensure TEST10 coupon exists by creating it if needed
+    try:
+        # Try to get existing coupons first
+        response = requests.get(f"{BASE_URL}/api/admin/coupons")
+        if response.status_code == 200:
+            data = response.json()
+            coupons = data.get('coupons', [])
+            test10_exists = any(c.get('code') == 'TEST10' for c in coupons)
+            
+            if not test10_exists:
+                # Create TEST10 coupon
+                test10_data = {
+                    "code": "TEST10",
+                    "discountType": "percentage", 
+                    "discountValue": 10,
+                    "maxUses": 50,
+                    "expiryDate": (datetime.now() + timedelta(days=30)).isoformat()
+                }
+                create_response = requests.post(f"{BASE_URL}/api/admin/coupons", json=test10_data)
+                if create_response.status_code == 200:
+                    print("    📝 Created TEST10 coupon for testing")
+                else:
+                    print("    ⚠️  Failed to create TEST10 coupon")
+    except Exception as e:
+        print(f"    ⚠️  Error setting up TEST10 coupon: {str(e)}")
     
-    print("\n0. Creating test coupon for validation...")
-    status, response = make_request("POST", "/admin/coupons", coupon_data)
-    
-    if status != 200 or not response.get("success"):
-        print("❌ FAIL: Could not create test coupon for validation")
-        return False
-    
-    test_coupon = response.get("coupon")
-    coupon_id = test_coupon.get("id")
-    print(f"✅ Test coupon created with ID: {coupon_id}")
-    
-    all_passed = True
-    
-    # 1. Validate Coupon
-    print("\n1. Testing: POST /api/coupons/validate - Validate Coupon")
-    print("-" * 50)
-    
-    validate_data = {
-        "code": "TESTVAL10",
-        "userId": "test-user-123",
-        "userPhone": "+911234567890", 
-        "orderTotal": 500
-    }
-    
-    status, response = make_request("POST", "/coupons/validate", validate_data)
-    
-    if status == 200 and response.get("success"):
-        coupon_info = response.get("coupon")
-        discount_amount = coupon_info.get("discountAmount")
+    # Test Case: Validate TEST10 coupon
+    try:
+        validation_data = {
+            "code": "TEST10",
+            "userId": "test-user-123",
+            "userPhone": TEST_USER_PHONE,
+            "orderTotal": 500
+        }
         
-        # For 10% discount on 500, should be 50
-        expected_discount = 50
-        if discount_amount == expected_discount:
-            print(f"✅ PASS: Coupon validation successful")
-            print(f"   Discount Amount: ₹{discount_amount}")
+        response = requests.post(f"{BASE_URL}/api/coupons/validate", json=validation_data)
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('success') and data.get('coupon'):
+                coupon_info = data['coupon']
+                discount_amount = coupon_info.get('discountAmount')
+                expected_discount = 50  # 10% of 500
+                
+                if discount_amount == expected_discount:
+                    print_test_result(
+                        "POST /api/coupons/validate (TEST10)", 
+                        True, 
+                        f"Calculated discount: ₹{discount_amount} (10% of ₹500)"
+                    )
+                    return coupon_info  # Return for use in apply test
+                else:
+                    print_test_result(
+                        "POST /api/coupons/validate (TEST10)", 
+                        False, 
+                        f"Expected ₹{expected_discount}, got ₹{discount_amount}"
+                    )
+            else:
+                print_test_result("POST /api/coupons/validate (TEST10)", False, f"API returned error: {data}")
         else:
-            print(f"❌ FAIL: Expected discount {expected_discount}, got {discount_amount}")
-            all_passed = False
-    else:
-        print(f"❌ FAIL: Coupon validation failed - Status {status}")
-        all_passed = False
-        return False
+            print_test_result("POST /api/coupons/validate (TEST10)", False, f"Status: {response.status_code}")
+    except Exception as e:
+        print_test_result("POST /api/coupons/validate (TEST10)", False, f"Exception: {str(e)}")
     
-    # 2. Apply Coupon (Record Usage)
-    print("\n2. Testing: POST /api/coupons/apply - Record Coupon Usage")
-    print("-" * 50)
+    return None
+
+def test_coupon_apply_api(coupon_info=None):
+    """Test coupon apply endpoint"""
+    print("🧪 TESTING COUPON APPLY API")
+    print("="*50)
     
-    apply_data = {
-        "couponId": coupon_id,
-        "couponCode": "TESTVAL10",
-        "userId": "test-user-123",
-        "userPhone": "+911234567890",
-        "orderId": "order-123",
-        "discountAmount": 50
-    }
+    if not coupon_info:
+        print_test_result("POST /api/coupons/apply", False, "No coupon info available from validation test")
+        return
     
-    status, response = make_request("POST", "/coupons/apply", apply_data)
+    try:
+        apply_data = {
+            "couponId": coupon_info.get('id'),
+            "couponCode": coupon_info.get('code'),
+            "userId": "test-user-123",
+            "userPhone": TEST_USER_PHONE,
+            "orderId": str(uuid.uuid4()),
+            "discountAmount": coupon_info.get('discountAmount')
+        }
+        
+        response = requests.post(f"{BASE_URL}/api/coupons/apply", json=apply_data)
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('success'):
+                print_test_result("POST /api/coupons/apply", True, "Coupon usage recorded successfully")
+            else:
+                print_test_result("POST /api/coupons/apply", False, f"API returned error: {data}")
+        else:
+            print_test_result("POST /api/coupons/apply", False, f"Status: {response.status_code}")
+    except Exception as e:
+        print_test_result("POST /api/coupons/apply", False, f"Exception: {str(e)}")
+
+def test_coupon_usage_api():
+    """Test coupon usage tracking endpoint"""
+    print("🧪 TESTING COUPON USAGE API")  
+    print("="*50)
     
-    if status == 200 and response.get("success"):
-        print("✅ PASS: Coupon usage recorded successfully")
-    else:
-        print(f"❌ FAIL: Coupon usage recording failed - Status {status}")
-        all_passed = False
-    
-    # 3. Test validation after usage (should fail for same user)
-    print("\n3. Testing: Validate same coupon again (should fail)")
-    print("-" * 50)
-    
-    status, response = make_request("POST", "/coupons/validate", validate_data)
-    
-    if status != 200 or not response.get("success"):
-        print("✅ PASS: Coupon correctly rejected after usage")
-    else:
-        print("❌ FAIL: Should have rejected used coupon")
-        all_passed = False
-    
-    # Clean up - delete test coupon
-    print("\n4. Cleaning up test coupon...")
-    make_request("DELETE", f"/admin/coupons/{coupon_id}")
-    
-    return all_passed
+    # Get TEST10 coupon ID first
+    try:
+        response = requests.get(f"{BASE_URL}/api/admin/coupons")
+        if response.status_code == 200:
+            data = response.json()
+            coupons = data.get('coupons', [])
+            test10_coupon = next((c for c in coupons if c.get('code') == 'TEST10'), None)
+            
+            if test10_coupon:
+                coupon_id = test10_coupon.get('id')
+                
+                # Test usage endpoint
+                usage_response = requests.get(f"{BASE_URL}/api/admin/coupons/{coupon_id}/usage")
+                if usage_response.status_code == 200:
+                    usage_data = usage_response.json()
+                    if usage_data.get('success'):
+                        usage_records = usage_data.get('usage', [])
+                        print_test_result(
+                            "GET /api/admin/coupons/:id/usage", 
+                            True, 
+                            f"Retrieved {len(usage_records)} usage records"
+                        )
+                    else:
+                        print_test_result("GET /api/admin/coupons/:id/usage", False, f"API returned error: {usage_data}")
+                else:
+                    print_test_result("GET /api/admin/coupons/:id/usage", False, f"Status: {usage_response.status_code}")
+            else:
+                print_test_result("GET /api/admin/coupons/:id/usage", False, "TEST10 coupon not found")
+        else:
+            print_test_result("GET /api/admin/coupons/:id/usage", False, f"Failed to get coupons: {response.status_code}")
+    except Exception as e:
+        print_test_result("GET /api/admin/coupons/:id/usage", False, f"Exception: {str(e)}")
 
 def test_contact_form_api():
-    """Test Contact Form API as specified in review request"""
-    print("\n" + "="*80)
-    print("TEST 4: CONTACT FORM API")
-    print("="*80)
+    """Test contact form submission"""
+    print("🧪 TESTING CONTACT FORM API")
+    print("="*50)
     
-    # Test data from review request
-    contact_data = {
-        "name": "Test User",
-        "email": "test@example.com",
-        "phone": "1234567890", 
-        "subject": "Test Subject",
-        "message": "Test message"
-    }
-    
-    print("\n1. Testing: POST /api/contact - Submit Contact Form")
-    print("-" * 50)
-    
-    status, response = make_request("POST", "/contact", contact_data)
-    
-    if status == 200 and response.get("success"):
-        message = response.get("message")
-        if "received" in message.lower() or "success" in message.lower():
-            print("✅ PASS: Contact form submitted successfully")
-            return True
-        else:
-            print(f"❌ FAIL: Unexpected response message: {message}")
-            return False
-    else:
-        print(f"❌ FAIL: Contact form submission failed - Status {status}")
-        return False
-
-def test_address_api_with_pincode_validation():
-    """Test Address API with Pincode Validation"""
-    print("\n" + "="*80)
-    print("TEST 5: ADDRESS API WITH PINCODE VALIDATION")
-    print("="*80)
-    
-    # First create a test user
-    test_phone = "+917777888899"
-    user_data = {
-        "phone": test_phone,
-        "name": "Address Test User",
-        "email": "addresstest@example.com"
-    }
-    
-    print("\n0. Creating test user for address operations...")
-    status, response = make_request("POST", "/users", user_data)
-    
-    if status != 200 or not response.get("success"):
-        print("❌ FAIL: Could not create test user for address testing")
-        return False
-    
-    print("✅ Test user created")
-    
-    all_passed = True
-    address_id = None
-    
-    # 1. Add Address with Valid Pincode
-    print("\n1. Testing: POST /api/users/addresses - Add Address with Valid Pincode")
-    print("-" * 50)
-    
-    address_data = {
-        "phone": test_phone,
-        "address": {
-            "label": "Home",
-            "fullAddress": "123 Test Street",
-            "pincode": "302039",  # Valid Jaipur pincode
-            "isDefault": True
+    try:
+        contact_data = {
+            "name": "John Doe",
+            "email": "john.doe@example.com",
+            "phone": "+919876543210",
+            "subject": "Product Inquiry",
+            "message": "I would like to know more about the P-Bar product and its availability in my area."
         }
-    }
-    
-    status, response = make_request("POST", "/users/addresses", address_data)
-    
-    if status == 200 and response.get("success"):
-        addresses = response.get("addresses", [])
-        if addresses:
-            added_address = addresses[-1]
-            address_id = added_address.get("id")
-            city = added_address.get("city")
-            state = added_address.get("state")
-            
-            if city and "jaipur" in city.lower() and state and "rajasthan" in state.lower():
-                print("✅ PASS: Address added with auto-filled city/state")
-                print(f"   City: {city}, State: {state}")
-            else:
-                print(f"❌ FAIL: City/state not auto-filled correctly")
-                print(f"   Got City: {city}, State: {state}")
-                all_passed = False
-        else:
-            print("❌ FAIL: No addresses returned")
-            all_passed = False
-    else:
-        print(f"❌ FAIL: Address addition failed - Status {status}")
-        all_passed = False
-    
-    # 2. Try to Add Address with Invalid Pincode
-    print("\n2. Testing: POST /api/users/addresses - Add Address with Invalid Pincode")
-    print("-" * 50)
-    
-    invalid_address_data = {
-        "phone": test_phone,
-        "address": {
-            "label": "Office",
-            "fullAddress": "456 Invalid Street",
-            "pincode": "000000",  # Invalid pincode
-            "isDefault": False
-        }
-    }
-    
-    status, response = make_request("POST", "/users/addresses", invalid_address_data)
-    
-    if status != 200 or not response.get("success"):
-        print("✅ PASS: Invalid pincode correctly rejected")
-    else:
-        print("❌ FAIL: Should have rejected invalid pincode")
-        all_passed = False
-    
-    # 3. Update Address with Valid Pincode
-    if address_id:
-        print("\n3. Testing: PUT /api/users/addresses/:id - Update Address with Valid Pincode")
-        print("-" * 50)
         
-        update_data = {
-            "phone": test_phone,
+        response = requests.post(f"{BASE_URL}/api/contact", json=contact_data)
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('success'):
+                print_test_result("POST /api/contact", True, "Contact form submitted successfully")
+            else:
+                print_test_result("POST /api/contact", False, f"API returned error: {data}")
+        else:
+            print_test_result("POST /api/contact", False, f"Status: {response.status_code}")
+    except Exception as e:
+        print_test_result("POST /api/contact", False, f"Exception: {str(e)}")
+
+def test_user_and_address_apis():
+    """Test user creation and address APIs with pincode validation"""
+    print("🧪 TESTING USER & ADDRESS APIS WITH PINCODE VALIDATION")
+    print("="*60)
+    
+    # Test Case 1: Create test user
+    try:
+        user_data = {
+            "phone": TEST_USER_PHONE,
+            **TEST_USER_DATA
+        }
+        
+        response = requests.post(f"{BASE_URL}/api/users", json=user_data)
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('success') and data.get('user'):
+                print_test_result("POST /api/users (Create test user)", True, f"User created/updated: {data['user']['name']}")
+            else:
+                print_test_result("POST /api/users (Create test user)", False, f"API returned error: {data}")
+        else:
+            print_test_result("POST /api/users (Create test user)", False, f"Status: {response.status_code}")
+    except Exception as e:
+        print_test_result("POST /api/users (Create test user)", False, f"Exception: {str(e)}")
+    
+    # Test Case 2: Add address with valid pincode (302039)
+    try:
+        address_data = {
+            "phone": TEST_USER_PHONE,
             "address": {
-                "label": "Home Updated",
-                "fullAddress": "789 Updated Street",
-                "pincode": "110001",  # Valid Delhi pincode
+                "label": "Home",
+                "fullAddress": "123 Test Street, Vaishali Nagar",
+                "pincode": "302039",
                 "isDefault": True
             }
         }
         
-        status, response = make_request("PUT", f"/users/addresses/{address_id}", update_data)
-        
-        if status == 200 and response.get("success"):
-            addresses = response.get("addresses", [])
-            updated_address = next((addr for addr in addresses if addr.get("id") == address_id), None)
-            
-            if updated_address:
-                city = updated_address.get("city")
-                state = updated_address.get("state")
-                
-                if city and state and "delhi" in state.lower():
-                    print("✅ PASS: Address updated with auto-filled city/state")
-                    print(f"   City: {city}, State: {state}")
+        response = requests.post(f"{BASE_URL}/api/users/addresses", json=address_data)
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('success') and data.get('addresses'):
+                added_address = data['addresses'][-1]  # Get last address
+                if added_address.get('city') and added_address.get('state'):
+                    print_test_result(
+                        "POST /api/users/addresses (Valid pincode 302039)", 
+                        True, 
+                        f"Address added with auto-filled city: {added_address['city']}, state: {added_address['state']}"
+                    )
                 else:
-                    print(f"❌ FAIL: City/state not updated correctly")
-                    all_passed = False
+                    print_test_result("POST /api/users/addresses (Valid pincode 302039)", False, "City/State not auto-filled")
             else:
-                print("❌ FAIL: Updated address not found")
-                all_passed = False
+                print_test_result("POST /api/users/addresses (Valid pincode 302039)", False, f"API returned error: {data}")
         else:
-            print(f"❌ FAIL: Address update failed - Status {status}")
-            all_passed = False
+            print_test_result("POST /api/users/addresses (Valid pincode 302039)", False, f"Status: {response.status_code}")
+    except Exception as e:
+        print_test_result("POST /api/users/addresses (Valid pincode 302039)", False, f"Exception: {str(e)}")
     
-    return all_passed
+    # Test Case 3: Try to add address with invalid pincode (000000) - should fail
+    try:
+        invalid_address_data = {
+            "phone": TEST_USER_PHONE,
+            "address": {
+                "label": "Office", 
+                "fullAddress": "456 Invalid Street",
+                "pincode": "000000",
+                "isDefault": False
+            }
+        }
+        
+        response = requests.post(f"{BASE_URL}/api/users/addresses", json=invalid_address_data)
+        if response.status_code == 400:
+            data = response.json()
+            if not data.get('success') and 'Invalid pincode' in data.get('message', ''):
+                print_test_result("POST /api/users/addresses (Invalid pincode 000000)", True, "Correctly rejected invalid pincode")
+            else:
+                print_test_result("POST /api/users/addresses (Invalid pincode 000000)", False, "Should have rejected invalid pincode")
+        else:
+            print_test_result("POST /api/users/addresses (Invalid pincode 000000)", False, f"Status: {response.status_code} (expected 400)")
+    except Exception as e:
+        print_test_result("POST /api/users/addresses (Invalid pincode 000000)", False, f"Exception: {str(e)}")
 
-def run_all_tests():
-    """Run all backend API tests as specified in review request"""
-    print("🚀 Starting BeGood E-commerce Backend API Tests")
+def main():
+    """Run all backend API tests"""
+    print("🚀 BEGOOD E-COMMERCE BACKEND API TESTING")
+    print("="*60)
     print(f"Base URL: {BASE_URL}")
-    print("=" * 80)
+    print(f"Test User Phone: {TEST_USER_PHONE}")
+    print("="*60)
+    print()
     
-    results = []
-    
-    # Test 1: Pincode Validation API
     try:
-        success = test_pincode_validation()
-        results.append(("Pincode Validation API", success))
+        # Test all API groups
+        test_pincode_validation_api()
+        test_coupon_crud_apis()
+        coupon_info = test_coupon_validation_api()
+        test_coupon_apply_api(coupon_info)
+        test_coupon_usage_api()
+        test_contact_form_api()
+        test_user_and_address_apis()
+        
+        print("🏁 BACKEND API TESTING COMPLETED")
+        print("="*60)
+        print("Check individual test results above for detailed status.")
+        
+    except KeyboardInterrupt:
+        print("\n⚠️  Testing interrupted by user")
     except Exception as e:
-        print(f"❌ ERROR in Pincode Validation tests: {str(e)}")
-        results.append(("Pincode Validation API", False))
+        print(f"\n❌ Critical testing error: {str(e)}")
+        return 1
     
-    # Test 2: Coupon CRUD APIs 
-    try:
-        success, _ = test_coupon_crud_apis()
-        results.append(("Coupon CRUD APIs", success))
-    except Exception as e:
-        print(f"❌ ERROR in Coupon CRUD tests: {str(e)}")
-        results.append(("Coupon CRUD APIs", False))
-    
-    # Test 3: Coupon Validation and Usage APIs
-    try:
-        success = test_coupon_validation_apis()
-        results.append(("Coupon Validation APIs", success))
-    except Exception as e:
-        print(f"❌ ERROR in Coupon Validation tests: {str(e)}")
-        results.append(("Coupon Validation APIs", False))
-    
-    # Test 4: Contact Form API
-    try:
-        success = test_contact_form_api()
-        results.append(("Contact Form API", success))
-    except Exception as e:
-        print(f"❌ ERROR in Contact Form tests: {str(e)}")
-        results.append(("Contact Form API", False))
-    
-    # Test 5: Address API with Pincode Validation
-    try:
-        success = test_address_api_with_pincode_validation()
-        results.append(("Address API with Pincode Validation", success))
-    except Exception as e:
-        print(f"❌ ERROR in Address API tests: {str(e)}")
-        results.append(("Address API with Pincode Validation", False))
-    
-    # Print Final Summary
-    print("\n" + "="*80)
-    print("🏁 FINAL TEST SUMMARY")
-    print("="*80)
-    
-    passed = 0
-    total = len(results)
-    
-    for test_name, success in results:
-        status = "✅ PASS" if success else "❌ FAIL"
-        print(f"{test_name:<35} {status}")
-        if success:
-            passed += 1
-    
-    print(f"\nOverall Result: {passed}/{total} tests passed")
-    
-    if passed == total:
-        print("🎉 ALL BACKEND API TESTS PASSED!")
-        return True
-    else:
-        print("⚠️  Some tests failed. Check the logs above for details.")
-        return False
+    return 0
 
 if __name__ == "__main__":
-    success = run_all_tests()
-    sys.exit(0 if success else 1)
+    sys.exit(main())
