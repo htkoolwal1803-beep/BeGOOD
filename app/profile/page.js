@@ -34,6 +34,12 @@ function ProfileContent() {
     state: '',
     isDefault: false
   })
+  
+  // Pincode validation state
+  const [pincodeLoading, setPincodeLoading] = useState(false)
+  const [pincodeError, setPincodeError] = useState('')
+  const [pincodeValidated, setPincodeValidated] = useState(false)
+  const [addressError, setAddressError] = useState('')
 
   // Redirect if not logged in
   useEffect(() => {
@@ -73,6 +79,57 @@ function ProfileContent() {
     }
   }
 
+  // Pincode validation function
+  const validatePincode = async (pincode) => {
+    if (pincode.length !== 6) {
+      setPincodeError('')
+      setPincodeValidated(false)
+      setAddressForm(prev => ({ ...prev, city: '', state: '' }))
+      return
+    }
+    
+    setPincodeLoading(true)
+    setPincodeError('')
+    
+    try {
+      const response = await fetch(`/api/pincode/${pincode}`)
+      const data = await response.json()
+      
+      if (data.success) {
+        setAddressForm(prev => ({
+          ...prev,
+          city: data.city,
+          state: data.state
+        }))
+        setPincodeValidated(true)
+        setPincodeError('')
+      } else {
+        setPincodeError(data.message || 'Invalid pincode')
+        setPincodeValidated(false)
+        setAddressForm(prev => ({ ...prev, city: '', state: '' }))
+      }
+    } catch (error) {
+      setPincodeError('Unable to validate pincode')
+      setPincodeValidated(false)
+    }
+    
+    setPincodeLoading(false)
+  }
+
+  // Handle pincode change with validation
+  const handlePincodeChange = (e) => {
+    const value = e.target.value.replace(/\D/g, '').slice(0, 6)
+    setAddressForm(prev => ({ ...prev, pincode: value }))
+    setPincodeValidated(false)
+    
+    if (value.length === 6) {
+      validatePincode(value)
+    } else {
+      setPincodeError('')
+      setAddressForm(prev => ({ ...prev, city: '', state: '' }))
+    }
+  }
+
   const handleProfileUpdate = async (e) => {
     e.preventDefault()
     setLoading(true)
@@ -93,6 +150,32 @@ function ProfileContent() {
   const handleAddAddress = async (e) => {
     e.preventDefault()
     setLoading(true)
+    setAddressError('')
+    
+    // Validate pincode first if not already validated
+    if (!pincodeValidated && addressForm.pincode.length === 6) {
+      setPincodeLoading(true)
+      try {
+        const response = await fetch(`/api/pincode/${addressForm.pincode}`)
+        const data = await response.json()
+        
+        if (!data.success) {
+          setPincodeError(data.message || 'Invalid pincode')
+          setPincodeLoading(false)
+          setLoading(false)
+          return
+        }
+        
+        addressForm.city = data.city
+        addressForm.state = data.state
+      } catch (error) {
+        setPincodeError('Unable to validate pincode')
+        setPincodeLoading(false)
+        setLoading(false)
+        return
+      }
+      setPincodeLoading(false)
+    }
     
     try {
       const response = await fetch('/api/users/addresses', {
@@ -109,9 +192,12 @@ function ProfileContent() {
       if (data.success) {
         setAddresses(data.addresses)
         resetAddressForm()
+      } else {
+        setAddressError(data.message || 'Failed to add address')
       }
     } catch (err) {
       console.error('Failed to add address:', err)
+      setAddressError('Failed to add address')
     }
     
     setLoading(false)
@@ -120,6 +206,32 @@ function ProfileContent() {
   const handleUpdateAddress = async (e) => {
     e.preventDefault()
     setLoading(true)
+    setAddressError('')
+    
+    // Validate pincode first if not already validated
+    if (!pincodeValidated && addressForm.pincode.length === 6) {
+      setPincodeLoading(true)
+      try {
+        const response = await fetch(`/api/pincode/${addressForm.pincode}`)
+        const data = await response.json()
+        
+        if (!data.success) {
+          setPincodeError(data.message || 'Invalid pincode')
+          setPincodeLoading(false)
+          setLoading(false)
+          return
+        }
+        
+        addressForm.city = data.city
+        addressForm.state = data.state
+      } catch (error) {
+        setPincodeError('Unable to validate pincode')
+        setPincodeLoading(false)
+        setLoading(false)
+        return
+      }
+      setPincodeLoading(false)
+    }
     
     try {
       const response = await fetch(`/api/users/addresses/${editingAddressId}`, {
@@ -136,9 +248,12 @@ function ProfileContent() {
       if (data.success) {
         setAddresses(data.addresses)
         resetAddressForm()
+      } else {
+        setAddressError(data.message || 'Failed to update address')
       }
     } catch (err) {
       console.error('Failed to update address:', err)
+      setAddressError('Failed to update address')
     }
     
     setLoading(false)
@@ -177,6 +292,9 @@ function ProfileContent() {
       state: '',
       isDefault: false
     })
+    setPincodeError('')
+    setPincodeValidated(false)
+    setAddressError('')
   }
 
   const startEditAddress = (address) => {
@@ -189,6 +307,9 @@ function ProfileContent() {
       state: address.state || '',
       isDefault: address.isDefault
     })
+    setPincodeValidated(true) // Assume existing address has valid pincode
+    setPincodeError('')
+    setAddressError('')
     setShowAddressForm(true)
   }
 
@@ -444,14 +565,30 @@ function ProfileContent() {
                       </div>
                       <div>
                         <label className="block text-sm font-semibold mb-2">Pincode *</label>
-                        <input
-                          type="text"
-                          value={addressForm.pincode}
-                          onChange={(e) => setAddressForm({...addressForm, pincode: e.target.value.replace(/\D/g, '').slice(0, 6)})}
-                          placeholder="6-digit pincode"
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C8A97E]"
-                          required
-                        />
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={addressForm.pincode}
+                            onChange={handlePincodeChange}
+                            placeholder="6-digit pincode"
+                            className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C8A97E] ${
+                              pincodeError ? 'border-red-500' : pincodeValidated ? 'border-green-500' : 'border-gray-300'
+                            }`}
+                            required
+                          />
+                          {pincodeLoading && (
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                              <Loader2 className="w-5 h-5 animate-spin text-[#C8A97E]" />
+                            </div>
+                          )}
+                          {pincodeValidated && !pincodeLoading && (
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                              <Check className="w-5 h-5 text-green-500" />
+                            </div>
+                          )}
+                        </div>
+                        {pincodeError && <p className="text-red-500 text-xs mt-1">{pincodeError}</p>}
+                        {pincodeValidated && <p className="text-green-600 text-xs mt-1">Valid pincode</p>}
                       </div>
                       <div className="md:col-span-2">
                         <label className="block text-sm font-semibold mb-2">Full Address *</label>
@@ -469,9 +606,9 @@ function ProfileContent() {
                         <input
                           type="text"
                           value={addressForm.city}
-                          onChange={(e) => setAddressForm({...addressForm, city: e.target.value})}
-                          placeholder="City"
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C8A97E]"
+                          readOnly
+                          placeholder="Auto-filled from pincode"
+                          className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-100 text-gray-600"
                         />
                       </div>
                       <div>
@@ -479,9 +616,9 @@ function ProfileContent() {
                         <input
                           type="text"
                           value={addressForm.state}
-                          onChange={(e) => setAddressForm({...addressForm, state: e.target.value})}
-                          placeholder="State"
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C8A97E]"
+                          readOnly
+                          placeholder="Auto-filled from pincode"
+                          className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-100 text-gray-600"
                         />
                       </div>
                       <div className="md:col-span-2">
@@ -496,8 +633,9 @@ function ProfileContent() {
                         </label>
                       </div>
                     </div>
+                    {addressError && <p className="text-red-500 text-sm mt-3">{addressError}</p>}
                     <div className="flex space-x-3 mt-4">
-                      <Button type="submit" disabled={loading}>
+                      <Button type="submit" disabled={loading || pincodeLoading || (addressForm.pincode.length === 6 && !pincodeValidated)}>
                         {loading ? 'Saving...' : (editingAddressId ? 'Update Address' : 'Add Address')}
                       </Button>
                       <button

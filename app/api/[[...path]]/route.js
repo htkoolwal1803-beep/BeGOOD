@@ -11,13 +11,35 @@ async function connectToDatabase() {
     return { client: cachedClient, db: cachedDb }
   }
 
-  const client = await MongoClient.connect(process.env.MONGO_URL)
+  const client = await MongoClient.connect(process.env.MONGO_URL || process.env.MONGO_URI)
 
   const db = client.db()
   cachedClient = client
   cachedDb = db
 
   return { client, db }
+}
+
+// Pincode validation using India Post API
+async function validatePincode(pincode) {
+  try {
+    const response = await fetch(`https://api.postalpincode.in/pincode/${pincode}`)
+    const data = await response.json()
+    
+    if (data && data[0] && data[0].Status === 'Success' && data[0].PostOffice && data[0].PostOffice.length > 0) {
+      const postOffice = data[0].PostOffice[0]
+      return {
+        valid: true,
+        city: postOffice.District || postOffice.Division,
+        state: postOffice.State,
+        country: postOffice.Country
+      }
+    }
+    return { valid: false, message: 'Invalid pincode' }
+  } catch (error) {
+    console.error('Pincode validation error:', error)
+    return { valid: false, message: 'Unable to validate pincode' }
+  }
 }
 
 // Helper to extract path segments
@@ -189,6 +211,46 @@ export async function GET(request) {
       }
       
       return NextResponse.json({ success: true, product })
+    }
+
+    // GET /api/pincode/:pincode - Validate pincode and get city/state
+    if (segments[0] === 'pincode' && segments.length === 2) {
+      const pincode = segments[1]
+      
+      if (!/^\d{6}$/.test(pincode)) {
+        return NextResponse.json({ success: false, message: 'Pincode must be 6 digits' }, { status: 400 })
+      }
+      
+      const result = await validatePincode(pincode)
+      
+      if (result.valid) {
+        return NextResponse.json({ 
+          success: true, 
+          city: result.city,
+          state: result.state,
+          country: result.country
+        })
+      } else {
+        return NextResponse.json({ success: false, message: result.message }, { status: 400 })
+      }
+    }
+
+    // GET /api/admin/coupons - Get all coupons with usage stats
+    if (segments[0] === 'admin' && segments[1] === 'coupons' && segments.length === 2) {
+      const { db } = await connectToDatabase()
+      const coupons = await db.collection('coupons').find({}).sort({ createdAt: -1 }).toArray()
+      
+      return NextResponse.json({ success: true, coupons })
+    }
+
+    // GET /api/admin/coupons/:id/usage - Get detailed usage for a coupon
+    if (segments[0] === 'admin' && segments[1] === 'coupons' && segments.length === 4 && segments[3] === 'usage') {
+      const { db } = await connectToDatabase()
+      const couponId = segments[2]
+      
+      const usage = await db.collection('coupon_usage').find({ couponId }).sort({ usedAt: -1 }).toArray()
+      
+      return NextResponse.json({ success: true, usage })
     }
 
     return NextResponse.json({ success: false, message: 'Not found' }, { status: 404 })
@@ -426,6 +488,22 @@ export async function POST(request) {
       if (!phone || !address) {
         return NextResponse.json({ success: false, message: 'Phone and address are required' }, { status: 400 })
       }
+
+      // Validate pincode if provided
+      if (address.pincode) {
+        if (!/^\d{6}$/.test(address.pincode)) {
+          return NextResponse.json({ success: false, message: 'Pincode must be 6 digits' }, { status: 400 })
+        }
+        
+        const pincodeResult = await validatePincode(address.pincode)
+        if (!pincodeResult.valid) {
+          return NextResponse.json({ success: false, message: 'Invalid pincode. Please enter a valid Indian pincode.' }, { status: 400 })
+        }
+        
+        // Auto-fill city and state from pincode validation
+        address.city = pincodeResult.city
+        address.state = pincodeResult.state
+      }
       
       const newAddress = {
         id: uuidv4(),
@@ -453,6 +531,169 @@ export async function POST(request) {
       
       const updatedUser = await db.collection('users').findOne({ phone })
       return NextResponse.json({ success: true, addresses: updatedUser.addresses })
+    }
+
+    // POST /api/admin/coupons - Create new coupon
+    if (segments[0] === 'admin' && segments[1] === 'coupons') {
+      const body = await request.json()
+      const { db } = await connectToDatabase()
+      
+      const { code, discountType, discountValue, maxUses, expiryDate } = body
+      
+      if (!code || !discountType || discountValue === undefined) {
+        return NextResponse.json({ success: false, message: 'Code, discount type, and discount value are required' }, { status: 400 })
+      }
+      
+      // Check if coupon code already exists
+      const existingCoupon = await db.collection('coupons').findOne({ code: code.toUpperCase() })
+      if (existingCoupon) {
+        return NextResponse.json({ success: false, message: 'Coupon code already exists' }, { status: 400 })
+      }
+      
+      const coupon = {
+        id: uuidv4(),
+        code: code.toUpperCase(),
+        discountType, // 'fixed' or 'percentage'
+        discountValue: parseFloat(discountValue),
+        maxUses: maxUses ? parseInt(maxUses) : null, // null means unlimited
+        usedCount: 0,
+        expiryDate: expiryDate ? new Date(expiryDate).toISOString() : null,
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+      
+      await db.collection('coupons').insertOne(coupon)
+      
+      return NextResponse.json({ success: true, coupon })
+    }
+
+    // POST /api/coupons/validate - Validate and apply coupon
+    if (segments[0] === 'coupons' && segments[1] === 'validate') {
+      const body = await request.json()
+      const { db } = await connectToDatabase()
+      
+      const { code, userId, userPhone, orderTotal } = body
+      
+      if (!code) {
+        return NextResponse.json({ success: false, message: 'Coupon code is required' }, { status: 400 })
+      }
+      
+      const coupon = await db.collection('coupons').findOne({ code: code.toUpperCase(), isActive: true })
+      
+      if (!coupon) {
+        return NextResponse.json({ success: false, message: 'Invalid coupon code' }, { status: 400 })
+      }
+      
+      // Check if coupon has expired
+      if (coupon.expiryDate && new Date(coupon.expiryDate) < new Date()) {
+        return NextResponse.json({ success: false, message: 'Coupon has expired' }, { status: 400 })
+      }
+      
+      // Check if max uses reached
+      if (coupon.maxUses !== null && coupon.usedCount >= coupon.maxUses) {
+        return NextResponse.json({ success: false, message: 'Coupon usage limit reached' }, { status: 400 })
+      }
+      
+      // Check if user has already used this coupon
+      const userUsage = await db.collection('coupon_usage').findOne({
+        couponId: coupon.id,
+        $or: [
+          { userId: userId },
+          { userPhone: userPhone }
+        ]
+      })
+      
+      if (userUsage) {
+        return NextResponse.json({ success: false, message: 'You have already used this coupon' }, { status: 400 })
+      }
+      
+      // Calculate discount
+      let discountAmount = 0
+      if (coupon.discountType === 'fixed') {
+        discountAmount = coupon.discountValue
+      } else if (coupon.discountType === 'percentage') {
+        discountAmount = Math.round((orderTotal * coupon.discountValue) / 100)
+      }
+      
+      // Ensure discount doesn't exceed order total
+      discountAmount = Math.min(discountAmount, orderTotal)
+      
+      return NextResponse.json({ 
+        success: true, 
+        coupon: {
+          id: coupon.id,
+          code: coupon.code,
+          discountType: coupon.discountType,
+          discountValue: coupon.discountValue,
+          discountAmount
+        }
+      })
+    }
+
+    // POST /api/coupons/apply - Apply coupon after order completion
+    if (segments[0] === 'coupons' && segments[1] === 'apply') {
+      const body = await request.json()
+      const { db } = await connectToDatabase()
+      
+      const { couponId, couponCode, userId, userPhone, orderId, discountAmount } = body
+      
+      if (!couponId || !orderId) {
+        return NextResponse.json({ success: false, message: 'Coupon ID and Order ID are required' }, { status: 400 })
+      }
+      
+      // Record the usage
+      const usageRecord = {
+        id: uuidv4(),
+        couponId,
+        couponCode,
+        userId: userId || null,
+        userPhone: userPhone || null,
+        orderId,
+        discountAmount: discountAmount || 0,
+        usedAt: new Date().toISOString()
+      }
+      
+      await db.collection('coupon_usage').insertOne(usageRecord)
+      
+      // Increment the used count
+      await db.collection('coupons').updateOne(
+        { id: couponId },
+        { 
+          $inc: { usedCount: 1 },
+          $set: { updatedAt: new Date().toISOString() }
+        }
+      )
+      
+      return NextResponse.json({ success: true })
+    }
+
+    // POST /api/contact - Handle contact form submission (stores in DB for record)
+    if (segments[0] === 'contact' && segments.length === 1) {
+      const body = await request.json()
+      const { db } = await connectToDatabase()
+      
+      const { name, email, phone, subject, message } = body
+      
+      if (!name || !email || !subject || !message) {
+        return NextResponse.json({ success: false, message: 'Name, email, subject, and message are required' }, { status: 400 })
+      }
+      
+      // Store contact message in database
+      const contactMessage = {
+        id: uuidv4(),
+        name,
+        email,
+        phone: phone || '',
+        subject,
+        message,
+        status: 'pending', // pending, responded, closed
+        createdAt: new Date().toISOString()
+      }
+      
+      await db.collection('contact_messages').insertOne(contactMessage)
+      
+      return NextResponse.json({ success: true, message: 'Message received successfully' })
     }
 
     return NextResponse.json({ success: false, message: 'Not found' }, { status: 404 })
@@ -515,6 +756,22 @@ export async function PUT(request) {
       if (!phone) {
         return NextResponse.json({ success: false, message: 'Phone is required' }, { status: 400 })
       }
+
+      // Validate pincode if provided
+      if (address.pincode) {
+        if (!/^\d{6}$/.test(address.pincode)) {
+          return NextResponse.json({ success: false, message: 'Pincode must be 6 digits' }, { status: 400 })
+        }
+        
+        const pincodeResult = await validatePincode(address.pincode)
+        if (!pincodeResult.valid) {
+          return NextResponse.json({ success: false, message: 'Invalid pincode. Please enter a valid Indian pincode.' }, { status: 400 })
+        }
+        
+        // Auto-fill city and state from pincode validation
+        address.city = pincodeResult.city
+        address.state = pincodeResult.state
+      }
       
       // If setting as default, remove default from all addresses first
       if (address.isDefault) {
@@ -548,6 +805,35 @@ export async function PUT(request) {
       return NextResponse.json({ success: true, addresses: updatedUser.addresses })
     }
 
+    // PUT /api/admin/coupons/:id - Update coupon
+    if (segments[0] === 'admin' && segments[1] === 'coupons' && segments.length === 3) {
+      const body = await request.json()
+      const { db } = await connectToDatabase()
+      const couponId = segments[2]
+      
+      const { discountType, discountValue, maxUses, expiryDate, isActive } = body
+      
+      const updateFields = { updatedAt: new Date().toISOString() }
+      
+      if (discountType !== undefined) updateFields.discountType = discountType
+      if (discountValue !== undefined) updateFields.discountValue = parseFloat(discountValue)
+      if (maxUses !== undefined) updateFields.maxUses = maxUses ? parseInt(maxUses) : null
+      if (expiryDate !== undefined) updateFields.expiryDate = expiryDate ? new Date(expiryDate).toISOString() : null
+      if (isActive !== undefined) updateFields.isActive = isActive
+      
+      const result = await db.collection('coupons').updateOne(
+        { id: couponId },
+        { $set: updateFields }
+      )
+      
+      if (result.matchedCount === 0) {
+        return NextResponse.json({ success: false, message: 'Coupon not found' }, { status: 404 })
+      }
+      
+      const updatedCoupon = await db.collection('coupons').findOne({ id: couponId })
+      return NextResponse.json({ success: true, coupon: updatedCoupon })
+    }
+
     return NextResponse.json({ success: false, message: 'Not found' }, { status: 404 })
   } catch (error) {
     console.error('API Error:', error)
@@ -571,6 +857,23 @@ export async function DELETE(request) {
       }
       
       return NextResponse.json({ success: true, message: 'Product deleted successfully' })
+    }
+
+    // DELETE /api/admin/coupons/:id - Delete coupon
+    if (segments[0] === 'admin' && segments[1] === 'coupons' && segments.length === 3) {
+      const { db } = await connectToDatabase()
+      const couponId = segments[2]
+      
+      const result = await db.collection('coupons').deleteOne({ id: couponId })
+      
+      if (result.deletedCount === 0) {
+        return NextResponse.json({ success: false, message: 'Coupon not found' }, { status: 404 })
+      }
+      
+      // Also delete usage records for this coupon
+      await db.collection('coupon_usage').deleteMany({ couponId })
+      
+      return NextResponse.json({ success: true, message: 'Coupon deleted successfully' })
     }
 
     // DELETE /api/users/addresses/:addressId - Delete address

@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/AuthContext'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/Button'
 import Image from 'next/image'
-import { Lock, Package, Truck, Phone, Shield, User, MapPin, Check, Loader2 } from 'lucide-react'
+import { Lock, Package, Truck, Phone, Shield, User, MapPin, Check, Loader2, Tag, X } from 'lucide-react'
 import Link from 'next/link'
 import emailjs from '@emailjs/browser'
 import { calculateShipping, calculateOrderTotal, SHIPPING_CONFIG } from '@/lib/constants'
@@ -44,10 +44,22 @@ export default function CheckoutPage() {
     city: '',
     state: ''
   })
+  
+  // Pincode validation state
+  const [pincodeLoading, setPincodeLoading] = useState(false)
+  const [pincodeError, setPincodeError] = useState('')
+  const [pincodeValidated, setPincodeValidated] = useState(false)
+  
+  // Coupon state
+  const [couponCode, setCouponCode] = useState('')
+  const [couponLoading, setCouponLoading] = useState(false)
+  const [couponError, setCouponError] = useState('')
+  const [appliedCoupon, setAppliedCoupon] = useState(null)
 
-  // Calculate shipping and order total
+  // Calculate shipping and order total with coupon discount
   const shippingFee = calculateShipping(cartTotal)
-  const orderTotal = calculateOrderTotal(cartTotal)
+  const couponDiscount = appliedCoupon?.discountAmount || 0
+  const orderTotal = calculateOrderTotal(cartTotal) - couponDiscount
   const amountToFreeShipping = SHIPPING_CONFIG.FREE_SHIPPING_THRESHOLD - cartTotal
 
   // Initialize and track
@@ -81,6 +93,103 @@ export default function CheckoutPage() {
       }).catch(err => console.error('Analytics error:', err))
     }
   }, [])
+
+  // Pincode validation function
+  const validatePincode = async (pincode) => {
+    if (pincode.length !== 6) {
+      setPincodeError('')
+      setPincodeValidated(false)
+      setFormData(prev => ({ ...prev, city: '', state: '' }))
+      return
+    }
+    
+    setPincodeLoading(true)
+    setPincodeError('')
+    
+    try {
+      const response = await fetch(`/api/pincode/${pincode}`)
+      const data = await response.json()
+      
+      if (data.success) {
+        setFormData(prev => ({
+          ...prev,
+          city: data.city,
+          state: data.state
+        }))
+        setPincodeValidated(true)
+        setPincodeError('')
+      } else {
+        setPincodeError(data.message || 'Invalid pincode')
+        setPincodeValidated(false)
+        setFormData(prev => ({ ...prev, city: '', state: '' }))
+      }
+    } catch (error) {
+      setPincodeError('Unable to validate pincode')
+      setPincodeValidated(false)
+    }
+    
+    setPincodeLoading(false)
+  }
+
+  // Handle pincode change with debounce
+  const handlePincodeChange = (e) => {
+    const value = e.target.value.replace(/\D/g, '').slice(0, 6)
+    setFormData(prev => ({ ...prev, pincode: value }))
+    setPincodeValidated(false)
+    
+    if (value.length === 6) {
+      validatePincode(value)
+    } else {
+      setPincodeError('')
+      setFormData(prev => ({ ...prev, city: '', state: '' }))
+    }
+  }
+
+  // Apply coupon
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError('Please enter a coupon code')
+      return
+    }
+    
+    setCouponLoading(true)
+    setCouponError('')
+    
+    try {
+      const response = await fetch('/api/coupons/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: couponCode,
+          userId: user?.uid,
+          userPhone: user?.phoneNumber || `+91${phone}`,
+          orderTotal: cartTotal
+        })
+      })
+      
+      const data = await response.json()
+      
+      if (data.success) {
+        setAppliedCoupon(data.coupon)
+        setCouponError('')
+      } else {
+        setCouponError(data.message || 'Invalid coupon')
+        setAppliedCoupon(null)
+      }
+    } catch (error) {
+      setCouponError('Unable to validate coupon')
+      setAppliedCoupon(null)
+    }
+    
+    setCouponLoading(false)
+  }
+
+  // Remove coupon
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null)
+    setCouponCode('')
+    setCouponError('')
+  }
 
   // Check if user is already logged in
   useEffect(() => {
@@ -277,6 +386,29 @@ export default function CheckoutPage() {
       setAuthError('Please enter address and pincode')
       return
     }
+    
+    // Validate pincode first if not already validated
+    if (!pincodeValidated) {
+      setPincodeLoading(true)
+      try {
+        const response = await fetch(`/api/pincode/${formData.pincode}`)
+        const data = await response.json()
+        
+        if (!data.success) {
+          setPincodeError(data.message || 'Invalid pincode')
+          setPincodeLoading(false)
+          return
+        }
+        
+        formData.city = data.city
+        formData.state = data.state
+      } catch (error) {
+        setPincodeError('Unable to validate pincode')
+        setPincodeLoading(false)
+        return
+      }
+      setPincodeLoading(false)
+    }
 
     setLoading(true)
     
@@ -305,7 +437,7 @@ export default function CheckoutPage() {
         setSelectedAddressId(data.addresses[data.addresses.length - 1].id)
         setStep('payment')
       } else {
-        setAuthError('Failed to save address. Please try again.')
+        setAuthError(data.message || 'Failed to save address. Please try again.')
       }
     } catch (err) {
       setAuthError('An error occurred. Please try again.')
@@ -388,6 +520,8 @@ export default function CheckoutPage() {
             })),
             subtotal: cartTotal,
             shippingFee: shippingFee,
+            couponCode: appliedCoupon?.code || null,
+            couponDiscount: couponDiscount,
             totalAmount: orderTotal,
             paymentId: paymentId,
             userId: user?.uid || null
@@ -403,6 +537,26 @@ export default function CheckoutPage() {
             const orderResult = await orderResponse.json()
 
             if (orderResult.success) {
+              // Record coupon usage if coupon was applied
+              if (appliedCoupon) {
+                try {
+                  await fetch('/api/coupons/apply', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      couponId: appliedCoupon.id,
+                      couponCode: appliedCoupon.code,
+                      userId: user?.uid || null,
+                      userPhone: user?.phoneNumber || `+91${phone}`,
+                      orderId: orderResult.order.orderId,
+                      discountAmount: couponDiscount
+                    })
+                  })
+                } catch (couponError) {
+                  console.error('Failed to record coupon usage:', couponError)
+                }
+              }
+
               if (window.gtag) {
                 window.gtag('event', 'purchase', {
                   transaction_id: orderResult.order.orderId,
@@ -732,23 +886,39 @@ export default function CheckoutPage() {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-semibold mb-2">Pincode *</label>
-                          <input
-                            type="text"
-                            value={formData.pincode}
-                            onChange={(e) => setFormData({...formData, pincode: e.target.value.replace(/\D/g, '').slice(0, 6)})}
-                            placeholder="6-digit pincode"
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C8A97E]"
-                            required
-                          />
+                          <div className="relative">
+                            <input
+                              type="text"
+                              value={formData.pincode}
+                              onChange={handlePincodeChange}
+                              placeholder="6-digit pincode"
+                              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C8A97E] ${
+                                pincodeError ? 'border-red-500' : pincodeValidated ? 'border-green-500' : 'border-gray-300'
+                              }`}
+                              required
+                            />
+                            {pincodeLoading && (
+                              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                <Loader2 className="w-5 h-5 animate-spin text-[#C8A97E]" />
+                              </div>
+                            )}
+                            {pincodeValidated && !pincodeLoading && (
+                              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                <Check className="w-5 h-5 text-green-500" />
+                              </div>
+                            )}
+                          </div>
+                          {pincodeError && <p className="text-red-500 text-xs mt-1">{pincodeError}</p>}
+                          {pincodeValidated && <p className="text-green-600 text-xs mt-1">Valid pincode</p>}
                         </div>
                         <div>
                           <label className="block text-sm font-semibold mb-2">City</label>
                           <input
                             type="text"
                             value={formData.city}
-                            onChange={(e) => setFormData({...formData, city: e.target.value})}
-                            placeholder="City"
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C8A97E]"
+                            readOnly
+                            placeholder="Auto-filled from pincode"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 text-gray-600"
                           />
                         </div>
                       </div>
@@ -758,9 +928,9 @@ export default function CheckoutPage() {
                         <input
                           type="text"
                           value={formData.state}
-                          onChange={(e) => setFormData({...formData, state: e.target.value})}
-                          placeholder="State"
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C8A97E]"
+                          readOnly
+                          placeholder="Auto-filled from pincode"
+                          className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 text-gray-600"
                         />
                       </div>
 
@@ -776,7 +946,7 @@ export default function CheckoutPage() {
                         </button>
                       )}
 
-                      <Button type="submit" size="lg" className="w-full" disabled={loading || !formData.address.trim() || !formData.pincode.trim()}>
+                      <Button type="submit" size="lg" className="w-full" disabled={loading || pincodeLoading || !formData.address.trim() || !formData.pincode.trim() || (formData.pincode.length === 6 && !pincodeValidated)}>
                         {loading ? (
                           <span className="flex items-center justify-center">
                             <Loader2 className="w-5 h-5 animate-spin mr-2" />
@@ -897,6 +1067,59 @@ export default function CheckoutPage() {
                     </p>
                   </div>
                 )}
+
+                {/* Coupon Code Section */}
+                <div className="border-t border-gray-300 pt-3">
+                  <label className="block text-sm font-semibold mb-2 flex items-center">
+                    <Tag className="w-4 h-4 mr-1" />
+                    Have a coupon code?
+                  </label>
+                  {appliedCoupon ? (
+                    <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-3">
+                      <div>
+                        <p className="font-semibold text-green-700">{appliedCoupon.code}</p>
+                        <p className="text-xs text-green-600">
+                          {appliedCoupon.discountType === 'percentage' 
+                            ? `${appliedCoupon.discountValue}% off` 
+                            : `₹${appliedCoupon.discountValue} off`}
+                        </p>
+                      </div>
+                      <button
+                        onClick={handleRemoveCoupon}
+                        className="text-red-500 hover:text-red-700 p-1"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                        placeholder="Enter code"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C8A97E] text-sm"
+                      />
+                      <button
+                        onClick={handleApplyCoupon}
+                        disabled={couponLoading || !couponCode.trim()}
+                        className="px-4 py-2 bg-[#C8A97E] text-white rounded-lg hover:bg-[#B8996E] disabled:opacity-50 text-sm font-medium"
+                      >
+                        {couponLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Apply'}
+                      </button>
+                    </div>
+                  )}
+                  {couponError && <p className="text-red-500 text-xs mt-1">{couponError}</p>}
+                </div>
+
+                {/* Discount if coupon applied */}
+                {appliedCoupon && (
+                  <div className="flex justify-between text-green-600">
+                    <span>Discount ({appliedCoupon.code})</span>
+                    <span className="font-semibold">-₹{couponDiscount}</span>
+                  </div>
+                )}
+
                 <div className="border-t border-gray-300 pt-3 flex justify-between">
                   <span className="font-bold text-lg">Total</span>
                   <span className="font-bold text-2xl text-[#C8A97E]">₹{orderTotal}</span>

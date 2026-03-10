@@ -144,7 +144,28 @@ backend:
         agent: "testing"
         comment: "✅ TESTED: POST /api/users/update correctly updates user profile fields (name, email, age), handles partial updates, returns updated user object with updatedAt timestamp. Working perfectly."
 
-  - task: "Address API - CRUD Operations"
+  - task: "Address API - CRUD Operations with Pincode Validation"
+    implemented: true
+    working: false
+    file: "app/api/[[...path]]/route.js"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented POST /api/users/addresses, PUT /api/users/addresses/:id, DELETE /api/users/addresses/:id"
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: All address CRUD operations working perfectly."
+      - working: "NA"
+        agent: "main"
+        comment: "Updated address APIs to validate pincode using India Post API and auto-fill city/state"
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL ISSUE: MongoDB connection failure prevents testing enhanced address APIs. Cannot create test users or test pincode validation integration due to database access failure. Pincode validation itself works (external API), but database operations fail with 'bad auth : authentication failed'."
+
+  - task: "Pincode Validation API"
     implemented: true
     working: true
     file: "app/api/[[...path]]/route.js"
@@ -154,10 +175,55 @@ backend:
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Implemented POST /api/users/addresses, PUT /api/users/addresses/:id, DELETE /api/users/addresses/:id"
+        comment: "Implemented GET /api/pincode/:pincode to validate Indian pincodes using India Post API"
       - working: true
         agent: "testing"
-        comment: "✅ TESTED: All address CRUD operations working perfectly. POST /api/users/addresses adds addresses with UUID generation and default handling. PUT /api/users/addresses/:id updates addresses correctly. DELETE /api/users/addresses/:id removes addresses with proper phone parameter handling."
+        comment: "✅ TESTED SUCCESSFULLY: All test cases passing. GET /api/pincode/302039 returns Jaipur, Rajasthan. GET /api/pincode/110001 returns Central Delhi, Delhi. Invalid pincodes (000000) and invalid formats (12345) correctly rejected. Pincode validation working perfectly."
+
+  - task: "Coupon CRUD APIs"
+    implemented: true
+    working: false
+    file: "app/api/[[...path]]/route.js"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented coupon management APIs: POST /api/admin/coupons (create), GET /api/admin/coupons (list), PUT /api/admin/coupons/:id (update), DELETE /api/admin/coupons/:id (delete)"
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL ISSUE: MongoDB connection failure. Status 500: 'bad auth : authentication failed'. API implementation appears correct, but all database operations fail due to MongoDB Atlas authentication error (Code 8000). Requires MongoDB connection string fix."
+
+  - task: "Coupon Validation and Usage APIs"
+    implemented: true
+    working: false
+    file: "app/api/[[...path]]/route.js"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented POST /api/coupons/validate (validate coupon), POST /api/coupons/apply (record usage), GET /api/admin/coupons/:id/usage (get usage details)"
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL ISSUE: MongoDB connection failure prevents testing. Status 500: 'bad auth : authentication failed'. Cannot create test coupons or validate coupon logic due to database access failure. Same MongoDB Atlas authentication issue affecting all database operations."
+
+  - task: "Contact Form API"
+    implemented: true
+    working: false
+    file: "app/api/[[...path]]/route.js"
+    stuck_count: 1
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented POST /api/contact to store contact form messages"
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL ISSUE: MongoDB connection failure. POST /api/contact returns Status 500: 'bad auth : authentication failed'. Cannot test contact form submission due to database access issue. Same MongoDB Atlas authentication problem."
 
   - task: "User Orders API"
     implemented: true
@@ -298,33 +364,53 @@ frontend:
 metadata:
   created_by: "main_agent"
   version: "1.0"
-  test_sequence: 2
+  test_sequence: 3
   run_ui: false
 
 test_plan:
-  current_focus: []
-  stuck_tasks: []
+  current_focus:
+    - "MongoDB Connection Fix"
+  stuck_tasks:
+    - "Coupon CRUD APIs"
+    - "Coupon Validation and Usage APIs"
+    - "Contact Form API"
+    - "Address API - CRUD Operations with Pincode Validation"
   test_all: false
-  test_priority: "high_first"
+  test_priority: "stuck_first"
 
 agent_communication:
   - agent: "main"
     message: |
-      Implemented complete user authentication and profile system:
-      1. Firebase Phone OTP integration for authentication
-      2. User APIs in MongoDB for profile and address management
-      3. Updated checkout flow to require OTP login
-      4. Created login page, profile page with order history and address management
-      5. Shipping fee logic: ₹50 for orders below ₹500, free above ₹500
+      Implemented 3 new features:
       
-      Please test the backend APIs first:
-      - POST /api/users - Create user with phone number
-      - GET /api/users/:phone - Get user by phone
-      - POST /api/users/update - Update user profile
-      - POST /api/users/addresses - Add address
-      - PUT /api/users/addresses/:id - Update address
-      - DELETE /api/users/addresses/:id - Delete address
-      - GET /api/users/:phone/orders - Get user orders
+      1. PINCODE VALIDATION:
+         - GET /api/pincode/:pincode - Validates pincode against India Post API
+         - Auto-fills city and state
+         - Updated address APIs to validate pincode before saving
+         - Updated checkout and profile pages with pincode validation UI
+      
+      2. COUPON CODE SYSTEM:
+         - POST /api/admin/coupons - Create coupon (code, discount type fixed/percentage, value, maxUses, expiryDate)
+         - GET /api/admin/coupons - List all coupons with usage stats
+         - PUT /api/admin/coupons/:id - Update coupon settings
+         - DELETE /api/admin/coupons/:id - Delete coupon and usage records
+         - POST /api/coupons/validate - Validate coupon for user (checks expiry, max uses, one-time per user)
+         - POST /api/coupons/apply - Record coupon usage after order
+         - GET /api/admin/coupons/:id/usage - Get detailed usage records
+         - Created /admin/coupons page for management
+         - Added coupon input in checkout order summary
+      
+      3. CONTACT FORM:
+         - POST /api/contact - Stores contact messages in database
+         - Updated contact page with functional form using EmailJS
+         - User needs to create EmailJS contact template
+      
+      Please test these new APIs:
+      - GET /api/pincode/302039 (valid pincode)
+      - GET /api/pincode/000000 (invalid pincode)
+      - POST /api/admin/coupons - Create coupon
+      - POST /api/coupons/validate - Validate coupon
+      - POST /api/contact - Contact form submission
   - agent: "testing"
     message: |
       ✅ BACKEND TESTING COMPLETE - ALL APIS WORKING PERFECTLY
@@ -348,3 +434,34 @@ agent_communication:
       🔗 API ROUTING: All endpoints responding correctly through Next.js API routes
       
       READY FOR FRONTEND INTEGRATION AND USER TESTING
+  - agent: "testing"
+    message: |
+      🧪 BACKEND TESTING COMPLETE FOR NEW APIS - MIXED RESULTS
+      
+      Comprehensive testing completed for all newly implemented APIs per review request:
+      
+      🎯 WORKING PERFECTLY (1/5 API groups):
+      ✅ Pincode Validation API - All test cases passing:
+         - GET /api/pincode/302039 ✅ Returns Jaipur, Rajasthan
+         - GET /api/pincode/110001 ✅ Returns Central Delhi, Delhi  
+         - GET /api/pincode/000000 ✅ Correctly rejects invalid pincode
+         - GET /api/pincode/12345 ✅ Correctly rejects non-6-digit format
+      
+      ❌ BLOCKED APIS (4/5 API groups) - MongoDB Connection Issue:
+      ❌ Coupon CRUD APIs - Status 500: "bad auth : authentication failed"
+      ❌ Coupon Validation APIs - Status 500: MongoDB auth failure  
+      ❌ Contact Form API - Status 500: MongoDB auth failure
+      ❌ Address API with Pincode Validation - Status 500: MongoDB auth failure
+      
+      🔍 ROOT CAUSE ANALYSIS:
+      - Error: "bad auth : authentication failed" (MongoDB Atlas Error Code 8000)
+      - Issue: MongoDB connection string authentication failure
+      - Current MONGO_URL has credential/encoding problems
+      - Pincode API works because it uses external India Post API, no database required
+      - All database-dependent endpoints fail with same authentication error
+      
+      📊 CRITICAL BLOCKER: 
+      MongoDB connection must be fixed before coupon system, contact form, and enhanced address APIs can be tested.
+      The API implementation appears correct based on code review - issue is infrastructure/credentials.
+      
+      REQUIRES MONGODB CONNECTION FIX BEFORE PROCEEDING
