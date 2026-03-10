@@ -26,21 +26,49 @@ export default function Header() {
     setUserMenuOpen(false)
   }
 
-  return (
-    <header className="sticky top-0 z-50 bg-[#1A1A1A]/95 backdrop-blur-sm border-b border-gray-700">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-20">
-          {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <Image
-              src="/begood-logo.png"
-              alt="BeGood Logo"
-              width={240}
-              height={80}
-              className="h-20 w-auto"
-            />
-          </Link>
-
+  // return (
+  //   <header className="sticky top-0 z-50 bg-[#1A1A1A]/95 backdrop-blur-sm border-b border-gray-700">
+  //     <div className="container mx-auto px-4">
+  //       <div className="flex items-center justify-between h-20">
+  //         {/* Logo */}
+  //         <Link href="/" className="flex items-center space-x-2">
+  //           <Image
+  //             src="/begood-logo.png"
+  //             alt="BeGood Logo"
+  //             width={240}
+  //             height={80}
+  //             className="h-20 w-auto"
+  //           />
+  //         </Link>
+// Line numbers are visible
+return (
+  <header className="sticky top-0 z-50 border-b border-gray-700"> {/* Header without uniform color */}
+    <div className="flex h-20"> {/* Parent split-flex container */}
+      {/* DARK LOGO SECTION */}
+      <div className="bg-[#1A1A1A] flex items-center px-4 w-[35%]"> {/* Specific width for black bar */}
+        <Link href="/" className="flex items-center space-x-2">
+          <Image
+            src="/begood-logo.png" // Pointing to reliable local public folder
+            alt="BeGood Logo"
+            width={240} // Enlarged dimensions
+            height={80} // Enlarged dimensions
+            className="h-20 w-auto"
+          />
+        </Link>
+      </div>
+      {/* LIGHT MENU SECTION */}
+      <div className="bg-white flex items-center justify-between flex-1 px-4 text-gray-700"> {/* Added dark text color */}
+        <div className="flex items-center space-x-6">
+          <a href="/home">Home</a><a href="/shop">Shop</a><a href="/about">About</a><a href="/faq">FAQ</a><a href="/contact">Contact</a>
+        </div>
+        <div className="flex items-center space-x-4">
+          <UserIcon /> <a href="/account">Account</a> <CartIcon />
+        </div>
+      </div>
+    </div>
+  </header>
+);
+  
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             {navLinks.map(link => (
