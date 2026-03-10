@@ -33,7 +33,7 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
             <Image
-              src="https://github.com/htkoolwal1803-beep/BeGOOD/blob/main/Be%20Good%20with%20nature.png"
+              src="/begood-logo.png"
               alt="BeGood Logo"
               width={120}
               height={40}
