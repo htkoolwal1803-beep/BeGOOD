@@ -33,7 +33,7 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
             <Image
-              src="https://customer-assets.emergentagent.com/job_aba2787e-1b7f-4ca4-8c0f-6bdec7418ef0/artifacts/1q24108e_WhatsApp_Image_2025-12-21_at_2.03.26_PM-removebg-preview.png"
+              src="https://github.com/htkoolwal1803-beep/BeGOOD/blob/main/Be%20Good%20with%20nature.png"
               alt="BeGood Logo"
               width={120}
               height={40}
