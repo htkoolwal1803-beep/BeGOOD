@@ -242,7 +242,7 @@ export default function ProductPage() {
                   <div className="flex items-center justify-between mb-3">
                     <div>
                       <p className="font-semibold">{review.name}</p>
-                      <p className="text-sm text-gray-500">{review.date}</p>
+                      
                     </div>
                     <div className="flex">
                       {[...Array(review.rating)].map((_, i) => (
