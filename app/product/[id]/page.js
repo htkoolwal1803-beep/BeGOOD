@@ -193,7 +193,7 @@ export default function ProductPage() {
             <p className="text-gray-700 text-lg leading-relaxed">{product.fullDescription}</p>
           </section>
 
-          {/* Ingredients */}
+          {/* Key Ingredients */}
           <section>
             <h2 className="font-playfair text-3xl font-bold mb-6">Key Ingredients</h2>
             <div className="grid md:grid-cols-2 gap-6">
@@ -205,6 +205,17 @@ export default function ProductPage() {
               ))}
             </div>
           </section>
+
+          {/* Full Ingredients List */}
+          {product.ingredientsList && (
+            <section className="bg-white border border-gray-200 p-6 rounded-xl">
+              <h2 className="font-playfair text-2xl font-bold mb-4">Full Ingredients List</h2>
+              <p className="text-gray-700 leading-relaxed">
+                <span className="font-semibold text-gray-900">Ingredients: </span>
+                {product.ingredientsList}
+              </p>
+            </section>
+          )}
 
           {/* How It Works */}
           <section>
