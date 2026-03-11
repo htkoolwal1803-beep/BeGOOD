@@ -59,7 +59,7 @@ export default function Footer() {
             </p>
             <p className="text-xs text-gray-500 max-w-2xl text-center md:text-right">
               This product is a functional food and is not intended to diagnose, treat, cure, or prevent any disease. 
-              FSSAI License: XXXXXXXXXXX
+              FSSAI Registration: 22226067001389
             </p>
           </div>
         </div>
