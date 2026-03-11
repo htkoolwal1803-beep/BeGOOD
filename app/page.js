@@ -89,7 +89,7 @@ export default function Home() {
 
             <p className="text-lg text-gray-600 leading-relaxed max-w-2xl mx-auto">
               We create science-backed functional foods that help you manage your emotions naturally. 
-              No therapy sessions, no complicated routines—just convenient, delicious products that work when you need them most.
+              No therapy sessions, no complicated routines just convenient and delicious products that work when you need them most.
             </p>
 
             <div className="grid md:grid-cols-3 gap-6 mt-12 max-w-3xl mx-auto">
