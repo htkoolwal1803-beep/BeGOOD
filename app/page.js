@@ -161,7 +161,7 @@ export default function Home() {
                       <Star key={i} className="w-4 h-4 fill-[#C8A97E] text-[#C8A97E]" />
                     ))}
                   </div>
-                  <p className="text-sm text-gray-600">Trusted by thousands</p>
+                  <p className="text-sm text-gray-600">Trusted by 1000+ Users</p>
                 </div>
               </div>
             </div>
