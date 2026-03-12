@@ -448,18 +448,21 @@ export default function CheckoutPage() {
 
   const sendConfirmationEmail = async (orderDetails) => {
     try {
-      const orderItemsList = orderDetails.products.map(p => 
-        `${p.productName} (${p.variant.size}) x ${p.quantity} = ₹${p.price * p.quantity}`
-      ).join('\n')
+      // Format orders array for EmailJS template loop
+      const orders = orderDetails.products.map(p => ({
+        name: `${p.productName} (${p.variant.size})`,
+        price: (p.price * p.quantity).toFixed(0),
+        units: p.quantity
+      }))
 
       const templateParams = {
-        customer_name: orderDetails.customerName,
+        to_email: orderDetails.email,
         order_id: orderDetails.orderId,
-        total_amount: orderDetails.totalAmount,
-        order_details: orderItemsList,
-        address: orderDetails.address,
-        pincode: orderDetails.pincode,
-        to_email: orderDetails.email
+        orders: orders,
+        cost: {
+          shipping: orderDetails.shippingFee || 0,
+          tax: 0
+        }
       }
 
       await emailjs.send(
