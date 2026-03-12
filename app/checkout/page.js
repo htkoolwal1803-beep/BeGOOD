@@ -451,18 +451,29 @@ export default function CheckoutPage() {
       // Format orders array for EmailJS template loop
       const orders = orderDetails.products.map(p => ({
         name: `${p.productName} (${p.variant.size})`,
-        price: (p.price * p.quantity).toFixed(0),
+        price: `₹${(p.price * p.quantity).toFixed(0)}`,
         units: p.quantity
       }))
+
+      // Calculate subtotal from products
+      const subtotal = orderDetails.subtotal || orderDetails.products.reduce((sum, p) => sum + (p.price * p.quantity), 0)
+      const discount = orderDetails.couponDiscount || 0
+      const shipping = orderDetails.shippingFee || 0
+      const total = orderDetails.totalAmount || (subtotal - discount + shipping)
 
       const templateParams = {
         to_email: orderDetails.email,
         order_id: orderDetails.orderId,
         orders: orders,
         cost: {
-          shipping: orderDetails.shippingFee || 0,
-          tax: 0
-        }
+          subtotal: `₹${subtotal}`,
+          discount: discount > 0 ? `₹${discount}` : '₹0',
+          shipping: `₹${shipping}`,
+          tax: '₹0',
+          total: `₹${total}`
+        },
+        coupon_code: orderDetails.couponCode || '',
+        has_discount: discount > 0
       }
 
       await emailjs.send(
