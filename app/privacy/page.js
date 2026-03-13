@@ -95,7 +95,7 @@ export default function PrivacyPage() {
             <p className="text-gray-700 leading-relaxed">
               If you have any questions about this Privacy Policy, please contact us at:<br />
               Email: support@begood.com<br />
-              Phone: +91 XXXXX XXXXX
+              Phone: +91 8000366966
             </p>
           </section>
         </div>
