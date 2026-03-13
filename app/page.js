@@ -249,7 +249,7 @@ export default function Home() {
 
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {[
-              'Reduces anxiety and nervousness',
+              'Reduces stress and nervousness',
               'Enhances mental clarity and focus',
               'Promotes calm without drowsiness',
               'Improves performance under pressure',
