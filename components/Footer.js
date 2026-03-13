@@ -10,8 +10,9 @@ export default function Footer() {
           <div className="col-span-1 md:col-span-2">
             <h3 className="font-playfair text-2xl font-bold mb-4">BeGood</h3>
             <p className="text-gray-600 mb-4 max-w-md">
-              Premium functional chocolate that reduces anxiety and induces calm and focus. 
+              Premium functional chocolate that reduces stress, short-term and nervousness and induces calm and focus. 
               Science-backed wellness for your high-stakes moments.
+              Disclaimer: We do not claim to treat or diagnose any medical condition.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-gray-600 hover:text-[#C8A97E] transition-colors">
