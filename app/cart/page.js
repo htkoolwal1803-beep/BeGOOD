@@ -162,10 +162,6 @@ export default function CartPage() {
                   <Truck className="w-4 h-4 mr-2 text-green-600" />
                   {shippingFee === 0 ? 'Free Shipping' : `Free Shipping above ₹${SHIPPING_CONFIG.FREE_SHIPPING_THRESHOLD}`}
                 </p>
-                <p className="flex items-center">
-                  <span className="text-green-600 mr-2">✓</span>
-                  7-Day Return Policy
-                </p>
               </div>
             </div>
           </div>
