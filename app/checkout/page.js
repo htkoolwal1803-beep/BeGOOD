@@ -498,6 +498,41 @@ export default function CheckoutPage() {
 
       // Get selected address details
       const selectedAddress = savedAddresses.find(a => a.id === selectedAddressId)
+
+      // Prepare order data before payment
+      const preOrderData = {
+        customerName: profileData.name,
+        email: profileData.email,
+        phone: user?.phoneNumber || `+91${phone}`,
+        address: selectedAddress?.fullAddress || formData.address,
+        pincode: selectedAddress?.pincode || formData.pincode,
+        city: selectedAddress?.city || formData.city,
+        state: selectedAddress?.state || formData.state,
+        products: cart.map(item => ({
+          productId: item.id,
+          productName: item.name,
+          variant: item.variant,
+          quantity: item.quantity,
+          price: item.variant.price
+        })),
+        subtotal: cartTotal,
+        shippingFee: shippingFee,
+        couponCode: appliedCoupon?.code || null,
+        couponDiscount: couponDiscount,
+        totalAmount: orderTotal,
+        userId: user?.uid || null
+      }
+
+      // Store pending order on server before initiating payment (for webhook backup)
+      try {
+        await fetch('/api/pending-payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(preOrderData)
+        })
+      } catch (e) {
+        console.error('Failed to store pending payment:', e)
+      }
       
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
@@ -518,82 +553,111 @@ export default function CheckoutPage() {
           const paymentId = response.razorpay_payment_id
 
           const orderData = {
-            customerName: profileData.name,
-            email: profileData.email,
-            phone: user?.phoneNumber || `+91${phone}`,
-            address: selectedAddress?.fullAddress || formData.address,
-            pincode: selectedAddress?.pincode || formData.pincode,
-            city: selectedAddress?.city || formData.city,
-            state: selectedAddress?.state || formData.state,
-            products: cart.map(item => ({
-              productId: item.id,
-              productName: item.name,
-              variant: item.variant,
-              quantity: item.quantity,
-              price: item.variant.price
-            })),
-            subtotal: cartTotal,
-            shippingFee: shippingFee,
-            couponCode: appliedCoupon?.code || null,
-            couponDiscount: couponDiscount,
-            totalAmount: orderTotal,
-            paymentId: paymentId,
-            userId: user?.uid || null
+            ...preOrderData,
+            paymentId: paymentId
           }
 
-          try {
-            const orderResponse = await fetch('/api/orders', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(orderData)
-            })
+          // Store payment info in localStorage as backup before attempting order creation
+          const pendingOrder = {
+            ...orderData,
+            timestamp: new Date().toISOString(),
+            attempts: 0
+          }
+          localStorage.setItem(`pending_order_${paymentId}`, JSON.stringify(pendingOrder))
 
-            const orderResult = await orderResponse.json()
+          // Retry function for order creation
+          const createOrderWithRetry = async (maxRetries = 3) => {
+            for (let attempt = 1; attempt <= maxRetries; attempt++) {
+              try {
+                console.log(`Order creation attempt ${attempt}/${maxRetries} for payment ${paymentId}`)
+                
+                const orderResponse = await fetch('/api/orders', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(orderData)
+                })
 
-            if (orderResult.success) {
-              // Record coupon usage if coupon was applied
-              if (appliedCoupon) {
-                try {
-                  await fetch('/api/coupons/apply', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      couponId: appliedCoupon.id,
-                      couponCode: appliedCoupon.code,
-                      userId: user?.uid || null,
-                      userPhone: user?.phoneNumber || `+91${phone}`,
-                      orderId: orderResult.order.orderId,
-                      discountAmount: couponDiscount
-                    })
-                  })
-                } catch (couponError) {
-                  console.error('Failed to record coupon usage:', couponError)
+                if (!orderResponse.ok) {
+                  throw new Error(`HTTP error! status: ${orderResponse.status}`)
+                }
+
+                const orderResult = await orderResponse.json()
+
+                if (orderResult.success) {
+                  // Order created successfully - remove from pending
+                  localStorage.removeItem(`pending_order_${paymentId}`)
+                  return { success: true, order: orderResult.order }
+                } else {
+                  throw new Error(orderResult.message || 'Order creation failed')
+                }
+              } catch (error) {
+                console.error(`Attempt ${attempt} failed:`, error)
+                
+                // Update pending order with attempt count
+                pendingOrder.attempts = attempt
+                localStorage.setItem(`pending_order_${paymentId}`, JSON.stringify(pendingOrder))
+                
+                if (attempt < maxRetries) {
+                  // Wait before retry (exponential backoff: 1s, 2s, 4s)
+                  await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt - 1) * 1000))
                 }
               }
-
-              if (window.gtag) {
-                window.gtag('event', 'purchase', {
-                  transaction_id: orderResult.order.orderId,
-                  value: orderTotal,
-                  currency: 'INR',
-                  shipping: shippingFee,
-                  items: cart.map(item => ({
-                    item_id: item.id,
-                    item_name: item.name,
-                    price: item.variant.price,
-                    quantity: item.quantity
-                  }))
-                })
-              }
-
-              await sendConfirmationEmail(orderResult.order)
-              clearCart()
-              router.push(`/order/${orderResult.order.orderId}`)
-            } else {
-              alert('Failed to create order. Please contact support with payment ID: ' + paymentId)
             }
-          } catch (error) {
-            alert('Order processing error. Your payment was successful. Payment ID: ' + paymentId)
+            return { success: false }
+          }
+
+          const result = await createOrderWithRetry(3)
+
+          if (result.success) {
+            // Record coupon usage if coupon was applied
+            if (appliedCoupon) {
+              try {
+                await fetch('/api/coupons/apply', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    couponId: appliedCoupon.id,
+                    couponCode: appliedCoupon.code,
+                    userId: user?.uid || null,
+                    userPhone: user?.phoneNumber || `+91${phone}`,
+                    orderId: result.order.orderId,
+                    discountAmount: couponDiscount
+                  })
+                })
+              } catch (couponError) {
+                console.error('Failed to record coupon usage:', couponError)
+              }
+            }
+
+            if (window.gtag) {
+              window.gtag('event', 'purchase', {
+                transaction_id: result.order.orderId,
+                value: orderTotal,
+                currency: 'INR',
+                shipping: shippingFee,
+                items: cart.map(item => ({
+                  item_id: item.id,
+                  item_name: item.name,
+                  price: item.variant.price,
+                  quantity: item.quantity
+                }))
+              })
+            }
+
+            await sendConfirmationEmail(result.order)
+            clearCart()
+            router.push(`/order/${result.order.orderId}`)
+          } else {
+            // All retries failed - show detailed message and keep data in localStorage
+            alert(
+              `Payment successful but order creation failed after multiple attempts.\n\n` +
+              `Your payment ID: ${paymentId}\n\n` +
+              `Don't worry! Your payment is safe. Please contact support at healhat25@gmail.com with your payment ID.\n\n` +
+              `We will create your order manually within 24 hours.`
+            )
+            
+            // Redirect to a confirmation page with payment info
+            router.push(`/order/pending?paymentId=${paymentId}`)
           }
 
           setLoading(false)

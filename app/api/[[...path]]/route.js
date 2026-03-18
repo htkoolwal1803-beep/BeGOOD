@@ -1,6 +1,16 @@
 import { NextResponse } from 'next/server'
 import { MongoClient } from 'mongodb'
 import { v4 as uuidv4 } from 'uuid'
+import crypto from 'crypto'
+
+// Razorpay webhook signature verification
+function verifyRazorpaySignature(body, signature, secret) {
+  const expectedSignature = crypto
+    .createHmac('sha256', secret)
+    .update(body)
+    .digest('hex')
+  return expectedSignature === signature
+}
 
 // MongoDB connection
 let cachedClient = null
@@ -275,10 +285,139 @@ export async function POST(request) {
   const segments = getPathSegments(pathname)
 
   try {
+    // POST /api/razorpay/webhook - Razorpay webhook for payment events
+    if (segments[0] === 'razorpay' && segments[1] === 'webhook') {
+      const rawBody = await request.text()
+      const signature = request.headers.get('x-razorpay-signature')
+      const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET
+
+      // Verify webhook signature if secret is configured
+      if (webhookSecret && signature) {
+        const isValid = verifyRazorpaySignature(rawBody, signature, webhookSecret)
+        if (!isValid) {
+          console.error('Invalid Razorpay webhook signature')
+          return NextResponse.json({ success: false, message: 'Invalid signature' }, { status: 401 })
+        }
+      }
+
+      const event = JSON.parse(rawBody)
+      console.log('Razorpay webhook received:', event.event)
+
+      // Handle payment.captured event
+      if (event.event === 'payment.captured') {
+        const payment = event.payload.payment.entity
+        const paymentId = payment.id
+        const amount = payment.amount / 100 // Convert from paise to rupees
+        const email = payment.email
+        const contact = payment.contact
+        const notes = payment.notes || {}
+
+        const { db } = await connectToDatabase()
+
+        // Check if order already exists for this payment
+        const existingOrder = await db.collection('orders').findOne({ paymentId })
+        
+        if (existingOrder) {
+          console.log(`Order already exists for payment ${paymentId}`)
+          return NextResponse.json({ success: true, message: 'Order already exists' })
+        }
+
+        // Check if we have a pending order stored (by phone number since we don't have paymentId yet)
+        // Normalize phone number for matching
+        const normalizedContact = contact?.startsWith('+91') ? contact : `+91${contact}`
+        const pendingOrder = await db.collection('pending_payments').findOne({ 
+          $or: [
+            { phone: normalizedContact },
+            { phone: contact },
+            { email: email }
+          ],
+          status: 'pending'
+        })
+
+        if (pendingOrder) {
+          // Create order from pending order data
+          const order = {
+            orderId: uuidv4(),
+            customerName: pendingOrder.customerName,
+            email: pendingOrder.email || email,
+            phone: pendingOrder.phone || normalizedContact,
+            address: pendingOrder.address,
+            pincode: pendingOrder.pincode,
+            city: pendingOrder.city || '',
+            state: pendingOrder.state || '',
+            subtotal: pendingOrder.subtotal,
+            shippingFee: pendingOrder.shippingFee || 0,
+            products: pendingOrder.products,
+            totalAmount: pendingOrder.totalAmount,
+            couponCode: pendingOrder.couponCode || null,
+            couponDiscount: pendingOrder.couponDiscount || 0,
+            status: 'Confirmed',
+            paymentId: paymentId,
+            userId: pendingOrder.userId || null,
+            createdAt: new Date().toISOString(),
+            createdVia: 'webhook'
+          }
+
+          await db.collection('orders').insertOne(order)
+          await db.collection('pending_payments').deleteOne({ _id: pendingOrder._id })
+
+          console.log(`Order ${order.orderId} created via webhook for payment ${paymentId}`)
+          return NextResponse.json({ success: true, order })
+        } else {
+          // Store payment info for manual processing if no pending order found
+          await db.collection('unclaimed_payments').insertOne({
+            paymentId,
+            amount,
+            email,
+            contact: normalizedContact,
+            notes,
+            capturedAt: new Date().toISOString(),
+            status: 'needs_manual_processing'
+          })
+
+          console.log(`Payment ${paymentId} stored for manual processing - no pending order found`)
+          return NextResponse.json({ success: true, message: 'Payment stored for manual processing' })
+        }
+      }
+
+      return NextResponse.json({ success: true, message: 'Event received' })
+    }
+
+    // POST /api/pending-payment - Store pending payment data before initiating Razorpay
+    if (segments[0] === 'pending-payment' && segments.length === 1) {
+      const body = await request.json()
+      const { db } = await connectToDatabase()
+      
+      // Store pending payment with phone as identifier (before we have paymentId)
+      const pendingData = {
+        ...body,
+        createdAt: new Date().toISOString(),
+        status: 'pending'
+      }
+      
+      // Upsert based on phone number (replace if exists)
+      await db.collection('pending_payments').updateOne(
+        { phone: body.phone },
+        { $set: pendingData },
+        { upsert: true }
+      )
+      
+      return NextResponse.json({ success: true, message: 'Pending payment stored' })
+    }
+
     // POST /api/orders - Create new order
     if (segments[0] === 'orders' && segments.length === 1) {
       const body = await request.json()
       const { db } = await connectToDatabase()
+      
+      // Check if order already exists for this payment (prevent duplicates)
+      if (body.paymentId) {
+        const existingOrder = await db.collection('orders').findOne({ paymentId: body.paymentId })
+        if (existingOrder) {
+          console.log(`Order already exists for payment ${body.paymentId}, returning existing order`)
+          return NextResponse.json({ success: true, order: existingOrder, duplicate: true })
+        }
+      }
       
       const order = {
         orderId: uuidv4(),
@@ -291,15 +430,23 @@ export async function POST(request) {
         state: body.state || '',
         subtotal: body.subtotal || body.totalAmount,
         shippingFee: body.shippingFee || 0,
+        couponCode: body.couponCode || null,
+        couponDiscount: body.couponDiscount || 0,
         products: body.products,
         totalAmount: body.totalAmount,
-        status: 'Pending',
+        status: 'Confirmed',
         paymentId: body.paymentId || null,
         userId: body.userId || null,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        createdVia: 'frontend'
       }
       
       await db.collection('orders').insertOne(order)
+      
+      // Clean up pending payment after successful order creation
+      if (body.phone) {
+        await db.collection('pending_payments').deleteOne({ phone: body.phone })
+      }
       
       // Track order completion in analytics
       await db.collection('analytics').insertOne({
