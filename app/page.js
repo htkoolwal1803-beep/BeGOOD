@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import Button from '@/components/Button'
 import ProductCard from '@/components/ProductCard'
+import SubscriptionCard from '@/components/SubscriptionCard'
 import { getFeaturedProducts, getUpcomingProducts } from '@/lib/products'
 import { ArrowRight, CheckCircle, Star, Brain, Focus, Heart, Zap, Bell } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -277,6 +278,9 @@ export default function Home() {
             {featuredProducts.map(product => (
               <ProductCard key={product.id} product={product} />
             ))}
+            
+            {/* Subscription Card */}
+            <SubscriptionCard />
           </div>
         </div>
       </section>

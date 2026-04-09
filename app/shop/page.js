@@ -1,6 +1,7 @@
 'use client'
 
 import ProductCard from '@/components/ProductCard'
+import SubscriptionCard from '@/components/SubscriptionCard'
 import { products } from '@/lib/products'
 import { useEffect } from 'react'
 
@@ -45,6 +46,9 @@ export default function ShopPage() {
           {availableProducts.map(product => (
             <ProductCard key={product.id} product={product} />
           ))}
+          
+          {/* Subscription Card */}
+          <SubscriptionCard />
         </div>
 
         {/* Info Section */}
