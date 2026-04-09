@@ -45,11 +45,11 @@ export default function FAQPage() {
     },
     {
       question: 'Do you ship nationwide?',
-      answer: 'Yes, we ship across India. Orders typically arrive within 5-7 business days. Shipping is free on all orders.'
+      answer: 'Yes, we ship across India. Orders typically arrive within 5-7 business days. Shipping is FREE on orders of ₹600 and above. For orders below ₹600, a shipping fee of ₹60 applies.'
     },
     {
       question: 'What is your return/refund policy?',
-      answer: 'We do not have a return policy for our products.'
+      answer: 'We have a strict No Return / No Refund policy. All sales are final. Due to the nature of our functional food products and health & safety regulations, we cannot accept returns or provide refunds. Please review your order carefully before purchase. Exceptions may be considered only for damaged or wrong products reported within 24 hours of delivery with photos.'
     },
     {
       question: 'Is this product vegetarian/vegan?',

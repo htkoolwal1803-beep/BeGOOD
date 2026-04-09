@@ -732,7 +732,7 @@ export async function POST(request) {
       return NextResponse.json({ success: true, user: newUser, isNewUser: true })
     }
 
-    // POST /api/users/update - Update user profile (upsert - creates if not exists)
+    // POST /api/users/update - Update user profile (only updates existing users)
     if (segments[0] === 'users' && segments[1] === 'update') {
       const body = await request.json()
       const { db } = await connectToDatabase()
@@ -743,7 +743,7 @@ export async function POST(request) {
         return NextResponse.json({ success: false, message: 'Phone number is required' }, { status: 400 })
       }
       
-      // Check if user exists
+      // Check if user exists - only update existing users, don't create new ones
       const existingUser = await db.collection('users').findOne({ phone })
       
       if (existingUser) {
@@ -761,23 +761,15 @@ export async function POST(request) {
         const updatedUser = await db.collection('users').findOne({ phone })
         return NextResponse.json({ success: true, user: updatedUser })
       } else {
-        // Create new user if doesn't exist (upsert)
-        const newUser = {
-          id: uuidv4(),
-          phone,
-          name: name || '',
-          email: email || '',
-          age: age || null,
-          addresses: [],
-          createdAt: new Date().toISOString()
-        }
-        
-        await db.collection('users').insertOne(newUser)
-        return NextResponse.json({ success: true, user: newUser, isNewUser: true })
+        // User doesn't exist - return error (user should be created after OTP verification)
+        return NextResponse.json({ 
+          success: false, 
+          message: 'User not found. Please complete OTP verification first.' 
+        }, { status: 404 })
       }
     }
 
-    // POST /api/users/addresses - Add new address
+    // POST /api/users/addresses - Add new address (only for existing users)
     if (segments[0] === 'users' && segments[1] === 'addresses') {
       const body = await request.json()
       const { db } = await connectToDatabase()
@@ -786,6 +778,15 @@ export async function POST(request) {
       
       if (!phone || !address) {
         return NextResponse.json({ success: false, message: 'Phone and address are required' }, { status: 400 })
+      }
+
+      // Check if user exists first
+      const existingUser = await db.collection('users').findOne({ phone })
+      if (!existingUser) {
+        return NextResponse.json({ 
+          success: false, 
+          message: 'User not found. Please complete OTP verification first.' 
+        }, { status: 404 })
       }
 
       // Validate pincode if provided

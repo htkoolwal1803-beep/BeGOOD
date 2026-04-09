@@ -490,6 +490,58 @@ export default function CheckoutPage() {
     }
   }
 
+  // Send COD order notification to admin
+  const sendCODNotificationEmail = async (orderDetails) => {
+    try {
+      const productsList = orderDetails.products.map(p => 
+        `${p.productName} (${p.variant.size}) x ${p.quantity} = ₹${p.price * p.quantity}`
+      ).join('\n')
+
+      const templateParams = {
+        to_email: 'htkoolwal1803@gmail.com',
+        from_name: 'BeGood COD Alert',
+        subject: `🚨 New COD Order #${orderDetails.orderId}`,
+        message: `
+NEW COD ORDER RECEIVED!
+
+Order ID: ${orderDetails.orderId}
+Payment Method: CASH ON DELIVERY
+
+Customer Details:
+- Name: ${orderDetails.customerName}
+- Phone: ${orderDetails.phone}
+- Email: ${orderDetails.email}
+
+Shipping Address:
+${orderDetails.address}
+${orderDetails.city}, ${orderDetails.state} - ${orderDetails.pincode}
+
+Order Details:
+${productsList}
+
+Subtotal: ₹${orderDetails.subtotal}
+Shipping: ₹${orderDetails.shippingFee}
+COD Fee: ₹${orderDetails.codFee || 50}
+${orderDetails.couponCode ? `Coupon (${orderDetails.couponCode}): -₹${orderDetails.couponDiscount}` : ''}
+TOTAL TO COLLECT: ₹${orderDetails.totalAmount}
+
+Order Date: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
+
+Please prepare this order for shipment.
+        `.trim()
+      }
+
+      await emailjs.send(
+        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
+        process.env.NEXT_PUBLIC_EMAILJS_CONTACT_TEMPLATE_ID,
+        templateParams
+      )
+      console.log('COD notification sent to admin')
+    } catch (error) {
+      console.error('COD notification email failed:', error)
+    }
+  }
+
   const handleCODOrder = async () => {
     setLoading(true)
 
@@ -567,6 +619,10 @@ export default function CheckoutPage() {
         }
 
         await sendConfirmationEmail(orderResult.order)
+        
+        // Send COD notification to admin
+        await sendCODNotificationEmail(orderResult.order)
+        
         clearCart()
         router.push(`/order/${orderResult.order.orderId}`)
       } else {
