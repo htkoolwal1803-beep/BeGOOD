@@ -62,7 +62,8 @@ export default function TermsPage() {
               We ship across India. Shipping terms:
             </p>
             <ul className="list-disc pl-6 space-y-2 text-gray-700">
-              <li>Free shipping on all orders</li>
+              <li>Free shipping on orders of ₹600 and above</li>
+              <li>₹60 shipping fee for orders below ₹600</li>
               <li>Estimated delivery: 5-7 business days</li>
               <li>Delivery times are estimates and not guaranteed</li>
               <li>Risk of loss passes to you upon delivery to the shipping carrier</li>
@@ -70,16 +71,31 @@ export default function TermsPage() {
             </ul>
           </section>
 
-          <section className="mb-8">
-            <h2 className="font-playfair text-3xl font-bold mb-4">6. Returns and Refunds</h2>
-            <p className="text-gray-700 leading-relaxed">
-              Please refer to our Refund Policy page for complete details on returns and refunds. In summary:
+          <section className="mb-8 bg-red-50 border-2 border-red-200 rounded-xl p-6">
+            <h2 className="font-playfair text-3xl font-bold mb-4 text-red-700">6. No Return / No Refund Policy</h2>
+            <p className="text-red-700 leading-relaxed font-semibold mb-4">
+              IMPORTANT: ALL SALES ARE FINAL. WE DO NOT ACCEPT RETURNS OR PROVIDE REFUNDS.
+            </p>
+            <p className="text-gray-700 leading-relaxed mb-4">
+              Due to the nature of our functional food products, we maintain a strict no-return and no-refund policy:
             </p>
             <ul className="list-disc pl-6 space-y-2 text-gray-700">
-              <li>7-day return policy for unopened products</li>
-              <li>Products must be in original, sealed packaging</li>
-              <li>Customer is responsible for return shipping costs unless product is defective</li>
+              <li>Once an order is placed and confirmed, it cannot be cancelled</li>
+              <li>We do not accept returns for any reason</li>
+              <li>No refunds will be issued after purchase</li>
+              <li>This policy applies to both online payments and Cash on Delivery (COD) orders</li>
+              <li>Please review your order carefully before completing purchase</li>
             </ul>
+            <p className="text-gray-700 leading-relaxed mt-4">
+              Exceptions may be made only in cases where:
+            </p>
+            <ul className="list-disc pl-6 space-y-2 text-gray-700">
+              <li>Product received is damaged or defective (must be reported within 24 hours of delivery with photos)</li>
+              <li>Wrong product was delivered (must be reported within 24 hours of delivery)</li>
+            </ul>
+            <p className="text-gray-700 leading-relaxed mt-4">
+              In such exceptional cases, please contact us immediately at healhat25@gmail.com with order details and photos.
+            </p>
           </section>
 
           <section className="mb-8">

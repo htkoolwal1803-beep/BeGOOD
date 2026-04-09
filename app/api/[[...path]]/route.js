@@ -175,6 +175,53 @@ export async function GET(request) {
       return NextResponse.json({ success: true, notifications })
     }
 
+    // GET /api/admin/users - Get all users
+    if (segments[0] === 'admin' && segments[1] === 'users') {
+      const { db } = await connectToDatabase()
+      const users = await db.collection('users').find({}).sort({ createdAt: -1 }).limit(500).toArray()
+      
+      return NextResponse.json({ success: true, users })
+    }
+
+    // GET /api/admin/subscriptions - Get all subscriptions
+    if (segments[0] === 'admin' && segments[1] === 'subscriptions') {
+      const { db } = await connectToDatabase()
+      const subscriptions = await db.collection('subscriptions').find({}).sort({ createdAt: -1 }).limit(500).toArray()
+      
+      // Check for upcoming deliveries (within next 7 days)
+      const now = new Date()
+      const upcomingDeliveries = []
+      
+      subscriptions.forEach(sub => {
+        if (sub.status === 'active' && sub.deliverySchedule) {
+          sub.deliverySchedule.forEach(delivery => {
+            if (delivery.status === 'scheduled' || delivery.status === 'processing') {
+              const deliveryDate = new Date(delivery.scheduledDate)
+              const daysUntilDelivery = Math.ceil((deliveryDate - now) / (1000 * 60 * 60 * 24))
+              if (daysUntilDelivery <= 7 && daysUntilDelivery >= 0) {
+                upcomingDeliveries.push({
+                  subscriptionId: sub.subscriptionId,
+                  customerName: sub.customerName,
+                  phone: sub.phone,
+                  address: sub.address,
+                  month: delivery.month,
+                  barsCount: delivery.barsCount,
+                  scheduledDate: delivery.scheduledDate,
+                  daysUntilDelivery
+                })
+              }
+            }
+          })
+        }
+      })
+      
+      return NextResponse.json({ 
+        success: true, 
+        subscriptions,
+        upcomingDeliveries: upcomingDeliveries.sort((a, b) => a.daysUntilDelivery - b.daysUntilDelivery)
+      })
+    }
+
     // GET /api/users/:phone - Get user by phone number
     if (segments[0] === 'users' && segments.length === 2) {
       const { db } = await connectToDatabase()
@@ -430,13 +477,16 @@ export async function POST(request) {
         state: body.state || '',
         subtotal: body.subtotal || body.totalAmount,
         shippingFee: body.shippingFee || 0,
+        codFee: body.codFee || 0,
         couponCode: body.couponCode || null,
         couponDiscount: body.couponDiscount || 0,
         products: body.products,
         totalAmount: body.totalAmount,
-        status: 'Confirmed',
+        paymentMethod: body.paymentMethod || 'online',
+        status: body.paymentMethod === 'cod' ? 'Pending COD' : 'Confirmed',
         paymentId: body.paymentId || null,
         userId: body.userId || null,
+        orderType: body.orderType || 'regular',
         createdAt: new Date().toISOString(),
         createdVia: 'frontend'
       }
@@ -453,13 +503,105 @@ export async function POST(request) {
         event: 'order_completed',
         params: {
           orderId: order.orderId,
-          amount: order.totalAmount
+          amount: order.totalAmount,
+          paymentMethod: order.paymentMethod
         },
         timestamp: new Date().toISOString(),
         userAgent: request.headers.get('user-agent')
       })
       
       return NextResponse.json({ success: true, order })
+    }
+
+    // POST /api/users - Store user data
+    if (segments[0] === 'users' && segments.length === 1) {
+      const body = await request.json()
+      const { db } = await connectToDatabase()
+      
+      const userData = {
+        oderId: uuidv4(),
+        uid: body.uid,
+        phone: body.phone,
+        name: body.name || '',
+        email: body.email || '',
+        age: body.age || '',
+        addresses: body.addresses || [],
+        createdAt: body.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+      
+      // Upsert user by uid or phone
+      await db.collection('users').updateOne(
+        { $or: [{ uid: body.uid }, { phone: body.phone }] },
+        { $set: userData },
+        { upsert: true }
+      )
+      
+      return NextResponse.json({ success: true, message: 'User data stored' })
+    }
+
+    // POST /api/subscriptions - Create subscription order
+    if (segments[0] === 'subscriptions' && segments.length === 1) {
+      const body = await request.json()
+      const { db } = await connectToDatabase()
+      
+      const subscription = {
+        subscriptionId: uuidv4(),
+        orderId: uuidv4(),
+        customerName: body.customerName,
+        email: body.email,
+        phone: body.phone,
+        address: body.address,
+        pincode: body.pincode,
+        city: body.city || '',
+        state: body.state || '',
+        barsPerMonth: body.barsPerMonth,
+        durationMonths: 3,
+        totalBars: body.barsPerMonth * 3,
+        pricePerBar: 100,
+        totalAmount: body.barsPerMonth * 3 * 100,
+        deliverySchedule: [],
+        paymentId: body.paymentId,
+        userId: body.userId || null,
+        status: 'active',
+        orderType: 'subscription',
+        createdAt: new Date().toISOString()
+      }
+      
+      // Generate delivery schedule (1 delivery per month for 3 months)
+      const startDate = new Date()
+      for (let i = 0; i < 3; i++) {
+        const deliveryDate = new Date(startDate)
+        deliveryDate.setMonth(deliveryDate.getMonth() + i)
+        subscription.deliverySchedule.push({
+          month: i + 1,
+          barsCount: body.barsPerMonth,
+          scheduledDate: deliveryDate.toISOString(),
+          status: i === 0 ? 'processing' : 'scheduled',
+          deliveredAt: null
+        })
+      }
+      
+      await db.collection('subscriptions').insertOne(subscription)
+      
+      // Also create as an order for tracking
+      const order = {
+        ...subscription,
+        products: [{
+          productId: 'begood-abar-001',
+          productName: 'A-Bar (Subscription)',
+          variant: { size: '40g', price: 100 },
+          quantity: subscription.totalBars,
+          price: 100
+        }],
+        subtotal: subscription.totalAmount,
+        shippingFee: 0,
+        couponDiscount: 0,
+        status: 'Subscription Active'
+      }
+      await db.collection('orders').insertOne(order)
+      
+      return NextResponse.json({ success: true, subscription, order })
     }
 
     // POST /api/notify - Store email for upcoming product notifications

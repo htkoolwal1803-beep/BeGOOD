@@ -182,6 +182,14 @@ export default function ProductPage() {
                 <p className="text-xs text-gray-600">Fast Delivery</p>
               </div>
             </div>
+
+            {/* No Return Policy Notice */}
+            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-xs text-red-700 text-center">
+                <strong>No Return Policy:</strong> All sales are final. Please review before purchase. 
+                <a href="/terms" className="underline ml-1">Learn more</a>
+              </p>
+            </div>
           </div>
         </div>
 

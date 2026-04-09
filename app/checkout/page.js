@@ -9,7 +9,7 @@ import Image from 'next/image'
 import { Lock, Package, Truck, Phone, Shield, User, MapPin, Check, Loader2, Tag, X } from 'lucide-react'
 import Link from 'next/link'
 import emailjs from '@emailjs/browser'
-import { calculateShipping, calculateOrderTotal, SHIPPING_CONFIG } from '@/lib/constants'
+import { calculateShipping, calculateOrderTotal, SHIPPING_CONFIG, COD_CONFIG } from '@/lib/constants'
 
 export default function CheckoutPage() {
   const { cart, cartTotal, clearCart } = useCart()
@@ -55,11 +55,15 @@ export default function CheckoutPage() {
   const [couponLoading, setCouponLoading] = useState(false)
   const [couponError, setCouponError] = useState('')
   const [appliedCoupon, setAppliedCoupon] = useState(null)
+  
+  // Payment method state
+  const [paymentMethod, setPaymentMethod] = useState('online') // 'online' | 'cod'
 
-  // Calculate shipping and order total with coupon discount
+  // Calculate shipping and order total with coupon discount and COD fee
   const shippingFee = calculateShipping(cartTotal)
   const couponDiscount = appliedCoupon?.discountAmount || 0
-  const orderTotal = calculateOrderTotal(cartTotal) - couponDiscount
+  const codFee = paymentMethod === 'cod' ? COD_CONFIG.FEE : 0
+  const orderTotal = cartTotal + shippingFee - couponDiscount + codFee
   const amountToFreeShipping = SHIPPING_CONFIG.FREE_SHIPPING_THRESHOLD - cartTotal
 
   // Initialize and track
@@ -484,6 +488,96 @@ export default function CheckoutPage() {
     } catch (error) {
       console.error('Email sending failed:', error)
     }
+  }
+
+  const handleCODOrder = async () => {
+    setLoading(true)
+
+    try {
+      const selectedAddress = savedAddresses.find(a => a.id === selectedAddressId)
+
+      const orderData = {
+        customerName: profileData.name,
+        email: profileData.email,
+        phone: user?.phoneNumber || `+91${phone}`,
+        address: selectedAddress?.fullAddress || formData.address,
+        pincode: selectedAddress?.pincode || formData.pincode,
+        city: selectedAddress?.city || formData.city,
+        state: selectedAddress?.state || formData.state,
+        products: cart.map(item => ({
+          productId: item.id,
+          productName: item.name,
+          variant: item.variant,
+          quantity: item.quantity,
+          price: item.variant.price
+        })),
+        subtotal: cartTotal,
+        shippingFee: shippingFee,
+        codFee: COD_CONFIG.FEE,
+        couponCode: appliedCoupon?.code || null,
+        couponDiscount: couponDiscount,
+        totalAmount: orderTotal,
+        paymentMethod: 'cod',
+        paymentId: null,
+        userId: user?.uid || null
+      }
+
+      const orderResponse = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData)
+      })
+
+      const orderResult = await orderResponse.json()
+
+      if (orderResult.success) {
+        // Record coupon usage if coupon was applied
+        if (appliedCoupon) {
+          try {
+            await fetch('/api/coupons/apply', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                couponId: appliedCoupon.id,
+                couponCode: appliedCoupon.code,
+                userId: user?.uid || null,
+                userPhone: user?.phoneNumber || `+91${phone}`,
+                orderId: orderResult.order.orderId,
+                discountAmount: couponDiscount
+              })
+            })
+          } catch (couponError) {
+            console.error('Failed to record coupon usage:', couponError)
+          }
+        }
+
+        if (window.gtag) {
+          window.gtag('event', 'purchase', {
+            transaction_id: orderResult.order.orderId,
+            value: orderTotal,
+            currency: 'INR',
+            shipping: shippingFee,
+            items: cart.map(item => ({
+              item_id: item.id,
+              item_name: item.name,
+              price: item.variant.price,
+              quantity: item.quantity
+            }))
+          })
+        }
+
+        await sendConfirmationEmail(orderResult.order)
+        clearCart()
+        router.push(`/order/${orderResult.order.orderId}`)
+      } else {
+        alert('Failed to create order. Please try again.')
+      }
+    } catch (error) {
+      console.error('COD order error:', error)
+      alert('Failed to place order. Please try again.')
+    }
+
+    setLoading(false)
   }
 
   const handleRazorpayPayment = async () => {
@@ -1073,7 +1167,7 @@ export default function CheckoutPage() {
                   </div>
 
                   <Button
-                    onClick={handleRazorpayPayment}
+                    onClick={paymentMethod === 'cod' ? handleCODOrder : handleRazorpayPayment}
                     size="lg"
                     className="w-full"
                     disabled={loading}
@@ -1083,11 +1177,13 @@ export default function CheckoutPage() {
                         <Loader2 className="w-5 h-5 animate-spin mr-2" />
                         Processing...
                       </span>
-                    ) : `Pay ₹${orderTotal} with Razorpay`}
+                    ) : paymentMethod === 'cod' ? `Place COD Order (₹${orderTotal})` : `Pay ₹${orderTotal} with Razorpay`}
                   </Button>
 
                   <p className="text-xs text-gray-500 text-center mt-3">
-                    Secure payment powered by Razorpay. By placing this order, you agree to our Terms & Conditions
+                    {paymentMethod === 'cod' 
+                      ? 'Pay ₹' + orderTotal + ' when your order is delivered. By placing this order, you agree to our Terms & Conditions and No Return Policy.'
+                      : 'Secure payment powered by Razorpay. By placing this order, you agree to our Terms & Conditions and No Return Policy.'}
                   </p>
                 </>
               )}
@@ -1198,10 +1294,61 @@ export default function CheckoutPage() {
                   </div>
                 )}
 
+                {/* Payment Method Selection */}
+                <div className="border-t border-gray-300 pt-3">
+                  <label className="block text-sm font-semibold mb-3">Payment Method</label>
+                  <div className="space-y-2">
+                    <label className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-all ${paymentMethod === 'online' ? 'border-[#C8A97E] bg-amber-50' : 'border-gray-300 hover:border-gray-400'}`}>
+                      <div className="flex items-center">
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="online"
+                          checked={paymentMethod === 'online'}
+                          onChange={(e) => setPaymentMethod(e.target.value)}
+                          className="w-4 h-4 text-[#C8A97E] focus:ring-[#C8A97E]"
+                        />
+                        <span className="ml-3 text-sm font-medium">Pay Online (UPI/Card/Netbanking)</span>
+                      </div>
+                      <Lock className="w-4 h-4 text-green-600" />
+                    </label>
+                    <label className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-all ${paymentMethod === 'cod' ? 'border-[#C8A97E] bg-amber-50' : 'border-gray-300 hover:border-gray-400'}`}>
+                      <div className="flex items-center">
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="cod"
+                          checked={paymentMethod === 'cod'}
+                          onChange={(e) => setPaymentMethod(e.target.value)}
+                          className="w-4 h-4 text-[#C8A97E] focus:ring-[#C8A97E]"
+                        />
+                        <span className="ml-3 text-sm font-medium">Cash on Delivery</span>
+                      </div>
+                      <span className="text-xs text-gray-500">+₹{COD_CONFIG.FEE}</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* COD Fee if selected */}
+                {paymentMethod === 'cod' && (
+                  <div className="flex justify-between text-gray-600">
+                    <span>COD Charges</span>
+                    <span className="font-semibold">₹{COD_CONFIG.FEE}</span>
+                  </div>
+                )}
+
                 <div className="border-t border-gray-300 pt-3 flex justify-between">
                   <span className="font-bold text-lg">Total</span>
                   <span className="font-bold text-2xl text-[#C8A97E]">₹{orderTotal}</span>
                 </div>
+              </div>
+
+              {/* No Return Policy Notice */}
+              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-700 flex items-center">
+                  <Shield className="w-4 h-4 mr-2" />
+                  <strong>No Return Policy:</strong>&nbsp;All sales are final. Please review your order carefully.
+                </p>
               </div>
 
               {/* Trust Indicators */}
@@ -1212,11 +1359,7 @@ export default function CheckoutPage() {
                 </p>
                 <p className="flex items-center">
                   <Truck className="w-4 h-4 mr-2 text-green-600" />
-                  {shippingFee === 0 ? 'Free Shipping' : `Free Shipping on orders above ₹${SHIPPING_CONFIG.FREE_SHIPPING_THRESHOLD}`}
-                </p>
-                <p className="flex items-center">
-                  <span className="text-green-600 mr-2">✓</span>
-                  7-Day Return Policy
+                  {shippingFee === 0 ? 'Free Shipping' : `Free Shipping on orders ₹${SHIPPING_CONFIG.FREE_SHIPPING_THRESHOLD} and above`}
                 </p>
               </div>
             </div>

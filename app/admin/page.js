@@ -125,18 +125,32 @@ export default function AdminDashboard() {
               <h1 className="font-playfair text-4xl font-bold mb-2">Admin Dashboard</h1>
               <p className="text-gray-600">Manage orders and view analytics</p>
             </div>
-            <Link href="/admin/reviews">
-              <Button variant="outline">
-                <Star className="w-4 h-4 mr-2" />
-                Manage Reviews & Notifications
-              </Button>
-            </Link>
-            <Link href="/admin/coupons">
-              <Button variant="outline" className="ml-2">
-                <Tag className="w-4 h-4 mr-2" />
-                Manage Coupons
-              </Button>
-            </Link>
+            <div className="flex flex-wrap gap-2">
+              <Link href="/admin/users">
+                <Button variant="outline">
+                  <Users className="w-4 h-4 mr-2" />
+                  Users
+                </Button>
+              </Link>
+              <Link href="/admin/subscriptions">
+                <Button variant="outline">
+                  <Package className="w-4 h-4 mr-2" />
+                  Subscriptions
+                </Button>
+              </Link>
+              <Link href="/admin/reviews">
+                <Button variant="outline">
+                  <Star className="w-4 h-4 mr-2" />
+                  Reviews
+                </Button>
+              </Link>
+              <Link href="/admin/coupons">
+                <Button variant="outline">
+                  <Tag className="w-4 h-4 mr-2" />
+                  Coupons
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
 
