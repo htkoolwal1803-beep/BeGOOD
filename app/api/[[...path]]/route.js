@@ -222,6 +222,104 @@ export async function GET(request) {
       })
     }
 
+    // GET /api/admin/affiliates - Get all affiliates
+    if (segments[0] === 'admin' && segments[1] === 'affiliates' && segments.length === 2) {
+      const { db } = await connectToDatabase()
+      const affiliates = await db.collection('affiliates').find({}).sort({ createdAt: -1 }).toArray()
+      
+      // Get order stats for each affiliate
+      const affiliatesWithStats = await Promise.all(affiliates.map(async (affiliate) => {
+        const orders = await db.collection('orders').find({ affiliateCode: affiliate.code }).toArray()
+        const totalOrders = orders.length
+        const totalUnits = orders.reduce((sum, order) => {
+          return sum + (order.products?.reduce((pSum, p) => pSum + (p.quantity || 0), 0) || 0)
+        }, 0)
+        const totalRevenue = orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0)
+        
+        return {
+          ...affiliate,
+          stats: {
+            totalOrders,
+            totalUnits,
+            totalRevenue,
+            clicks: affiliate.clicks || 0
+          }
+        }
+      }))
+      
+      return NextResponse.json({ success: true, affiliates: affiliatesWithStats })
+    }
+
+    // GET /api/admin/affiliates/:code - Get single affiliate details
+    if (segments[0] === 'admin' && segments[1] === 'affiliates' && segments.length === 3) {
+      const { db } = await connectToDatabase()
+      const code = segments[2].toUpperCase()
+      
+      const affiliate = await db.collection('affiliates').findOne({ code })
+      if (!affiliate) {
+        return NextResponse.json({ success: false, message: 'Affiliate not found' }, { status: 404 })
+      }
+      
+      // Get orders for this affiliate
+      const orders = await db.collection('orders').find({ affiliateCode: code }).sort({ createdAt: -1 }).toArray()
+      
+      const totalOrders = orders.length
+      const totalUnits = orders.reduce((sum, order) => {
+        return sum + (order.products?.reduce((pSum, p) => pSum + (p.quantity || 0), 0) || 0)
+      }, 0)
+      const totalRevenue = orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0)
+      
+      return NextResponse.json({ 
+        success: true, 
+        affiliate: {
+          ...affiliate,
+          stats: { totalOrders, totalUnits, totalRevenue, clicks: affiliate.clicks || 0 }
+        },
+        orders
+      })
+    }
+
+    // GET /api/affiliate/stats/:code - Get affiliate stats (for affiliate dashboard)
+    if (segments[0] === 'affiliate' && segments[1] === 'stats' && segments.length === 3) {
+      const { db } = await connectToDatabase()
+      const code = segments[2].toUpperCase()
+      
+      const affiliate = await db.collection('affiliates').findOne({ code, isActive: true })
+      if (!affiliate) {
+        return NextResponse.json({ success: false, message: 'Affiliate not found or inactive' }, { status: 404 })
+      }
+      
+      // Get orders for this affiliate (limited info for affiliate view)
+      const orders = await db.collection('orders').find({ affiliateCode: code }).sort({ createdAt: -1 }).toArray()
+      
+      const totalOrders = orders.length
+      const totalUnits = orders.reduce((sum, order) => {
+        return sum + (order.products?.reduce((pSum, p) => pSum + (p.quantity || 0), 0) || 0)
+      }, 0)
+      const totalRevenue = orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0)
+      
+      // Return limited order info for affiliate
+      const ordersSummary = orders.map(order => ({
+        orderId: order.orderId,
+        date: order.createdAt,
+        units: order.products?.reduce((sum, p) => sum + (p.quantity || 0), 0) || 0,
+        amount: order.totalAmount,
+        pincode: order.pincode,
+        status: order.status
+      }))
+      
+      return NextResponse.json({ 
+        success: true, 
+        affiliate: {
+          name: affiliate.name,
+          code: affiliate.code,
+          isActive: affiliate.isActive
+        },
+        stats: { totalOrders, totalUnits, totalRevenue, clicks: affiliate.clicks || 0 },
+        orders: ordersSummary
+      })
+    }
+
     // GET /api/users/:phone - Get user by phone number
     if (segments[0] === 'users' && segments.length === 2) {
       const { db } = await connectToDatabase()
@@ -487,6 +585,7 @@ export async function POST(request) {
         paymentId: body.paymentId || null,
         userId: body.userId || null,
         orderType: body.orderType || 'regular',
+        affiliateCode: body.affiliateCode || null,
         createdAt: new Date().toISOString(),
         createdVia: 'frontend'
       }
@@ -831,6 +930,140 @@ export async function POST(request) {
       
       const updatedUser = await db.collection('users').findOne({ phone })
       return NextResponse.json({ success: true, addresses: updatedUser.addresses })
+    }
+
+    // POST /api/admin/affiliates - Create new affiliate
+    if (segments[0] === 'admin' && segments[1] === 'affiliates' && segments.length === 2) {
+      const body = await request.json()
+      const { db } = await connectToDatabase()
+      
+      const { code, name, phone, email, password } = body
+      
+      if (!code || !name || !password) {
+        return NextResponse.json({ success: false, message: 'Code, name, and password are required' }, { status: 400 })
+      }
+      
+      // Check if affiliate code already exists
+      const existingAffiliate = await db.collection('affiliates').findOne({ code: code.toUpperCase() })
+      if (existingAffiliate) {
+        return NextResponse.json({ success: false, message: 'Affiliate code already exists' }, { status: 400 })
+      }
+      
+      const affiliate = {
+        id: uuidv4(),
+        code: code.toUpperCase(),
+        name,
+        phone: phone || '',
+        email: email || '',
+        password, // In production, this should be hashed
+        isActive: true,
+        clicks: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+      
+      await db.collection('affiliates').insertOne(affiliate)
+      
+      return NextResponse.json({ success: true, affiliate: { ...affiliate, password: undefined } })
+    }
+
+    // POST /api/admin/affiliates/:code/toggle - Toggle affiliate active status
+    if (segments[0] === 'admin' && segments[1] === 'affiliates' && segments.length === 4 && segments[3] === 'toggle') {
+      const { db } = await connectToDatabase()
+      const code = segments[2].toUpperCase()
+      
+      const affiliate = await db.collection('affiliates').findOne({ code })
+      if (!affiliate) {
+        return NextResponse.json({ success: false, message: 'Affiliate not found' }, { status: 404 })
+      }
+      
+      const newStatus = !affiliate.isActive
+      await db.collection('affiliates').updateOne(
+        { code },
+        { $set: { isActive: newStatus, updatedAt: new Date().toISOString() } }
+      )
+      
+      return NextResponse.json({ success: true, isActive: newStatus })
+    }
+
+    // POST /api/admin/affiliates/:code/update - Update affiliate details
+    if (segments[0] === 'admin' && segments[1] === 'affiliates' && segments.length === 4 && segments[3] === 'update') {
+      const body = await request.json()
+      const { db } = await connectToDatabase()
+      const code = segments[2].toUpperCase()
+      
+      const affiliate = await db.collection('affiliates').findOne({ code })
+      if (!affiliate) {
+        return NextResponse.json({ success: false, message: 'Affiliate not found' }, { status: 404 })
+      }
+      
+      const updateFields = { updatedAt: new Date().toISOString() }
+      if (body.name) updateFields.name = body.name
+      if (body.phone !== undefined) updateFields.phone = body.phone
+      if (body.email !== undefined) updateFields.email = body.email
+      if (body.password) updateFields.password = body.password
+      
+      await db.collection('affiliates').updateOne({ code }, { $set: updateFields })
+      
+      const updatedAffiliate = await db.collection('affiliates').findOne({ code })
+      return NextResponse.json({ success: true, affiliate: { ...updatedAffiliate, password: undefined } })
+    }
+
+    // POST /api/affiliate/auth - Affiliate login
+    if (segments[0] === 'affiliate' && segments[1] === 'auth') {
+      const body = await request.json()
+      const { db } = await connectToDatabase()
+      
+      const { code, password } = body
+      
+      if (!code || !password) {
+        return NextResponse.json({ success: false, message: 'Code and password are required' }, { status: 400 })
+      }
+      
+      const affiliate = await db.collection('affiliates').findOne({ 
+        code: code.toUpperCase(), 
+        password,
+        isActive: true 
+      })
+      
+      if (!affiliate) {
+        return NextResponse.json({ success: false, message: 'Invalid credentials or affiliate is inactive' }, { status: 401 })
+      }
+      
+      return NextResponse.json({ 
+        success: true, 
+        affiliate: {
+          code: affiliate.code,
+          name: affiliate.name,
+          isActive: affiliate.isActive
+        }
+      })
+    }
+
+    // POST /api/affiliate/track - Track affiliate click
+    if (segments[0] === 'affiliate' && segments[1] === 'track') {
+      const body = await request.json()
+      const { db } = await connectToDatabase()
+      
+      const { code } = body
+      
+      if (!code) {
+        return NextResponse.json({ success: false, message: 'Affiliate code is required' }, { status: 400 })
+      }
+      
+      const affiliate = await db.collection('affiliates').findOne({ code: code.toUpperCase(), isActive: true })
+      
+      if (!affiliate) {
+        return NextResponse.json({ success: false, message: 'Invalid or inactive affiliate' }, { status: 400 })
+      }
+      
+      // Increment click count
+      await db.collection('affiliates').updateOne(
+        { code: code.toUpperCase() },
+        { $inc: { clicks: 1 } }
+      )
+      
+      return NextResponse.json({ success: true, message: 'Click tracked' })
     }
 
     // POST /api/admin/coupons - Create new coupon

@@ -15,6 +15,24 @@ export default function Home() {
   const [notifyError, setNotifyError] = useState('')
 
   useEffect(() => {
+    // Track affiliate code from URL
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const refCode = urlParams.get('ref')
+      
+      if (refCode) {
+        // Store affiliate code in localStorage
+        localStorage.setItem('affiliateCode', refCode.toUpperCase())
+        
+        // Track affiliate click
+        fetch('/api/affiliate/track', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: refCode })
+        }).catch(err => console.error('Affiliate tracking error:', err))
+      }
+    }
+
     // Track page view
     if (typeof window !== 'undefined' && window.gtag) {
       window.gtag('event', 'page_view', {

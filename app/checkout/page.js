@@ -58,6 +58,7 @@ export default function CheckoutPage() {
   
   // Payment method state
   const [paymentMethod, setPaymentMethod] = useState('online') // 'online' | 'cod'
+  const [affiliateCode, setAffiliateCode] = useState(null)
 
   // Calculate shipping and order total with coupon discount and COD fee
   const shippingFee = calculateShipping(cartTotal)
@@ -66,7 +67,35 @@ export default function CheckoutPage() {
   const orderTotal = cartTotal + shippingFee - couponDiscount + codFee
   const amountToFreeShipping = SHIPPING_CONFIG.FREE_SHIPPING_THRESHOLD - cartTotal
 
-  // Initialize and track
+  // Initialize and track affiliate
+  useEffect(() => {
+    // Check for affiliate code in URL or localStorage
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const refCode = urlParams.get('ref')
+      
+      if (refCode) {
+        // Store affiliate code in localStorage
+        localStorage.setItem('affiliateCode', refCode.toUpperCase())
+        setAffiliateCode(refCode.toUpperCase())
+        
+        // Track affiliate click
+        fetch('/api/affiliate/track', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: refCode })
+        }).catch(err => console.error('Affiliate tracking error:', err))
+      } else {
+        // Check localStorage for existing affiliate code
+        const storedCode = localStorage.getItem('affiliateCode')
+        if (storedCode) {
+          setAffiliateCode(storedCode)
+        }
+      }
+    }
+  }, [])
+
+  // Initialize EmailJS and track checkout
   useEffect(() => {
     if (process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY) {
       emailjs.init(process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY)
@@ -571,7 +600,8 @@ Please prepare this order for shipment.
         totalAmount: orderTotal,
         paymentMethod: 'cod',
         paymentId: null,
-        userId: user?.uid || null
+        userId: user?.uid || null,
+        affiliateCode: affiliateCode || null
       }
 
       const orderResponse = await fetch('/api/orders', {
@@ -670,7 +700,8 @@ Please prepare this order for shipment.
         couponCode: appliedCoupon?.code || null,
         couponDiscount: couponDiscount,
         totalAmount: orderTotal,
-        userId: user?.uid || null
+        userId: user?.uid || null,
+        affiliateCode: affiliateCode || null
       }
 
       // Store pending order on server before initiating payment (for webhook backup)

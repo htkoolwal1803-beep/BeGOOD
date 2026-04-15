@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Lock, TrendingUp, ShoppingCart, Users, MapPin, Smartphone, Monitor, Star, ChevronDown, ChevronUp, Phone, Package, Tag } from 'lucide-react'
+import { Lock, TrendingUp, ShoppingCart, Users, MapPin, Smartphone, Monitor, Star, ChevronDown, ChevronUp, Phone, Package, Tag, Link2 } from 'lucide-react'
 import Button from '@/components/Button'
 import Link from 'next/link'
 
@@ -148,6 +148,12 @@ export default function AdminDashboard() {
                 <Button variant="outline">
                   <Tag className="w-4 h-4 mr-2" />
                   Coupons
+                </Button>
+              </Link>
+              <Link href="/admin/affiliates">
+                <Button variant="outline">
+                  <Link2 className="w-4 h-4 mr-2" />
+                  Affiliates
                 </Button>
               </Link>
             </div>
