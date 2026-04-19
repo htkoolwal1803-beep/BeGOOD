@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Button from '@/components/Button'
 import ProductCard from '@/components/ProductCard'
 import SubscriptionCard from '@/components/SubscriptionCard'
+import HowItWorksSection from '@/components/HowItWorksSection'
 import { getFeaturedProducts, getUpcomingProducts } from '@/lib/products'
 import { ArrowRight, CheckCircle, Star, Brain, Focus, Heart, Zap, Bell } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -283,6 +284,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* How It Works Section */}
+      <HowItWorksSection />
 
       {/* Product Highlight */}
       <section className="py-20 bg-gradient-to-br from-[#F5F0E8] to-white">
