@@ -1106,7 +1106,7 @@ export async function POST(request) {
       const body = await request.json()
       const { db } = await connectToDatabase()
       
-      const { code, userId, userPhone, orderTotal } = body
+      const { code, userId, userPhone, orderTotal, totalQuantity } = body
       
       if (!code) {
         return NextResponse.json({ success: false, message: 'Coupon code is required' }, { status: 400 })
@@ -1143,6 +1143,51 @@ export async function POST(request) {
       
       // Calculate discount
       let discountAmount = 0
+      let appliedTier = null
+      
+      // Handle bulk tiered discount (KRISH coupon)
+      if (coupon.discountType === 'bulk_tiered') {
+        const qty = totalQuantity || 0
+        
+        // Check minimum quantity
+        if (qty < 5) {
+          return NextResponse.json({ success: false, message: 'Minimum 5 bars required for this code' }, { status: 400 })
+        }
+        
+        // Apply tiered discount based on quantity
+        if (qty >= 15) {
+          // 15+ bars: ₹235 off (Final: ₹1,640 from ₹1,875)
+          discountAmount = 235
+          appliedTier = '15+'
+        } else if (qty >= 10) {
+          // 10+ bars: ₹125 off (Final: ₹1,125 from ₹1,250)
+          discountAmount = 125
+          appliedTier = '10+'
+        } else if (qty >= 5) {
+          // 5+ bars: ₹50 off (Final: ₹575 from ₹625)
+          discountAmount = 50
+          appliedTier = '5+'
+        }
+        
+        // Ensure discount doesn't exceed order total
+        discountAmount = Math.min(discountAmount, orderTotal)
+        
+        return NextResponse.json({ 
+          success: true, 
+          coupon: {
+            id: coupon.id,
+            code: coupon.code,
+            discountType: coupon.discountType,
+            discountValue: discountAmount,
+            discountAmount,
+            appliedTier,
+            isBulkDiscount: true,
+            canCombine: false
+          }
+        })
+      }
+      
+      // Regular coupon discount calculation
       if (coupon.discountType === 'fixed') {
         discountAmount = coupon.discountValue
       } else if (coupon.discountType === 'percentage') {
@@ -1159,7 +1204,9 @@ export async function POST(request) {
           code: coupon.code,
           discountType: coupon.discountType,
           discountValue: coupon.discountValue,
-          discountAmount
+          discountAmount,
+          isBulkDiscount: false,
+          canCombine: true
         }
       })
     }

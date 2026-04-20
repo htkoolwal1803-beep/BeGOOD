@@ -188,6 +188,9 @@ export default function CheckoutPage() {
     setCouponLoading(true)
     setCouponError('')
     
+    // Calculate total quantity of items in cart
+    const totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0)
+    
     try {
       const response = await fetch('/api/coupons/validate', {
         method: 'POST',
@@ -196,7 +199,8 @@ export default function CheckoutPage() {
           code: couponCode,
           userId: user?.uid,
           userPhone: user?.phoneNumber || `+91${phone}`,
-          orderTotal: cartTotal
+          orderTotal: cartTotal,
+          totalQuantity: totalQuantity
         })
       })
       
