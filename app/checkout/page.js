@@ -67,30 +67,13 @@ export default function CheckoutPage() {
   const orderTotal = cartTotal + shippingFee - couponDiscount + codFee
   const amountToFreeShipping = SHIPPING_CONFIG.FREE_SHIPPING_THRESHOLD - cartTotal
 
-  // Initialize and track affiliate
+  // Load affiliate code from localStorage (captured site-wide in layout.js)
   useEffect(() => {
-    // Check for affiliate code in URL or localStorage
     if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search)
-      const refCode = urlParams.get('ref')
-      
-      if (refCode) {
-        // Store affiliate code in localStorage
-        localStorage.setItem('affiliateCode', refCode.toUpperCase())
-        setAffiliateCode(refCode.toUpperCase())
-        
-        // Track affiliate click
-        fetch('/api/affiliate/track', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code: refCode })
-        }).catch(err => console.error('Affiliate tracking error:', err))
-      } else {
-        // Check localStorage for existing affiliate code
-        const storedCode = localStorage.getItem('affiliateCode')
-        if (storedCode) {
-          setAffiliateCode(storedCode)
-        }
+      const storedCode = localStorage.getItem('affiliateCode')
+      if (storedCode) {
+        setAffiliateCode(storedCode)
+        console.log('Affiliate code loaded from storage:', storedCode)
       }
     }
   }, [])

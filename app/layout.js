@@ -36,6 +36,34 @@ export default function RootLayout({ children }) {
             `,
           }}
         />
+        {/* Affiliate Tracking Script - Captures ref parameter site-wide */}
+        <Script
+          id="affiliate-tracking"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                if (typeof window !== 'undefined') {
+                  const urlParams = new URLSearchParams(window.location.search);
+                  const refCode = urlParams.get('ref');
+                  
+                  if (refCode) {
+                    // Store affiliate code in localStorage
+                    localStorage.setItem('affiliateCode', refCode.toUpperCase());
+                    console.log('Affiliate code captured:', refCode.toUpperCase());
+                    
+                    // Track affiliate click
+                    fetch('/api/affiliate/track', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ code: refCode })
+                    }).catch(err => console.error('Affiliate tracking error:', err));
+                  }
+                }
+              })();
+            `,
+          }}
+        />
         {/* Razorpay Script */}
         <Script
           src="https://checkout.razorpay.com/v1/checkout.js"
