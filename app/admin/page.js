@@ -320,6 +320,7 @@ export default function AdminDashboard() {
                   <th className="text-left py-3 px-4 font-semibold text-sm">Order ID</th>
                   <th className="text-left py-3 px-4 font-semibold text-sm">Customer</th>
                   <th className="text-left py-3 px-4 font-semibold text-sm">Amount</th>
+                  <th className="text-left py-3 px-4 font-semibold text-sm">Affiliate</th>
                   <th className="text-left py-3 px-4 font-semibold text-sm">Status</th>
                   <th className="text-left py-3 px-4 font-semibold text-sm">Date</th>
                   <th className="text-left py-3 px-4 font-semibold text-sm">Actions</th>
@@ -328,7 +329,7 @@ export default function AdminDashboard() {
               <tbody>
                 {orders.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="text-center py-8 text-gray-500">
+                    <td colSpan="7" className="text-center py-8 text-gray-500">
                       No orders yet
                     </td>
                   </tr>
@@ -339,6 +340,16 @@ export default function AdminDashboard() {
                         <td className="py-4 px-4 text-sm font-mono">{order.orderId.slice(0, 8)}</td>
                         <td className="py-4 px-4 text-sm">{order.customerName}</td>
                         <td className="py-4 px-4 text-sm font-semibold">₹{order.totalAmount}</td>
+                        <td className="py-4 px-4 text-sm">
+                          {order.affiliateCode ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-purple-100 text-purple-700 text-xs font-semibold">
+                              <Link2 className="w-3 h-3" />
+                              {order.affiliateCode}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400 text-xs">-</span>
+                          )}
+                        </td>
                         <td className="py-4 px-4 text-sm">
                           <select
                             value={order.status}
