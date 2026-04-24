@@ -9,13 +9,15 @@ import { Loader2, Plus, MessageSquare, Check, X, ChevronDown, ChevronUp } from '
 // Renders the feedback tab used inside the profile page.
 export default function FeedbackTab({ userPhone, userName }) {
   const [loading, setLoading] = useState(true)
-  const [formTitle, setFormTitle] = useState('Share your feedback')
-  const [formDescription, setFormDescription] = useState('')
-  const [questions, setQuestions] = useState([])
   const [mySubmissions, setMySubmissions] = useState([])
+  const [configuredMap, setConfiguredMap] = useState({}) // productId -> boolean
 
   const [showPicker, setShowPicker] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState(null)
+  const [formTitle, setFormTitle] = useState('Share your feedback')
+  const [formDescription, setFormDescription] = useState('')
+  const [questions, setQuestions] = useState([])
+  const [formLoading, setFormLoading] = useState(false)
   const [answers, setAnswers] = useState({})
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
@@ -28,16 +30,16 @@ export default function FeedbackTab({ userPhone, userName }) {
   const loadData = async () => {
     setLoading(true)
     try {
-      const [qRes, sRes] = await Promise.all([
-        fetch('/api/feedback/questions').then((r) => r.json()),
-        fetch(`/api/users/${encodeURIComponent(userPhone)}/feedback`).then((r) => r.json())
+      const [sRes, allRes] = await Promise.all([
+        fetch(`/api/users/${encodeURIComponent(userPhone)}/feedback`).then((r) => r.json()),
+        fetch('/api/admin/feedback/questions/all').then((r) => r.json())
       ])
-      if (qRes.success) {
-        setQuestions(qRes.questions || [])
-        setFormTitle(qRes.title || 'Share your feedback')
-        setFormDescription(qRes.description || '')
-      }
       if (sRes.success) setMySubmissions(sRes.feedbacks || [])
+      if (allRes.success) {
+        const map = {}
+        for (const f of allRes.forms || []) map[f.productId] = true
+        setConfiguredMap(map)
+      }
     } catch (err) {
       console.error(err)
     } finally {
@@ -52,15 +54,32 @@ export default function FeedbackTab({ userPhone, userName }) {
     setShowPicker(true)
   }
 
-  const startFeedback = (product) => {
+  const startFeedback = async (product) => {
+    setShowPicker(false)
     setSelectedProduct(product)
     setAnswers({})
     setSubmitError('')
-    setShowPicker(false)
+    setFormLoading(true)
+    try {
+      const res = await fetch(`/api/feedback/questions?productId=${encodeURIComponent(product.id)}`)
+      const data = await res.json()
+      if (data.success) {
+        setQuestions(data.questions || [])
+        setFormTitle(data.title || 'Share your feedback')
+        setFormDescription(data.description || '')
+      } else {
+        setQuestions([])
+      }
+    } catch {
+      setQuestions([])
+    } finally {
+      setFormLoading(false)
+    }
   }
 
   const cancelFeedback = () => {
     setSelectedProduct(null)
+    setQuestions([])
     setAnswers({})
     setSubmitError('')
   }
@@ -144,14 +163,14 @@ export default function FeedbackTab({ userPhone, userName }) {
           </Button>
         </div>
 
-        {questions.length === 0 && (
+        {questions.length === 0 && !selectedProduct && (
           <div className="border border-dashed border-gray-300 rounded-lg p-6 text-center text-gray-500">
-            The feedback form has not been set up yet. Please check back later.
+            Click &quot;Give Feedback for a Product&quot; above to start. You&apos;ll only see products that have a feedback form configured by the admin.
           </div>
         )}
 
         {/* Active feedback form */}
-        {selectedProduct && questions.length > 0 && (
+        {selectedProduct && (
           <div className="border border-[#C8A97E]/30 rounded-xl p-6 bg-[#F5F0E8]/30">
             <div className="flex items-center justify-between mb-4">
               <div>
@@ -166,32 +185,42 @@ export default function FeedbackTab({ userPhone, userName }) {
               </button>
             </div>
 
-            <form onSubmit={submitFeedback} className="space-y-6">
-              {questions.map((q, idx) => (
-                <div key={q.id}>
-                  <label className="block text-sm font-semibold mb-2">
-                    {idx + 1}. {q.question}
-                    {q.required && <span className="text-red-500 ml-1">*</span>}
-                  </label>
-                  <FeedbackQuestionRenderer
-                    question={q}
-                    value={answers[q.id]}
-                    onChange={(v) => setAnswers((prev) => ({ ...prev, [q.id]: v }))}
-                  />
-                </div>
-              ))}
-              {submitError && (
-                <p className="text-red-500 text-sm">{submitError}</p>
-              )}
-              <div className="flex items-center gap-3">
-                <Button type="submit" disabled={submitting}>
-                  {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Submit Feedback'}
-                </Button>
-                <Button type="button" variant="outline" onClick={cancelFeedback}>
-                  Cancel
-                </Button>
+            {formLoading ? (
+              <div className="flex justify-center py-6">
+                <Loader2 className="w-6 h-6 animate-spin text-[#C8A97E]" />
               </div>
-            </form>
+            ) : questions.length === 0 ? (
+              <div className="bg-white border border-dashed border-gray-300 rounded-lg p-6 text-center text-gray-500">
+                The admin hasn&apos;t set up a feedback form for this product yet. Please check back later.
+              </div>
+            ) : (
+              <form onSubmit={submitFeedback} className="space-y-6">
+                {questions.map((q, idx) => (
+                  <div key={q.id}>
+                    <label className="block text-sm font-semibold mb-2">
+                      {idx + 1}. {q.question}
+                      {q.required && <span className="text-red-500 ml-1">*</span>}
+                    </label>
+                    <FeedbackQuestionRenderer
+                      question={q}
+                      value={answers[q.id]}
+                      onChange={(v) => setAnswers((prev) => ({ ...prev, [q.id]: v }))}
+                    />
+                  </div>
+                ))}
+                {submitError && (
+                  <p className="text-red-500 text-sm">{submitError}</p>
+                )}
+                <div className="flex items-center gap-3">
+                  <Button type="submit" disabled={submitting}>
+                    {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Submit Feedback'}
+                  </Button>
+                  <Button type="button" variant="outline" onClick={cancelFeedback}>
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            )}
           </div>
         )}
       </div>
@@ -259,13 +288,15 @@ export default function FeedbackTab({ userPhone, userName }) {
             <div className="space-y-2 max-h-96 overflow-y-auto">
               {products.map((p) => {
                 const already = alreadySubmittedProductIds.has(p.id)
+                const configured = !!configuredMap[p.id]
+                const disabled = already || !configured
                 return (
                   <button
                     key={p.id}
-                    onClick={() => !already && startFeedback(p)}
-                    disabled={already}
+                    onClick={() => !disabled && startFeedback(p)}
+                    disabled={disabled}
                     className={`w-full text-left p-3 rounded-lg border flex items-center justify-between transition ${
-                      already
+                      disabled
                         ? 'border-gray-200 bg-gray-50 cursor-not-allowed'
                         : 'border-gray-200 hover:border-[#C8A97E] hover:bg-[#F5F0E8]/50'
                     }`}
@@ -274,18 +305,20 @@ export default function FeedbackTab({ userPhone, userName }) {
                       <div className="font-semibold">{p.name}</div>
                       <div className="text-xs text-gray-500">{p.tagline}</div>
                     </div>
-                    {already && (
+                    {already ? (
                       <span className="flex items-center text-xs text-green-600">
                         <Check className="w-4 h-4 mr-1" /> Submitted
                       </span>
-                    )}
+                    ) : !configured ? (
+                      <span className="text-xs text-gray-400">Not set up yet</span>
+                    ) : null}
                   </button>
                 )
               })}
             </div>
-            {questions.length === 0 && (
+            {Object.keys(configuredMap).length === 0 && (
               <p className="text-xs text-red-500 mt-3">
-                Feedback form is not configured yet. Please come back later.
+                No products have a feedback form configured yet. Please come back later.
               </p>
             )}
           </div>

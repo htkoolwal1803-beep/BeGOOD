@@ -1,554 +1,383 @@
 #!/usr/bin/env python3
 """
-Comprehensive Backend Testing for Feedback System APIs
-Tests all feedback-related endpoints with end-to-end scenarios
+Final Backend Testing Script for Per-Product Feedback System
+Tests the refactored feedback APIs with per-product questionnaire support
 """
 
 import requests
 import json
+import sys
 import time
-from urllib.parse import quote
+from datetime import datetime
+import uuid
 
 # Configuration
-BASE_URL = "http://localhost:3000"
-ADMIN_PASSWORD = "admin123"
-TEST_USER_PHONE = "+919999000001"
+BASE_URL = "https://laughing-bhaskara-6.preview.emergentagent.com"
 
-def print_test_result(test_name, success, details=""):
-    """Print formatted test results"""
+def log_test(test_name, success, details=""):
+    """Log test results with timestamp"""
+    timestamp = datetime.now().strftime("%H:%M:%S")
     status = "✅ PASS" if success else "❌ FAIL"
-    print(f"{status}: {test_name}")
+    print(f"[{timestamp}] {status} {test_name}")
     if details:
-        print(f"   Details: {details}")
+        print(f"    {details}")
     print()
 
-def test_admin_feedback_questions_post():
-    """Test POST /api/admin/feedback/questions - Admin saves feedback questionnaire"""
-    print("🧪 Testing POST /api/admin/feedback/questions...")
+def run_comprehensive_tests():
+    """Run comprehensive per-product feedback system tests"""
+    print("🧪 COMPREHENSIVE PER-PRODUCT FEEDBACK SYSTEM TESTING")
+    print("=" * 70)
+    print()
     
-    # Test 1: Create comprehensive questionnaire with all supported types
-    questionnaire = {
-        "title": "Product Feedback Survey",
-        "description": "Please share your experience with our product",
-        "questions": [
-            {
-                "type": "short_text",
-                "question": "What is your name?",
-                "required": True
-            },
-            {
-                "type": "long_text", 
-                "question": "Please describe your overall experience",
-                "required": True
-            },
-            {
-                "type": "single_choice",
-                "question": "How would you rate this product?",
-                "required": True,
-                "options": ["Excellent", "Good", "Average", "Poor"]
-            },
-            {
-                "type": "multiple_choice",
-                "question": "Which features did you like? (Select all that apply)",
-                "required": False,
-                "options": ["Design", "Quality", "Price", "Functionality", "Customer Service"]
-            },
-            {
-                "type": "dropdown",
-                "question": "How did you hear about us?",
-                "required": True,
-                "options": ["Social Media", "Friend Referral", "Online Search", "Advertisement", "Other"]
-            },
-            {
-                "type": "linear_scale",
-                "question": "Rate your satisfaction level",
-                "required": True,
-                "scale": {
-                    "min": 1,
-                    "max": 10,
-                    "minLabel": "Very Dissatisfied",
-                    "maxLabel": "Very Satisfied"
-                }
-            },
-            {
-                "type": "star_rating",
-                "question": "Overall star rating",
-                "required": True,
-                "maxRating": 5
-            },
-            {
-                "type": "email",
-                "question": "Your email address",
-                "required": False
-            },
-            {
-                "type": "number",
-                "question": "How many times have you purchased from us?",
-                "required": False
-            },
-            {
-                "type": "date",
-                "question": "When did you first purchase from us?",
-                "required": False
-            },
-            {
-                "type": "time",
-                "question": "What time do you usually shop?",
-                "required": False
-            }
-        ]
-    }
+    # Generate unique identifiers for this test run
+    test_id = str(uuid.uuid4())[:8]
+    product_a_id = f"test-product-a-{test_id}"
+    product_b_id = f"test-product-b-{test_id}"
+    user_phone = f"+91987654{test_id[:4]}"
     
-    try:
-        response = requests.post(f"{BASE_URL}/api/admin/feedback/questions", json=questionnaire)
-        
-        if response.status_code == 200:
-            data = response.json()
-            if data.get('success') and 'form' in data:
-                form = data['form']
-                print_test_result("Create comprehensive questionnaire", True, 
-                                f"Created form with {len(form['questions'])} questions")
-                return form['id']
-            else:
-                print_test_result("Create comprehensive questionnaire", False, 
-                                f"Unexpected response: {data}")
-                return None
-        else:
-            print_test_result("Create comprehensive questionnaire", False, 
-                            f"Status {response.status_code}: {response.text}")
-            return None
-            
-    except Exception as e:
-        print_test_result("Create comprehensive questionnaire", False, f"Exception: {str(e)}")
-        return None
-
-def test_admin_feedback_questions_validation():
-    """Test validation rules for POST /api/admin/feedback/questions"""
-    print("🧪 Testing validation rules for feedback questions...")
+    passed = 0
+    failed = 0
     
-    # Test 1: Invalid question type
-    try:
-        invalid_type = {
-            "questions": [{"type": "invalid_type", "question": "Test question"}]
-        }
-        response = requests.post(f"{BASE_URL}/api/admin/feedback/questions", json=invalid_type)
-        success = response.status_code == 500 and "Invalid question type" in response.text
-        print_test_result("Reject invalid question type", success, 
-                        f"Status {response.status_code}")
-    except Exception as e:
-        print_test_result("Reject invalid question type", False, f"Exception: {str(e)}")
-    
-    # Test 2: Empty question text
-    try:
-        empty_question = {
-            "questions": [{"type": "short_text", "question": ""}]
-        }
-        response = requests.post(f"{BASE_URL}/api/admin/feedback/questions", json=empty_question)
-        success = response.status_code == 500 and "must have text" in response.text
-        print_test_result("Reject empty question text", success, 
-                        f"Status {response.status_code}")
-    except Exception as e:
-        print_test_result("Reject empty question text", False, f"Exception: {str(e)}")
-    
-    # Test 3: Choice question without options
-    try:
-        no_options = {
-            "questions": [{"type": "single_choice", "question": "Choose one", "options": []}]
-        }
-        response = requests.post(f"{BASE_URL}/api/admin/feedback/questions", json=no_options)
-        success = response.status_code == 500 and "must have at least one option" in response.text
-        print_test_result("Reject choice question without options", success, 
-                        f"Status {response.status_code}")
-    except Exception as e:
-        print_test_result("Reject choice question without options", False, f"Exception: {str(e)}")
-
-def test_feedback_questions_get():
-    """Test GET /api/feedback/questions - Returns active questionnaire"""
-    print("🧪 Testing GET /api/feedback/questions...")
-    
+    # Test 1: GET /api/feedback/questions without productId → 400
+    print("=== TEST 1: GET questions without productId ===")
     try:
         response = requests.get(f"{BASE_URL}/api/feedback/questions")
-        
-        if response.status_code == 200:
-            data = response.json()
-            if data.get('success'):
-                questions = data.get('questions', [])
-                title = data.get('title', '')
-                description = data.get('description', '')
-                updated_at = data.get('updatedAt')
-                
-                print_test_result("Get active questionnaire", True, 
-                                f"Retrieved {len(questions)} questions, title: '{title}'")
-                return data
-            else:
-                print_test_result("Get active questionnaire", False, 
-                                f"Success=False: {data}")
-                return None
+        if response.status_code == 400 and response.json().get('message') == 'productId is required':
+            log_test("GET questions without productId", True, "✅ Correctly returns 400")
+            passed += 1
         else:
-            print_test_result("Get active questionnaire", False, 
-                            f"Status {response.status_code}: {response.text}")
-            return None
-            
+            log_test("GET questions without productId", False, f"❌ Expected 400, got {response.status_code}")
+            failed += 1
     except Exception as e:
-        print_test_result("Get active questionnaire", False, f"Exception: {str(e)}")
-        return None
-
-def create_test_user():
-    """Create a test user for feedback submission"""
-    print("🧪 Creating test user...")
+        log_test("GET questions without productId", False, f"❌ Exception: {str(e)}")
+        failed += 1
     
-    test_user = {
-        "phone": TEST_USER_PHONE,
-        "name": "John Doe",
-        "email": "john.doe@example.com",
-        "age": 30
-    }
-    
+    # Test 2: GET questions for unconfigured product → configured:false
+    print("=== TEST 2: GET questions for unconfigured product ===")
     try:
-        # First create the user
-        response = requests.post(f"{BASE_URL}/api/users", json=test_user)
-        
+        response = requests.get(f"{BASE_URL}/api/feedback/questions?productId={product_a_id}")
         if response.status_code == 200:
             data = response.json()
-            if data.get('success'):
-                # Now get the user details
-                encoded_phone = quote(TEST_USER_PHONE, safe='')
-                get_response = requests.get(f"{BASE_URL}/api/users/{encoded_phone}")
-                
-                if get_response.status_code == 200:
-                    get_data = get_response.json()
-                    if get_data.get('success') and 'user' in get_data:
-                        user = get_data['user']
-                        print_test_result("Create test user", True, 
-                                        f"User created/retrieved: {user.get('name')}")
-                        return user
-                
-                print_test_result("Create test user", True, "User created but details not retrieved")
-                return {"phone": TEST_USER_PHONE, "name": "John Doe"}
+            if (data.get('success') == True and data.get('configured') == False and 
+                data.get('productId') == product_a_id and data.get('questions') == []):
+                log_test("GET unconfigured product", True, "✅ Returns configured:false with empty questions")
+                passed += 1
             else:
-                print_test_result("Create test user", False, f"Response: {data}")
-                return None
+                log_test("GET unconfigured product", False, f"❌ Unexpected response: {data}")
+                failed += 1
         else:
-            print_test_result("Create test user", False, 
-                            f"Status {response.status_code}: {response.text}")
-            return None
-            
+            log_test("GET unconfigured product", False, f"❌ Expected 200, got {response.status_code}")
+            failed += 1
     except Exception as e:
-        print_test_result("Create test user", False, f"Exception: {str(e)}")
-        return None
-
-def test_feedback_submit():
-    """Test POST /api/feedback/submit - Submit feedback for a product"""
-    print("🧪 Testing POST /api/feedback/submit...")
+        log_test("GET unconfigured product", False, f"❌ Exception: {str(e)}")
+        failed += 1
     
-    # First ensure we have an active questionnaire
-    active_form = test_feedback_questions_get()
-    if not active_form or not active_form.get('questions'):
-        print("❌ No active questionnaire found, cannot test feedback submission")
-        return None
+    # Test 3: POST admin questions without productId → 400
+    print("=== TEST 3: POST admin questions without productId ===")
+    try:
+        payload = {"title": "Test", "questions": [{"type": "short_text", "question": "Test", "required": True}]}
+        response = requests.post(f"{BASE_URL}/api/admin/feedback/questions", json=payload)
+        if response.status_code == 400 and response.json().get('message') == 'productId is required':
+            log_test("POST admin without productId", True, "✅ Correctly returns 400")
+            passed += 1
+        else:
+            log_test("POST admin without productId", False, f"❌ Expected 400, got {response.status_code}")
+            failed += 1
+    except Exception as e:
+        log_test("POST admin without productId", False, f"❌ Exception: {str(e)}")
+        failed += 1
     
-    # Create test user
-    user = create_test_user()
-    if not user:
-        print("❌ Failed to create test user, cannot test feedback submission")
-        return None
+    # Test 4: Create questionnaire for Product A
+    print("=== TEST 4: Create questionnaire for Product A ===")
+    try:
+        questions_a = [
+            {"type": "star_rating", "question": "Rate Product A", "required": True, "maxRating": 5},
+            {"type": "long_text", "question": "Comments on Product A", "required": False}
+        ]
+        payload = {
+            "productId": product_a_id,
+            "productName": "Product A Test",
+            "title": "Product A Feedback",
+            "questions": questions_a
+        }
+        response = requests.post(f"{BASE_URL}/api/admin/feedback/questions", json=payload)
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('success') == True and data.get('form', {}).get('productId') == product_a_id:
+                log_test("Create Product A questionnaire", True, f"✅ Created form for {product_a_id}")
+                passed += 1
+            else:
+                log_test("Create Product A questionnaire", False, f"❌ Unexpected response: {data}")
+                failed += 1
+        else:
+            log_test("Create Product A questionnaire", False, f"❌ Expected 200, got {response.status_code}")
+            failed += 1
+    except Exception as e:
+        log_test("Create Product A questionnaire", False, f"❌ Exception: {str(e)}")
+        failed += 1
     
-    # Prepare answers based on active questionnaire
-    questions = active_form['questions']
-    answers = []
+    # Test 5: Create questionnaire for Product B
+    print("=== TEST 5: Create questionnaire for Product B ===")
+    try:
+        questions_b = [
+            {"type": "single_choice", "question": "Recommend Product B?", "required": True, "options": ["Yes", "No"]}
+        ]
+        payload = {
+            "productId": product_b_id,
+            "productName": "Product B Test",
+            "title": "Product B Feedback",
+            "questions": questions_b
+        }
+        response = requests.post(f"{BASE_URL}/api/admin/feedback/questions", json=payload)
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('success') == True and data.get('form', {}).get('productId') == product_b_id:
+                log_test("Create Product B questionnaire", True, f"✅ Created form for {product_b_id}")
+                passed += 1
+            else:
+                log_test("Create Product B questionnaire", False, f"❌ Unexpected response: {data}")
+                failed += 1
+        else:
+            log_test("Create Product B questionnaire", False, f"❌ Expected 200, got {response.status_code}")
+            failed += 1
+    except Exception as e:
+        log_test("Create Product B questionnaire", False, f"❌ Exception: {str(e)}")
+        failed += 1
     
-    for question in questions:
-        answer_data = {
-            "questionId": question['id'],
-            "question": question['question'],
-            "type": question['type']
+    # Test 6: Verify both products are configured independently
+    print("=== TEST 6: Verify independent product configurations ===")
+    try:
+        response_a = requests.get(f"{BASE_URL}/api/feedback/questions?productId={product_a_id}")
+        response_b = requests.get(f"{BASE_URL}/api/feedback/questions?productId={product_b_id}")
+        
+        if (response_a.status_code == 200 and response_b.status_code == 200):
+            data_a = response_a.json()
+            data_b = response_b.json()
+            if (data_a.get('configured') == True and len(data_a.get('questions', [])) == 2 and
+                data_b.get('configured') == True and len(data_b.get('questions', [])) == 1):
+                log_test("Independent product configurations", True, "✅ Both products configured correctly")
+                passed += 1
+            else:
+                log_test("Independent product configurations", False, f"❌ Config mismatch: A={data_a.get('configured')}, B={data_b.get('configured')}")
+                failed += 1
+        else:
+            log_test("Independent product configurations", False, f"❌ HTTP errors: A={response_a.status_code}, B={response_b.status_code}")
+            failed += 1
+    except Exception as e:
+        log_test("Independent product configurations", False, f"❌ Exception: {str(e)}")
+        failed += 1
+    
+    # Test 7: GET /api/admin/feedback/questions/all
+    print("=== TEST 7: GET all admin forms ===")
+    try:
+        response = requests.get(f"{BASE_URL}/api/admin/feedback/questions/all")
+        if response.status_code == 200:
+            data = response.json()
+            forms = data.get('forms', [])
+            product_ids = [form.get('productId') for form in forms]
+            if product_a_id in product_ids and product_b_id in product_ids:
+                log_test("GET all admin forms", True, f"✅ Found both test products in {len(forms)} total forms")
+                passed += 1
+            else:
+                log_test("GET all admin forms", False, f"❌ Missing test products in: {product_ids}")
+                failed += 1
+        else:
+            log_test("GET all admin forms", False, f"❌ Expected 200, got {response.status_code}")
+            failed += 1
+    except Exception as e:
+        log_test("GET all admin forms", False, f"❌ Exception: {str(e)}")
+        failed += 1
+    
+    # Test 8: Create test user
+    print("=== TEST 8: Create test user ===")
+    try:
+        user_data = {"phone": user_phone, "name": "Test User Final", "email": f"user-{test_id}@test.com", "age": 25}
+        response = requests.post(f"{BASE_URL}/api/users", json=user_data)
+        
+        if response.status_code == 200:
+            log_test("Create test user", True, f"✅ Test user created: {user_phone}")
+            passed += 1
+            # Small delay to ensure user is persisted
+            time.sleep(0.5)
+        else:
+            log_test("Create test user", False, f"❌ User creation failed: {response.status_code}")
+            failed += 1
+    except Exception as e:
+        log_test("Create test user", False, f"❌ Exception: {str(e)}")
+        failed += 1
+    
+    # Test 9: Submit feedback for configured product (should succeed)
+    print("=== TEST 9: Submit feedback for configured product ===")
+    try:
+        # Get questions for Product A
+        questions_response = requests.get(f"{BASE_URL}/api/feedback/questions?productId={product_a_id}")
+        if questions_response.status_code != 200:
+            log_test("Submit feedback for configured product", False, "❌ Failed to get questions")
+            failed += 1
+        else:
+            questions_data = questions_response.json()
+            questions = questions_data.get('questions', [])
+            
+            # Build answers for all required questions
+            answers = []
+            for q in questions:
+                if q['type'] == 'star_rating':
+                    answers.append({"questionId": q['id'], "question": q['question'], "type": q['type'], "answer": 5})
+                elif q['type'] == 'long_text':
+                    answers.append({"questionId": q['id'], "question": q['question'], "type": q['type'], "answer": "Great product!"})
+            
+            # Submit feedback
+            feedback_data = {
+                "userPhone": user_phone,
+                "productId": product_a_id,
+                "productName": "Product A Test",
+                "answers": answers
+            }
+            
+            response = requests.post(f"{BASE_URL}/api/feedback/submit", json=feedback_data)
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('success') == True:
+                    log_test("Submit feedback for configured product", True, "✅ Feedback submitted successfully")
+                    passed += 1
+                else:
+                    log_test("Submit feedback for configured product", False, f"❌ Unexpected response: {data}")
+                    failed += 1
+            else:
+                log_test("Submit feedback for configured product", False, f"❌ Expected 200, got {response.status_code}: {response.text}")
+                failed += 1
+    except Exception as e:
+        log_test("Submit feedback for configured product", False, f"❌ Exception: {str(e)}")
+        failed += 1
+    
+    # Test 10: Submit feedback for unconfigured product (should fail)
+    print("=== TEST 10: Submit feedback for unconfigured product ===")
+    try:
+        unconfigured_product_id = f"unconfigured-{test_id}"
+        feedback_data = {
+            "userPhone": user_phone,
+            "productId": unconfigured_product_id,
+            "productName": "Unconfigured Product",
+            "answers": [{"questionId": "fake", "question": "Fake", "type": "short_text", "answer": "Fake"}]
         }
         
-        # Provide appropriate answers based on question type
-        if question['type'] == 'short_text':
-            answer_data['answer'] = "John Doe"
-        elif question['type'] == 'long_text':
-            answer_data['answer'] = "This product exceeded my expectations. The quality is excellent and the customer service was outstanding."
-        elif question['type'] == 'single_choice':
-            answer_data['answer'] = question.get('options', ['Good'])[0]
-        elif question['type'] == 'multiple_choice':
-            answer_data['answer'] = question.get('options', ['Design'])[:2]  # Select first 2 options
-        elif question['type'] == 'dropdown':
-            answer_data['answer'] = question.get('options', ['Online Search'])[0]
-        elif question['type'] == 'linear_scale':
-            answer_data['answer'] = 8
-        elif question['type'] == 'star_rating':
-            answer_data['answer'] = 5
-        elif question['type'] == 'email':
-            answer_data['answer'] = "john.doe@example.com"
-        elif question['type'] == 'number':
-            answer_data['answer'] = 3
-        elif question['type'] == 'date':
-            answer_data['answer'] = "2024-01-15"
-        elif question['type'] == 'time':
-            answer_data['answer'] = "14:30"
-        else:
-            answer_data['answer'] = "Test answer"
-        
-        answers.append(answer_data)
-    
-    # Test 1: Valid feedback submission
-    feedback_data = {
-        "userPhone": TEST_USER_PHONE,
-        "productId": "PROD123",
-        "productName": "Test Product",
-        "answers": answers
-    }
-    
-    try:
         response = requests.post(f"{BASE_URL}/api/feedback/submit", json=feedback_data)
-        
-        if response.status_code == 200:
-            data = response.json()
-            if data.get('success') and 'feedback' in data:
-                print_test_result("Submit valid feedback", True, 
-                                f"Feedback submitted with {len(data['feedback']['answers'])} answers")
-                feedback_id = data['feedback']['id']
-            else:
-                print_test_result("Submit valid feedback", False, f"Response: {data}")
-                return None
-        else:
-            print_test_result("Submit valid feedback", False, 
-                            f"Status {response.status_code}: {response.text}")
-            return None
-            
-    except Exception as e:
-        print_test_result("Submit valid feedback", False, f"Exception: {str(e)}")
-        return None
-    
-    # Test 2: Duplicate submission (should be rejected)
-    try:
-        response = requests.post(f"{BASE_URL}/api/feedback/submit", json=feedback_data)
-        
         if response.status_code == 400:
             data = response.json()
-            success = not data.get('success') and "already submitted feedback" in data.get('message', '')
-            print_test_result("Reject duplicate submission", success, 
-                            f"Message: {data.get('message')}")
+            if data.get('message') == 'Feedback form is not configured for this product yet':
+                log_test("Submit feedback for unconfigured product", True, "✅ Correctly rejected unconfigured product")
+                passed += 1
+            else:
+                log_test("Submit feedback for unconfigured product", False, f"❌ Wrong error message: {data.get('message')}")
+                failed += 1
         else:
-            print_test_result("Reject duplicate submission", False, 
-                            f"Expected 400, got {response.status_code}")
-            
+            log_test("Submit feedback for unconfigured product", False, f"❌ Expected 400, got {response.status_code}")
+            failed += 1
     except Exception as e:
-        print_test_result("Reject duplicate submission", False, f"Exception: {str(e)}")
+        log_test("Submit feedback for unconfigured product", False, f"❌ Exception: {str(e)}")
+        failed += 1
     
-    # Test 3: Missing required field
-    if any(q.get('required') for q in questions):
-        incomplete_answers = [a for a in answers if not questions[answers.index(a)].get('required')][:1]  # Only non-required answers
-        
-        incomplete_data = {
-            "userPhone": TEST_USER_PHONE,
-            "productId": "PROD456",  # Different product
-            "productName": "Another Test Product",
-            "answers": incomplete_answers
-        }
-        
-        try:
-            response = requests.post(f"{BASE_URL}/api/feedback/submit", json=incomplete_data)
+    # Test 11: Submit duplicate feedback (should fail)
+    print("=== TEST 11: Submit duplicate feedback ===")
+    try:
+        # Try to submit feedback again for the same user+product combination
+        questions_response = requests.get(f"{BASE_URL}/api/feedback/questions?productId={product_a_id}")
+        if questions_response.status_code == 200:
+            questions_data = questions_response.json()
+            questions = questions_data.get('questions', [])
             
+            answers = []
+            for q in questions:
+                if q['type'] == 'star_rating':
+                    answers.append({"questionId": q['id'], "question": q['question'], "type": q['type'], "answer": 3})
+                elif q['type'] == 'long_text':
+                    answers.append({"questionId": q['id'], "question": q['question'], "type": q['type'], "answer": "Duplicate attempt"})
+            
+            feedback_data = {
+                "userPhone": user_phone,  # Same user as Test 9
+                "productId": product_a_id,   # Same product as Test 9
+                "productName": "Product A Test",
+                "answers": answers
+            }
+            
+            response = requests.post(f"{BASE_URL}/api/feedback/submit", json=feedback_data)
             if response.status_code == 400:
                 data = response.json()
-                success = not data.get('success') and "required questions" in data.get('message', '')
-                print_test_result("Reject missing required field", success, 
-                                f"Message: {data.get('message')}")
+                if 'already submitted' in data.get('message', '').lower():
+                    log_test("Submit duplicate feedback", True, "✅ Correctly prevented duplicate submission")
+                    passed += 1
+                else:
+                    log_test("Submit duplicate feedback", False, f"❌ Wrong error message: {data.get('message')}")
+                    failed += 1
             else:
-                print_test_result("Reject missing required field", False, 
-                                f"Expected 400, got {response.status_code}")
-                
-        except Exception as e:
-            print_test_result("Reject missing required field", False, f"Exception: {str(e)}")
-    
-    # Test 4: Non-existent user
-    nonexistent_data = {
-        "userPhone": "+919999999999",  # Non-existent user
-        "productId": "PROD789",
-        "productName": "Test Product",
-        "answers": answers
-    }
-    
-    try:
-        response = requests.post(f"{BASE_URL}/api/feedback/submit", json=nonexistent_data)
-        
-        if response.status_code == 404:
-            data = response.json()
-            success = not data.get('success') and "User not found" in data.get('message', '')
-            print_test_result("Reject non-existent user", success, 
-                            f"Message: {data.get('message')}")
+                log_test("Submit duplicate feedback", False, f"❌ Expected 400, got {response.status_code}")
+                failed += 1
         else:
-            print_test_result("Reject non-existent user", False, 
-                            f"Expected 404, got {response.status_code}")
-            
+            log_test("Submit duplicate feedback", False, "❌ Failed to get questions for duplicate test")
+            failed += 1
     except Exception as e:
-        print_test_result("Reject non-existent user", False, f"Exception: {str(e)}")
+        log_test("Submit duplicate feedback", False, f"❌ Exception: {str(e)}")
+        failed += 1
     
-    return feedback_id
-
-def test_feedback_retrieval_apis():
-    """Test all feedback retrieval APIs"""
-    print("🧪 Testing feedback retrieval APIs...")
-    
-    # Test 1: GET /api/feedback/product/:productId
+    # Test 12: Product-scoped deactivation
+    print("=== TEST 12: Product-scoped deactivation ===")
     try:
-        response = requests.get(f"{BASE_URL}/api/feedback/product/PROD123")
-        
-        if response.status_code == 200:
-            data = response.json()
-            if data.get('success'):
-                feedbacks = data.get('feedbacks', [])
-                total = data.get('total', 0)
-                print_test_result("Get product feedback", True, 
-                                f"Retrieved {len(feedbacks)} feedbacks, total: {total}")
-            else:
-                print_test_result("Get product feedback", False, f"Response: {data}")
-        else:
-            print_test_result("Get product feedback", False, 
-                            f"Status {response.status_code}: {response.text}")
-            
-    except Exception as e:
-        print_test_result("Get product feedback", False, f"Exception: {str(e)}")
-    
-    # Test 2: GET /api/feedback/product/:productId with limit
-    try:
-        response = requests.get(f"{BASE_URL}/api/feedback/product/PROD123?limit=1")
-        
-        if response.status_code == 200:
-            data = response.json()
-            if data.get('success'):
-                feedbacks = data.get('feedbacks', [])
-                print_test_result("Get product feedback with limit", True, 
-                                f"Retrieved {len(feedbacks)} feedbacks (limit=1)")
-            else:
-                print_test_result("Get product feedback with limit", False, f"Response: {data}")
-        else:
-            print_test_result("Get product feedback with limit", False, 
-                            f"Status {response.status_code}: {response.text}")
-            
-    except Exception as e:
-        print_test_result("Get product feedback with limit", False, f"Exception: {str(e)}")
-    
-    # Test 3: GET /api/users/:phone/feedback
-    encoded_phone = quote(TEST_USER_PHONE, safe='')
-    try:
-        response = requests.get(f"{BASE_URL}/api/users/{encoded_phone}/feedback")
-        
-        if response.status_code == 200:
-            data = response.json()
-            if data.get('success'):
-                feedbacks = data.get('feedbacks', [])
-                print_test_result("Get user feedback", True, 
-                                f"Retrieved {len(feedbacks)} feedbacks for user")
-            else:
-                print_test_result("Get user feedback", False, f"Response: {data}")
-        else:
-            print_test_result("Get user feedback", False, 
-                            f"Status {response.status_code}: {response.text}")
-            
-    except Exception as e:
-        print_test_result("Get user feedback", False, f"Exception: {str(e)}")
-    
-    # Test 4: GET /api/admin/feedback
-    try:
-        response = requests.get(f"{BASE_URL}/api/admin/feedback")
-        
-        if response.status_code == 200:
-            data = response.json()
-            if data.get('success'):
-                feedbacks = data.get('feedbacks', [])
-                print_test_result("Get all feedback (admin)", True, 
-                                f"Retrieved {len(feedbacks)} total feedbacks")
-            else:
-                print_test_result("Get all feedback (admin)", False, f"Response: {data}")
-        else:
-            print_test_result("Get all feedback (admin)", False, 
-                            f"Status {response.status_code}: {response.text}")
-            
-    except Exception as e:
-        print_test_result("Get all feedback (admin)", False, f"Exception: {str(e)}")
-
-def test_question_deactivation():
-    """Test that saving new questionnaire deactivates previous ones"""
-    print("🧪 Testing question deactivation...")
-    
-    # Create first questionnaire
-    first_questionnaire = {
-        "title": "First Survey",
-        "questions": [
-            {"type": "short_text", "question": "First question", "required": True}
+        # Create new form for Product A (should deactivate old Product A form but not Product B)
+        new_questions = [
+            {"type": "short_text", "question": "New question for Product A", "required": True}
         ]
-    }
-    
-    try:
-        response1 = requests.post(f"{BASE_URL}/api/admin/feedback/questions", json=first_questionnaire)
-        if response1.status_code != 200:
-            print_test_result("Question deactivation test", False, "Failed to create first questionnaire")
-            return
-        
-        # Verify first is active
-        response_check1 = requests.get(f"{BASE_URL}/api/feedback/questions")
-        if response_check1.status_code == 200:
-            data1 = response_check1.json()
-            if data1.get('title') != 'First Survey':
-                print_test_result("Question deactivation test", False, "First questionnaire not active")
-                return
-        
-        # Create second questionnaire
-        second_questionnaire = {
-            "title": "Second Survey",
-            "questions": [
-                {"type": "short_text", "question": "Second question", "required": True}
-            ]
+        payload = {
+            "productId": product_a_id,
+            "productName": "Product A Updated",
+            "title": "Updated Product A Form",
+            "questions": new_questions
         }
         
-        response2 = requests.post(f"{BASE_URL}/api/admin/feedback/questions", json=second_questionnaire)
-        if response2.status_code != 200:
-            print_test_result("Question deactivation test", False, "Failed to create second questionnaire")
-            return
-        
-        # Verify second is now active (and first is deactivated)
-        response_check2 = requests.get(f"{BASE_URL}/api/feedback/questions")
-        if response_check2.status_code == 200:
-            data2 = response_check2.json()
-            if data2.get('title') == 'Second Survey':
-                print_test_result("Question deactivation test", True, 
-                                "New questionnaire activated, previous deactivated")
-            else:
-                print_test_result("Question deactivation test", False, 
-                                f"Expected 'Second Survey', got '{data2.get('title')}'")
-        else:
-            print_test_result("Question deactivation test", False, "Failed to check active questionnaire")
+        response = requests.post(f"{BASE_URL}/api/admin/feedback/questions", json=payload)
+        if response.status_code == 200:
+            # Check Product A has new form (1 question)
+            response_a = requests.get(f"{BASE_URL}/api/feedback/questions?productId={product_a_id}")
+            # Check Product B still has original form (1 question)
+            response_b = requests.get(f"{BASE_URL}/api/feedback/questions?productId={product_b_id}")
             
+            if (response_a.status_code == 200 and response_b.status_code == 200):
+                data_a = response_a.json()
+                data_b = response_b.json()
+                if (data_a.get('configured') == True and len(data_a.get('questions', [])) == 1 and
+                    data_a.get('title') == 'Updated Product A Form' and
+                    data_b.get('configured') == True and len(data_b.get('questions', [])) == 1 and
+                    data_b.get('title') == 'Product B Feedback'):
+                    log_test("Product-scoped deactivation", True, "✅ Product A updated, Product B unchanged")
+                    passed += 1
+                else:
+                    log_test("Product-scoped deactivation", False, f"❌ Unexpected forms: A={data_a}, B={data_b}")
+                    failed += 1
+            else:
+                log_test("Product-scoped deactivation", False, f"❌ Failed to get forms: A={response_a.status_code}, B={response_b.status_code}")
+                failed += 1
+        else:
+            log_test("Product-scoped deactivation", False, f"❌ Failed to create new form: {response.status_code}")
+            failed += 1
     except Exception as e:
-        print_test_result("Question deactivation test", False, f"Exception: {str(e)}")
-
-def run_comprehensive_feedback_tests():
-    """Run complete end-to-end feedback system tests"""
-    print("🚀 Starting Comprehensive Feedback System Backend Tests")
-    print("=" * 60)
+        log_test("Product-scoped deactivation", False, f"❌ Exception: {str(e)}")
+        failed += 1
     
-    # Test sequence
-    print("📋 Phase 1: Admin Question Management")
-    form_id = test_admin_feedback_questions_post()
-    test_admin_feedback_questions_validation()
+    # Final Results
+    print()
+    print("=" * 70)
+    print("🏆 FINAL TEST RESULTS")
+    print("=" * 70)
+    print(f"✅ PASSED: {passed}")
+    print(f"❌ FAILED: {failed}")
+    print(f"📊 SUCCESS RATE: {(passed/(passed+failed)*100):.1f}%")
     
-    print("\n📋 Phase 2: Question Retrieval")
-    active_form = test_feedback_questions_get()
-    
-    print("\n📋 Phase 3: Feedback Submission")
-    feedback_id = test_feedback_submit()
-    
-    print("\n📋 Phase 4: Feedback Retrieval")
-    test_feedback_retrieval_apis()
-    
-    print("\n📋 Phase 5: Question Deactivation")
-    test_question_deactivation()
-    
-    print("\n" + "=" * 60)
-    print("🏁 Feedback System Backend Testing Complete!")
+    if failed == 0:
+        print("\n🎉 ALL TESTS PASSED! Per-product feedback system is working perfectly!")
+        return True
+    else:
+        print(f"\n⚠️  {failed} test(s) failed. Please review the issues above.")
+        return False
 
 if __name__ == "__main__":
-    run_comprehensive_feedback_tests()
+    success = run_comprehensive_tests()
+    sys.exit(0 if success else 1)

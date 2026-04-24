@@ -418,18 +418,39 @@ export async function GET(request) {
       return NextResponse.json({ success: true, usage })
     }
 
-    // GET /api/feedback/questions - Get active feedback questions
+    // GET /api/feedback/questions - Get active feedback questions for a product
     if (segments[0] === 'feedback' && segments[1] === 'questions' && segments.length === 2) {
       const { db } = await connectToDatabase()
-      const form = await db.collection('feedback_questions').findOne({ active: true })
+      const { searchParams } = new URL(request.url)
+      const productId = searchParams.get('productId')
+
+      if (!productId) {
+        return NextResponse.json({ success: false, message: 'productId is required' }, { status: 400 })
+      }
+
+      const form = await db.collection('feedback_questions').findOne({ active: true, productId })
 
       return NextResponse.json({
         success: true,
+        productId,
+        configured: !!form,
         questions: form?.questions || [],
         title: form?.title || 'Share your feedback',
         description: form?.description || '',
         updatedAt: form?.updatedAt || null
       })
+    }
+
+    // GET /api/admin/feedback/questions/all - List all product questionnaires (admin)
+    if (segments[0] === 'admin' && segments[1] === 'feedback' && segments[2] === 'questions' && segments[3] === 'all') {
+      const { db } = await connectToDatabase()
+
+      const forms = await db.collection('feedback_questions')
+        .find({ active: true })
+        .project({ productId: 1, productName: 1, questions: 1, title: 1, updatedAt: 1 })
+        .toArray()
+
+      return NextResponse.json({ success: true, forms })
     }
 
     // GET /api/feedback/product/:productId - Get feedback for a specific product
@@ -1336,13 +1357,16 @@ export async function POST(request) {
       return NextResponse.json({ success: true, message: 'Message received successfully' })
     }
 
-    // POST /api/admin/feedback/questions - Save/update feedback questionnaire (admin)
+    // POST /api/admin/feedback/questions - Save/update feedback questionnaire (admin) for a specific product
     if (segments[0] === 'admin' && segments[1] === 'feedback' && segments[2] === 'questions') {
       const body = await request.json()
       const { db } = await connectToDatabase()
 
-      const { questions, title, description } = body
+      const { questions, title, description, productId, productName } = body
 
+      if (!productId) {
+        return NextResponse.json({ success: false, message: 'productId is required' }, { status: 400 })
+      }
       if (!Array.isArray(questions)) {
         return NextResponse.json({ success: false, message: 'Questions must be an array' }, { status: 400 })
       }
@@ -1385,14 +1409,16 @@ export async function POST(request) {
         return base
       })
 
-      // Deactivate any existing active form, then upsert a new active one
+      // Deactivate any existing active form FOR THIS PRODUCT only
       await db.collection('feedback_questions').updateMany(
-        { active: true },
+        { active: true, productId },
         { $set: { active: false } }
       )
 
       const form = {
         id: uuidv4(),
+        productId,
+        productName: productName || '',
         title: title || 'Share your feedback',
         description: description || '',
         questions: sanitized,
@@ -1435,16 +1461,16 @@ export async function POST(request) {
         return NextResponse.json({ success: false, message: 'You have already submitted feedback for this product' }, { status: 400 })
       }
 
-      // Load current active questions to validate required fields
-      const activeForm = await db.collection('feedback_questions').findOne({ active: true })
-      if (activeForm) {
-        const requiredIds = (activeForm.questions || []).filter(q => q.required).map(q => q.id)
-        const answeredIds = new Set(answers.map(a => a.questionId))
-        for (const rid of requiredIds) {
-          const ans = answers.find(a => a.questionId === rid)
-          if (!ans || ans.answer === null || ans.answer === undefined || ans.answer === '' || (Array.isArray(ans.answer) && ans.answer.length === 0)) {
-            return NextResponse.json({ success: false, message: 'Please answer all required questions' }, { status: 400 })
-          }
+      // Load product-specific active questions to validate required fields and ensure form is configured
+      const activeForm = await db.collection('feedback_questions').findOne({ active: true, productId })
+      if (!activeForm) {
+        return NextResponse.json({ success: false, message: 'Feedback form is not configured for this product yet' }, { status: 400 })
+      }
+      const requiredIds = (activeForm.questions || []).filter(q => q.required).map(q => q.id)
+      for (const rid of requiredIds) {
+        const ans = answers.find(a => a.questionId === rid)
+        if (!ans || ans.answer === null || ans.answer === undefined || ans.answer === '' || (Array.isArray(ans.answer) && ans.answer.length === 0)) {
+          return NextResponse.json({ success: false, message: 'Please answer all required questions' }, { status: 400 })
         }
       }
 

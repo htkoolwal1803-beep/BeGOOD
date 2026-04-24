@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Button from '@/components/Button'
 import FeedbackQuestionRenderer, { formatAnswer } from '@/components/FeedbackQuestionRenderer'
+import { products } from '@/lib/products'
 import {
   ArrowLeft, Plus, Trash2, ArrowUp, ArrowDown, Loader2,
-  MessageSquare, ListChecks, Save, Eye
+  MessageSquare, ListChecks, Save, Eye, Check
 } from 'lucide-react'
 
 const QUESTION_TYPES = [
@@ -46,7 +47,9 @@ export default function AdminFeedbackPage() {
 
   const [tab, setTab] = useState('questions')
 
-  // Questions state
+  // Questions state (per product)
+  const [selectedProductId, setSelectedProductId] = useState(products[0]?.id || '')
+  const [configuredMap, setConfiguredMap] = useState({}) // productId -> boolean
   const [title, setTitle] = useState('Share your feedback')
   const [description, setDescription] = useState('')
   const [questions, setQuestions] = useState([])
@@ -73,7 +76,7 @@ export default function AdminFeedbackPage() {
       const data = await res.json()
       if (data.success) {
         setAuthenticated(true)
-        loadQuestions()
+        loadConfiguredMap()
       } else {
         setAuthError('Invalid password')
       }
@@ -84,10 +87,25 @@ export default function AdminFeedbackPage() {
     }
   }
 
-  const loadQuestions = async () => {
+  const loadConfiguredMap = async () => {
+    try {
+      const res = await fetch('/api/admin/feedback/questions/all')
+      const data = await res.json()
+      if (data.success) {
+        const map = {}
+        for (const f of data.forms || []) map[f.productId] = true
+        setConfiguredMap(map)
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  const loadQuestions = async (productId) => {
+    if (!productId) return
     setLoading(true)
     try {
-      const res = await fetch('/api/feedback/questions')
+      const res = await fetch(`/api/feedback/questions?productId=${encodeURIComponent(productId)}`)
       const data = await res.json()
       if (data.success) {
         setTitle(data.title || 'Share your feedback')
@@ -100,6 +118,13 @@ export default function AdminFeedbackPage() {
       setLoading(false)
     }
   }
+
+  // Load questions when selected product changes (after auth)
+  useEffect(() => {
+    if (authenticated && selectedProductId) {
+      loadQuestions(selectedProductId)
+    }
+  }, [authenticated, selectedProductId])
 
   const loadSubmissions = async () => {
     setSubmissionsLoading(true)
@@ -196,15 +221,23 @@ export default function AdminFeedbackPage() {
           return
         }
       }
+      const selectedProduct = products.find((p) => p.id === selectedProductId)
       const res = await fetch('/api/admin/feedback/questions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, description, questions })
+        body: JSON.stringify({
+          productId: selectedProductId,
+          productName: selectedProduct?.name || '',
+          title,
+          description,
+          questions
+        })
       })
       const data = await res.json()
       if (data.success) {
         setMessage('✓ Saved successfully')
         setQuestions(data.form.questions)
+        setConfiguredMap((prev) => ({ ...prev, [selectedProductId]: true }))
       } else {
         setMessage(`⚠ ${data.message || 'Failed to save'}`)
       }
@@ -294,6 +327,27 @@ export default function AdminFeedbackPage() {
         {/* Questions tab */}
         {tab === 'questions' && (
           <div className="space-y-6">
+            {/* Product selector - always visible */}
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <label className="block text-sm font-semibold mb-2">
+                Select product to configure feedback for
+              </label>
+              <select
+                value={selectedProductId}
+                onChange={(e) => setSelectedProductId(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#C8A97E]"
+              >
+                {products.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} {configuredMap[p.id] ? '· ✓ Configured' : '· Not configured'}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-2">
+                Each product has its own set of feedback questions. Users will only be able to submit feedback for products that have a configured questionnaire.
+              </p>
+            </div>
+
             {loading ? (
               <div className="flex justify-center py-8">
                 <Loader2 className="w-6 h-6 animate-spin text-[#C8A97E]" />
