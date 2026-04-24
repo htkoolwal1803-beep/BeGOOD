@@ -4,8 +4,9 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/lib/AuthContext'
 import Button from '@/components/Button'
-import { User, Package, MapPin, Edit2, Trash2, Plus, Loader2, Check } from 'lucide-react'
+import { User, Package, MapPin, Edit2, Trash2, Plus, Loader2, Check, MessageSquare } from 'lucide-react'
 import Link from 'next/link'
+import FeedbackTab from '@/components/FeedbackTab'
 
 function ProfileContent() {
   const router = useRouter()
@@ -379,6 +380,15 @@ function ProfileContent() {
                 <MapPin className="w-5 h-5" />
                 <span className="font-medium">Saved Addresses</span>
               </button>
+              <button
+                onClick={() => setActiveTab('feedback')}
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                  activeTab === 'feedback' ? 'bg-[#C8A97E]/10 text-[#C8A97E]' : 'hover:bg-gray-100'
+                }`}
+              >
+                <MessageSquare className="w-5 h-5" />
+                <span className="font-medium">Feedback</span>
+              </button>
             </div>
           </div>
 
@@ -694,6 +704,14 @@ function ProfileContent() {
                   </div>
                 )}
               </div>
+            )}
+
+            {/* Feedback Tab */}
+            {activeTab === 'feedback' && user?.phoneNumber && (
+              <FeedbackTab
+                userPhone={user.phoneNumber}
+                userName={userProfile?.name || ''}
+              />
             )}
           </div>
         </div>

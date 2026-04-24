@@ -1,470 +1,554 @@
 #!/usr/bin/env python3
 """
-Comprehensive Backend API Testing for BeGood E-commerce Platform
-Tests all the newly implemented APIs including:
-- Pincode Validation API
-- Coupon CRUD APIs
-- Coupon Validation and Apply APIs 
-- Contact Form API
-- Address API with Pincode Validation
+Comprehensive Backend Testing for Feedback System APIs
+Tests all feedback-related endpoints with end-to-end scenarios
 """
 
 import requests
 import json
-import sys
-import uuid
-from datetime import datetime, timedelta
+import time
+from urllib.parse import quote
 
-# Base URL - From review request specifications
+# Configuration
 BASE_URL = "http://localhost:3000"
+ADMIN_PASSWORD = "admin123"
+TEST_USER_PHONE = "+919999000001"
 
-# Test data
-TEST_USER_PHONE = "+919876543210"
-TEST_USER_DATA = {
-    "name": "John Doe",
-    "email": "john.doe@example.com", 
-    "age": 30
-}
-
-def print_test_result(test_name, success, message=""):
+def print_test_result(test_name, success, details=""):
+    """Print formatted test results"""
     status = "✅ PASS" if success else "❌ FAIL"
     print(f"{status}: {test_name}")
-    if message:
-        print(f"    {message}")
+    if details:
+        print(f"   Details: {details}")
     print()
 
-def test_pincode_validation_api():
-    """Test GET /api/pincode/:pincode endpoints"""
-    print("🧪 TESTING PINCODE VALIDATION API")
-    print("="*50)
+def test_admin_feedback_questions_post():
+    """Test POST /api/admin/feedback/questions - Admin saves feedback questionnaire"""
+    print("🧪 Testing POST /api/admin/feedback/questions...")
     
-    # Test Case 1: Valid pincode 302039 (Jaipur, Rajasthan)
-    try:
-        response = requests.get(f"{BASE_URL}/api/pincode/302039")
-        if response.status_code == 200:
-            data = response.json()
-            if data.get('success') and data.get('city') and data.get('state'):
-                print_test_result(
-                    "GET /api/pincode/302039 (Valid pincode)", 
-                    True, 
-                    f"City: {data.get('city')}, State: {data.get('state')}"
-                )
-            else:
-                print_test_result("GET /api/pincode/302039 (Valid pincode)", False, f"Unexpected response: {data}")
-        else:
-            print_test_result("GET /api/pincode/302039 (Valid pincode)", False, f"Status: {response.status_code}")
-    except Exception as e:
-        print_test_result("GET /api/pincode/302039 (Valid pincode)", False, f"Exception: {str(e)}")
-    
-    # Test Case 2: Valid pincode 110001 (Delhi)  
-    try:
-        response = requests.get(f"{BASE_URL}/api/pincode/110001")
-        if response.status_code == 200:
-            data = response.json()
-            if data.get('success') and data.get('city') and data.get('state'):
-                print_test_result(
-                    "GET /api/pincode/110001 (Valid pincode)", 
-                    True, 
-                    f"City: {data.get('city')}, State: {data.get('state')}"
-                )
-            else:
-                print_test_result("GET /api/pincode/110001 (Valid pincode)", False, f"Unexpected response: {data}")
-        else:
-            print_test_result("GET /api/pincode/110001 (Valid pincode)", False, f"Status: {response.status_code}")
-    except Exception as e:
-        print_test_result("GET /api/pincode/110001 (Valid pincode)", False, f"Exception: {str(e)}")
-    
-    # Test Case 3: Invalid pincode 000000
-    try:
-        response = requests.get(f"{BASE_URL}/api/pincode/000000")
-        if response.status_code == 400:
-            data = response.json()
-            if not data.get('success'):
-                print_test_result("GET /api/pincode/000000 (Invalid pincode)", True, "Correctly rejected invalid pincode")
-            else:
-                print_test_result("GET /api/pincode/000000 (Invalid pincode)", False, "Should have rejected invalid pincode")
-        else:
-            print_test_result("GET /api/pincode/000000 (Invalid pincode)", False, f"Status: {response.status_code}")
-    except Exception as e:
-        print_test_result("GET /api/pincode/000000 (Invalid pincode)", False, f"Exception: {str(e)}")
-    
-    # Test Case 4: Invalid format 12345 (not 6 digits)
-    try:
-        response = requests.get(f"{BASE_URL}/api/pincode/12345")
-        if response.status_code == 400:
-            data = response.json()
-            if not data.get('success') and 'must be 6 digits' in data.get('message', ''):
-                print_test_result("GET /api/pincode/12345 (Invalid format)", True, "Correctly rejected non-6-digit format")
-            else:
-                print_test_result("GET /api/pincode/12345 (Invalid format)", False, "Should have rejected non-6-digit format")
-        else:
-            print_test_result("GET /api/pincode/12345 (Invalid format)", False, f"Status: {response.status_code}")
-    except Exception as e:
-        print_test_result("GET /api/pincode/12345 (Invalid format)", False, f"Exception: {str(e)}")
-
-def test_coupon_crud_apis():
-    """Test Coupon CRUD operations"""
-    print("🧪 TESTING COUPON CRUD APIS")
-    print("="*50)
-    
-    created_coupon_id = None
-    
-    # Test Case 1: GET /api/admin/coupons - List existing coupons
-    try:
-        response = requests.get(f"{BASE_URL}/api/admin/coupons")
-        if response.status_code == 200:
-            data = response.json()
-            if data.get('success'):
-                coupons = data.get('coupons', [])
-                print_test_result("GET /api/admin/coupons (List coupons)", True, f"Found {len(coupons)} coupons")
-                
-                # Check if TEST10 exists
-                test10_exists = any(c.get('code') == 'TEST10' for c in coupons)
-                if test10_exists:
-                    print("    📝 Note: TEST10 coupon exists as expected")
-            else:
-                print_test_result("GET /api/admin/coupons (List coupons)", False, f"API returned error: {data}")
-        else:
-            print_test_result("GET /api/admin/coupons (List coupons)", False, f"Status: {response.status_code}")
-    except Exception as e:
-        print_test_result("GET /api/admin/coupons (List coupons)", False, f"Exception: {str(e)}")
-    
-    # Test Case 2: POST /api/admin/coupons - Create new coupon FLAT50
-    try:
-        coupon_data = {
-            "code": "FLAT50",
-            "discountType": "fixed",
-            "discountValue": 50,
-            "maxUses": 100,
-            "expiryDate": (datetime.now() + timedelta(days=30)).isoformat()
-        }
-        
-        response = requests.post(f"{BASE_URL}/api/admin/coupons", json=coupon_data)
-        if response.status_code == 200:
-            data = response.json()
-            if data.get('success') and data.get('coupon'):
-                created_coupon_id = data['coupon'].get('id')
-                print_test_result("POST /api/admin/coupons (Create FLAT50)", True, f"Created coupon with ID: {created_coupon_id}")
-            else:
-                print_test_result("POST /api/admin/coupons (Create FLAT50)", False, f"API returned error: {data}")
-        else:
-            print_test_result("POST /api/admin/coupons (Create FLAT50)", False, f"Status: {response.status_code}")
-    except Exception as e:
-        print_test_result("POST /api/admin/coupons (Create FLAT50)", False, f"Exception: {str(e)}")
-    
-    # Test Case 3: PUT /api/admin/coupons/:id - Update coupon (if we created one)
-    if created_coupon_id:
-        try:
-            update_data = {
-                "maxUses": 200  # Change max uses from 100 to 200
-            }
-            
-            response = requests.put(f"{BASE_URL}/api/admin/coupons/{created_coupon_id}", json=update_data)
-            if response.status_code == 200:
-                data = response.json()
-                if data.get('success') and data.get('coupon'):
-                    new_max_uses = data['coupon'].get('maxUses')
-                    if new_max_uses == 200:
-                        print_test_result("PUT /api/admin/coupons/:id (Update)", True, f"Updated maxUses to {new_max_uses}")
-                    else:
-                        print_test_result("PUT /api/admin/coupons/:id (Update)", False, f"maxUses not updated correctly: {new_max_uses}")
-                else:
-                    print_test_result("PUT /api/admin/coupons/:id (Update)", False, f"API returned error: {data}")
-            else:
-                print_test_result("PUT /api/admin/coupons/:id (Update)", False, f"Status: {response.status_code}")
-        except Exception as e:
-            print_test_result("PUT /api/admin/coupons/:id (Update)", False, f"Exception: {str(e)}")
-    
-    # Test Case 4: DELETE /api/admin/coupons/:id - Delete coupon (if we created one)
-    if created_coupon_id:
-        try:
-            response = requests.delete(f"{BASE_URL}/api/admin/coupons/{created_coupon_id}")
-            if response.status_code == 200:
-                data = response.json()
-                if data.get('success'):
-                    print_test_result("DELETE /api/admin/coupons/:id (Delete)", True, "Coupon deleted successfully")
-                else:
-                    print_test_result("DELETE /api/admin/coupons/:id (Delete)", False, f"API returned error: {data}")
-            else:
-                print_test_result("DELETE /api/admin/coupons/:id (Delete)", False, f"Status: {response.status_code}")
-        except Exception as e:
-            print_test_result("DELETE /api/admin/coupons/:id (Delete)", False, f"Exception: {str(e)}")
-
-def test_coupon_validation_api():
-    """Test coupon validation endpoint"""
-    print("🧪 TESTING COUPON VALIDATION API")
-    print("="*50)
-    
-    # First, ensure TEST10 coupon exists by creating it if needed
-    try:
-        # Try to get existing coupons first
-        response = requests.get(f"{BASE_URL}/api/admin/coupons")
-        if response.status_code == 200:
-            data = response.json()
-            coupons = data.get('coupons', [])
-            test10_exists = any(c.get('code') == 'TEST10' for c in coupons)
-            
-            if not test10_exists:
-                # Create TEST10 coupon
-                test10_data = {
-                    "code": "TEST10",
-                    "discountType": "percentage", 
-                    "discountValue": 10,
-                    "maxUses": 50,
-                    "expiryDate": (datetime.now() + timedelta(days=30)).isoformat()
+    # Test 1: Create comprehensive questionnaire with all supported types
+    questionnaire = {
+        "title": "Product Feedback Survey",
+        "description": "Please share your experience with our product",
+        "questions": [
+            {
+                "type": "short_text",
+                "question": "What is your name?",
+                "required": True
+            },
+            {
+                "type": "long_text", 
+                "question": "Please describe your overall experience",
+                "required": True
+            },
+            {
+                "type": "single_choice",
+                "question": "How would you rate this product?",
+                "required": True,
+                "options": ["Excellent", "Good", "Average", "Poor"]
+            },
+            {
+                "type": "multiple_choice",
+                "question": "Which features did you like? (Select all that apply)",
+                "required": False,
+                "options": ["Design", "Quality", "Price", "Functionality", "Customer Service"]
+            },
+            {
+                "type": "dropdown",
+                "question": "How did you hear about us?",
+                "required": True,
+                "options": ["Social Media", "Friend Referral", "Online Search", "Advertisement", "Other"]
+            },
+            {
+                "type": "linear_scale",
+                "question": "Rate your satisfaction level",
+                "required": True,
+                "scale": {
+                    "min": 1,
+                    "max": 10,
+                    "minLabel": "Very Dissatisfied",
+                    "maxLabel": "Very Satisfied"
                 }
-                create_response = requests.post(f"{BASE_URL}/api/admin/coupons", json=test10_data)
-                if create_response.status_code == 200:
-                    print("    📝 Created TEST10 coupon for testing")
-                else:
-                    print("    ⚠️  Failed to create TEST10 coupon")
-    except Exception as e:
-        print(f"    ⚠️  Error setting up TEST10 coupon: {str(e)}")
+            },
+            {
+                "type": "star_rating",
+                "question": "Overall star rating",
+                "required": True,
+                "maxRating": 5
+            },
+            {
+                "type": "email",
+                "question": "Your email address",
+                "required": False
+            },
+            {
+                "type": "number",
+                "question": "How many times have you purchased from us?",
+                "required": False
+            },
+            {
+                "type": "date",
+                "question": "When did you first purchase from us?",
+                "required": False
+            },
+            {
+                "type": "time",
+                "question": "What time do you usually shop?",
+                "required": False
+            }
+        ]
+    }
     
-    # Test Case: Validate TEST10 coupon
     try:
-        validation_data = {
-            "code": "TEST10",
-            "userId": "test-user-123",
-            "userPhone": TEST_USER_PHONE,
-            "orderTotal": 500
-        }
+        response = requests.post(f"{BASE_URL}/api/admin/feedback/questions", json=questionnaire)
         
-        response = requests.post(f"{BASE_URL}/api/coupons/validate", json=validation_data)
         if response.status_code == 200:
             data = response.json()
-            if data.get('success') and data.get('coupon'):
-                coupon_info = data['coupon']
-                discount_amount = coupon_info.get('discountAmount')
-                expected_discount = 50  # 10% of 500
-                
-                if discount_amount == expected_discount:
-                    print_test_result(
-                        "POST /api/coupons/validate (TEST10)", 
-                        True, 
-                        f"Calculated discount: ₹{discount_amount} (10% of ₹500)"
-                    )
-                    return coupon_info  # Return for use in apply test
-                else:
-                    print_test_result(
-                        "POST /api/coupons/validate (TEST10)", 
-                        False, 
-                        f"Expected ₹{expected_discount}, got ₹{discount_amount}"
-                    )
+            if data.get('success') and 'form' in data:
+                form = data['form']
+                print_test_result("Create comprehensive questionnaire", True, 
+                                f"Created form with {len(form['questions'])} questions")
+                return form['id']
             else:
-                print_test_result("POST /api/coupons/validate (TEST10)", False, f"API returned error: {data}")
+                print_test_result("Create comprehensive questionnaire", False, 
+                                f"Unexpected response: {data}")
+                return None
         else:
-            print_test_result("POST /api/coupons/validate (TEST10)", False, f"Status: {response.status_code}")
-    except Exception as e:
-        print_test_result("POST /api/coupons/validate (TEST10)", False, f"Exception: {str(e)}")
-    
-    return None
-
-def test_coupon_apply_api(coupon_info=None):
-    """Test coupon apply endpoint"""
-    print("🧪 TESTING COUPON APPLY API")
-    print("="*50)
-    
-    if not coupon_info:
-        print_test_result("POST /api/coupons/apply", False, "No coupon info available from validation test")
-        return
-    
-    try:
-        apply_data = {
-            "couponId": coupon_info.get('id'),
-            "couponCode": coupon_info.get('code'),
-            "userId": "test-user-123",
-            "userPhone": TEST_USER_PHONE,
-            "orderId": str(uuid.uuid4()),
-            "discountAmount": coupon_info.get('discountAmount')
-        }
-        
-        response = requests.post(f"{BASE_URL}/api/coupons/apply", json=apply_data)
-        if response.status_code == 200:
-            data = response.json()
-            if data.get('success'):
-                print_test_result("POST /api/coupons/apply", True, "Coupon usage recorded successfully")
-            else:
-                print_test_result("POST /api/coupons/apply", False, f"API returned error: {data}")
-        else:
-            print_test_result("POST /api/coupons/apply", False, f"Status: {response.status_code}")
-    except Exception as e:
-        print_test_result("POST /api/coupons/apply", False, f"Exception: {str(e)}")
-
-def test_coupon_usage_api():
-    """Test coupon usage tracking endpoint"""
-    print("🧪 TESTING COUPON USAGE API")  
-    print("="*50)
-    
-    # Get TEST10 coupon ID first
-    try:
-        response = requests.get(f"{BASE_URL}/api/admin/coupons")
-        if response.status_code == 200:
-            data = response.json()
-            coupons = data.get('coupons', [])
-            test10_coupon = next((c for c in coupons if c.get('code') == 'TEST10'), None)
+            print_test_result("Create comprehensive questionnaire", False, 
+                            f"Status {response.status_code}: {response.text}")
+            return None
             
-            if test10_coupon:
-                coupon_id = test10_coupon.get('id')
-                
-                # Test usage endpoint
-                usage_response = requests.get(f"{BASE_URL}/api/admin/coupons/{coupon_id}/usage")
-                if usage_response.status_code == 200:
-                    usage_data = usage_response.json()
-                    if usage_data.get('success'):
-                        usage_records = usage_data.get('usage', [])
-                        print_test_result(
-                            "GET /api/admin/coupons/:id/usage", 
-                            True, 
-                            f"Retrieved {len(usage_records)} usage records"
-                        )
-                    else:
-                        print_test_result("GET /api/admin/coupons/:id/usage", False, f"API returned error: {usage_data}")
-                else:
-                    print_test_result("GET /api/admin/coupons/:id/usage", False, f"Status: {usage_response.status_code}")
-            else:
-                print_test_result("GET /api/admin/coupons/:id/usage", False, "TEST10 coupon not found")
-        else:
-            print_test_result("GET /api/admin/coupons/:id/usage", False, f"Failed to get coupons: {response.status_code}")
     except Exception as e:
-        print_test_result("GET /api/admin/coupons/:id/usage", False, f"Exception: {str(e)}")
+        print_test_result("Create comprehensive questionnaire", False, f"Exception: {str(e)}")
+        return None
 
-def test_contact_form_api():
-    """Test contact form submission"""
-    print("🧪 TESTING CONTACT FORM API")
-    print("="*50)
+def test_admin_feedback_questions_validation():
+    """Test validation rules for POST /api/admin/feedback/questions"""
+    print("🧪 Testing validation rules for feedback questions...")
+    
+    # Test 1: Invalid question type
+    try:
+        invalid_type = {
+            "questions": [{"type": "invalid_type", "question": "Test question"}]
+        }
+        response = requests.post(f"{BASE_URL}/api/admin/feedback/questions", json=invalid_type)
+        success = response.status_code == 500 and "Invalid question type" in response.text
+        print_test_result("Reject invalid question type", success, 
+                        f"Status {response.status_code}")
+    except Exception as e:
+        print_test_result("Reject invalid question type", False, f"Exception: {str(e)}")
+    
+    # Test 2: Empty question text
+    try:
+        empty_question = {
+            "questions": [{"type": "short_text", "question": ""}]
+        }
+        response = requests.post(f"{BASE_URL}/api/admin/feedback/questions", json=empty_question)
+        success = response.status_code == 500 and "must have text" in response.text
+        print_test_result("Reject empty question text", success, 
+                        f"Status {response.status_code}")
+    except Exception as e:
+        print_test_result("Reject empty question text", False, f"Exception: {str(e)}")
+    
+    # Test 3: Choice question without options
+    try:
+        no_options = {
+            "questions": [{"type": "single_choice", "question": "Choose one", "options": []}]
+        }
+        response = requests.post(f"{BASE_URL}/api/admin/feedback/questions", json=no_options)
+        success = response.status_code == 500 and "must have at least one option" in response.text
+        print_test_result("Reject choice question without options", success, 
+                        f"Status {response.status_code}")
+    except Exception as e:
+        print_test_result("Reject choice question without options", False, f"Exception: {str(e)}")
+
+def test_feedback_questions_get():
+    """Test GET /api/feedback/questions - Returns active questionnaire"""
+    print("🧪 Testing GET /api/feedback/questions...")
     
     try:
-        contact_data = {
-            "name": "John Doe",
-            "email": "john.doe@example.com",
-            "phone": "+919876543210",
-            "subject": "Product Inquiry",
-            "message": "I would like to know more about the P-Bar product and its availability in my area."
-        }
+        response = requests.get(f"{BASE_URL}/api/feedback/questions")
         
-        response = requests.post(f"{BASE_URL}/api/contact", json=contact_data)
         if response.status_code == 200:
             data = response.json()
             if data.get('success'):
-                print_test_result("POST /api/contact", True, "Contact form submitted successfully")
+                questions = data.get('questions', [])
+                title = data.get('title', '')
+                description = data.get('description', '')
+                updated_at = data.get('updatedAt')
+                
+                print_test_result("Get active questionnaire", True, 
+                                f"Retrieved {len(questions)} questions, title: '{title}'")
+                return data
             else:
-                print_test_result("POST /api/contact", False, f"API returned error: {data}")
+                print_test_result("Get active questionnaire", False, 
+                                f"Success=False: {data}")
+                return None
         else:
-            print_test_result("POST /api/contact", False, f"Status: {response.status_code}")
+            print_test_result("Get active questionnaire", False, 
+                            f"Status {response.status_code}: {response.text}")
+            return None
+            
     except Exception as e:
-        print_test_result("POST /api/contact", False, f"Exception: {str(e)}")
+        print_test_result("Get active questionnaire", False, f"Exception: {str(e)}")
+        return None
 
-def test_user_and_address_apis():
-    """Test user creation and address APIs with pincode validation"""
-    print("🧪 TESTING USER & ADDRESS APIS WITH PINCODE VALIDATION")
-    print("="*60)
+def create_test_user():
+    """Create a test user for feedback submission"""
+    print("🧪 Creating test user...")
     
-    # Test Case 1: Create test user
+    test_user = {
+        "phone": TEST_USER_PHONE,
+        "name": "John Doe",
+        "email": "john.doe@example.com",
+        "age": 30
+    }
+    
     try:
-        user_data = {
-            "phone": TEST_USER_PHONE,
-            **TEST_USER_DATA
-        }
+        # First create the user
+        response = requests.post(f"{BASE_URL}/api/users", json=test_user)
         
-        response = requests.post(f"{BASE_URL}/api/users", json=user_data)
         if response.status_code == 200:
             data = response.json()
-            if data.get('success') and data.get('user'):
-                print_test_result("POST /api/users (Create test user)", True, f"User created/updated: {data['user']['name']}")
+            if data.get('success'):
+                # Now get the user details
+                encoded_phone = quote(TEST_USER_PHONE, safe='')
+                get_response = requests.get(f"{BASE_URL}/api/users/{encoded_phone}")
+                
+                if get_response.status_code == 200:
+                    get_data = get_response.json()
+                    if get_data.get('success') and 'user' in get_data:
+                        user = get_data['user']
+                        print_test_result("Create test user", True, 
+                                        f"User created/retrieved: {user.get('name')}")
+                        return user
+                
+                print_test_result("Create test user", True, "User created but details not retrieved")
+                return {"phone": TEST_USER_PHONE, "name": "John Doe"}
             else:
-                print_test_result("POST /api/users (Create test user)", False, f"API returned error: {data}")
+                print_test_result("Create test user", False, f"Response: {data}")
+                return None
         else:
-            print_test_result("POST /api/users (Create test user)", False, f"Status: {response.status_code}")
+            print_test_result("Create test user", False, 
+                            f"Status {response.status_code}: {response.text}")
+            return None
+            
     except Exception as e:
-        print_test_result("POST /api/users (Create test user)", False, f"Exception: {str(e)}")
+        print_test_result("Create test user", False, f"Exception: {str(e)}")
+        return None
+
+def test_feedback_submit():
+    """Test POST /api/feedback/submit - Submit feedback for a product"""
+    print("🧪 Testing POST /api/feedback/submit...")
     
-    # Test Case 2: Add address with valid pincode (302039)
-    try:
-        address_data = {
-            "phone": TEST_USER_PHONE,
-            "address": {
-                "label": "Home",
-                "fullAddress": "123 Test Street, Vaishali Nagar",
-                "pincode": "302039",
-                "isDefault": True
-            }
+    # First ensure we have an active questionnaire
+    active_form = test_feedback_questions_get()
+    if not active_form or not active_form.get('questions'):
+        print("❌ No active questionnaire found, cannot test feedback submission")
+        return None
+    
+    # Create test user
+    user = create_test_user()
+    if not user:
+        print("❌ Failed to create test user, cannot test feedback submission")
+        return None
+    
+    # Prepare answers based on active questionnaire
+    questions = active_form['questions']
+    answers = []
+    
+    for question in questions:
+        answer_data = {
+            "questionId": question['id'],
+            "question": question['question'],
+            "type": question['type']
         }
         
-        response = requests.post(f"{BASE_URL}/api/users/addresses", json=address_data)
+        # Provide appropriate answers based on question type
+        if question['type'] == 'short_text':
+            answer_data['answer'] = "John Doe"
+        elif question['type'] == 'long_text':
+            answer_data['answer'] = "This product exceeded my expectations. The quality is excellent and the customer service was outstanding."
+        elif question['type'] == 'single_choice':
+            answer_data['answer'] = question.get('options', ['Good'])[0]
+        elif question['type'] == 'multiple_choice':
+            answer_data['answer'] = question.get('options', ['Design'])[:2]  # Select first 2 options
+        elif question['type'] == 'dropdown':
+            answer_data['answer'] = question.get('options', ['Online Search'])[0]
+        elif question['type'] == 'linear_scale':
+            answer_data['answer'] = 8
+        elif question['type'] == 'star_rating':
+            answer_data['answer'] = 5
+        elif question['type'] == 'email':
+            answer_data['answer'] = "john.doe@example.com"
+        elif question['type'] == 'number':
+            answer_data['answer'] = 3
+        elif question['type'] == 'date':
+            answer_data['answer'] = "2024-01-15"
+        elif question['type'] == 'time':
+            answer_data['answer'] = "14:30"
+        else:
+            answer_data['answer'] = "Test answer"
+        
+        answers.append(answer_data)
+    
+    # Test 1: Valid feedback submission
+    feedback_data = {
+        "userPhone": TEST_USER_PHONE,
+        "productId": "PROD123",
+        "productName": "Test Product",
+        "answers": answers
+    }
+    
+    try:
+        response = requests.post(f"{BASE_URL}/api/feedback/submit", json=feedback_data)
+        
         if response.status_code == 200:
             data = response.json()
-            if data.get('success') and data.get('addresses'):
-                added_address = data['addresses'][-1]  # Get last address
-                if added_address.get('city') and added_address.get('state'):
-                    print_test_result(
-                        "POST /api/users/addresses (Valid pincode 302039)", 
-                        True, 
-                        f"Address added with auto-filled city: {added_address['city']}, state: {added_address['state']}"
-                    )
-                else:
-                    print_test_result("POST /api/users/addresses (Valid pincode 302039)", False, "City/State not auto-filled")
+            if data.get('success') and 'feedback' in data:
+                print_test_result("Submit valid feedback", True, 
+                                f"Feedback submitted with {len(data['feedback']['answers'])} answers")
+                feedback_id = data['feedback']['id']
             else:
-                print_test_result("POST /api/users/addresses (Valid pincode 302039)", False, f"API returned error: {data}")
+                print_test_result("Submit valid feedback", False, f"Response: {data}")
+                return None
         else:
-            print_test_result("POST /api/users/addresses (Valid pincode 302039)", False, f"Status: {response.status_code}")
+            print_test_result("Submit valid feedback", False, 
+                            f"Status {response.status_code}: {response.text}")
+            return None
+            
     except Exception as e:
-        print_test_result("POST /api/users/addresses (Valid pincode 302039)", False, f"Exception: {str(e)}")
+        print_test_result("Submit valid feedback", False, f"Exception: {str(e)}")
+        return None
     
-    # Test Case 3: Try to add address with invalid pincode (000000) - should fail
+    # Test 2: Duplicate submission (should be rejected)
     try:
-        invalid_address_data = {
-            "phone": TEST_USER_PHONE,
-            "address": {
-                "label": "Office", 
-                "fullAddress": "456 Invalid Street",
-                "pincode": "000000",
-                "isDefault": False
-            }
-        }
+        response = requests.post(f"{BASE_URL}/api/feedback/submit", json=feedback_data)
         
-        response = requests.post(f"{BASE_URL}/api/users/addresses", json=invalid_address_data)
         if response.status_code == 400:
             data = response.json()
-            if not data.get('success') and 'Invalid pincode' in data.get('message', ''):
-                print_test_result("POST /api/users/addresses (Invalid pincode 000000)", True, "Correctly rejected invalid pincode")
-            else:
-                print_test_result("POST /api/users/addresses (Invalid pincode 000000)", False, "Should have rejected invalid pincode")
+            success = not data.get('success') and "already submitted feedback" in data.get('message', '')
+            print_test_result("Reject duplicate submission", success, 
+                            f"Message: {data.get('message')}")
         else:
-            print_test_result("POST /api/users/addresses (Invalid pincode 000000)", False, f"Status: {response.status_code} (expected 400)")
+            print_test_result("Reject duplicate submission", False, 
+                            f"Expected 400, got {response.status_code}")
+            
     except Exception as e:
-        print_test_result("POST /api/users/addresses (Invalid pincode 000000)", False, f"Exception: {str(e)}")
-
-def main():
-    """Run all backend API tests"""
-    print("🚀 BEGOOD E-COMMERCE BACKEND API TESTING")
-    print("="*60)
-    print(f"Base URL: {BASE_URL}")
-    print(f"Test User Phone: {TEST_USER_PHONE}")
-    print("="*60)
-    print()
+        print_test_result("Reject duplicate submission", False, f"Exception: {str(e)}")
+    
+    # Test 3: Missing required field
+    if any(q.get('required') for q in questions):
+        incomplete_answers = [a for a in answers if not questions[answers.index(a)].get('required')][:1]  # Only non-required answers
+        
+        incomplete_data = {
+            "userPhone": TEST_USER_PHONE,
+            "productId": "PROD456",  # Different product
+            "productName": "Another Test Product",
+            "answers": incomplete_answers
+        }
+        
+        try:
+            response = requests.post(f"{BASE_URL}/api/feedback/submit", json=incomplete_data)
+            
+            if response.status_code == 400:
+                data = response.json()
+                success = not data.get('success') and "required questions" in data.get('message', '')
+                print_test_result("Reject missing required field", success, 
+                                f"Message: {data.get('message')}")
+            else:
+                print_test_result("Reject missing required field", False, 
+                                f"Expected 400, got {response.status_code}")
+                
+        except Exception as e:
+            print_test_result("Reject missing required field", False, f"Exception: {str(e)}")
+    
+    # Test 4: Non-existent user
+    nonexistent_data = {
+        "userPhone": "+919999999999",  # Non-existent user
+        "productId": "PROD789",
+        "productName": "Test Product",
+        "answers": answers
+    }
     
     try:
-        # Test all API groups
-        test_pincode_validation_api()
-        test_coupon_crud_apis()
-        coupon_info = test_coupon_validation_api()
-        test_coupon_apply_api(coupon_info)
-        test_coupon_usage_api()
-        test_contact_form_api()
-        test_user_and_address_apis()
+        response = requests.post(f"{BASE_URL}/api/feedback/submit", json=nonexistent_data)
         
-        print("🏁 BACKEND API TESTING COMPLETED")
-        print("="*60)
-        print("Check individual test results above for detailed status.")
-        
-    except KeyboardInterrupt:
-        print("\n⚠️  Testing interrupted by user")
+        if response.status_code == 404:
+            data = response.json()
+            success = not data.get('success') and "User not found" in data.get('message', '')
+            print_test_result("Reject non-existent user", success, 
+                            f"Message: {data.get('message')}")
+        else:
+            print_test_result("Reject non-existent user", False, 
+                            f"Expected 404, got {response.status_code}")
+            
     except Exception as e:
-        print(f"\n❌ Critical testing error: {str(e)}")
-        return 1
+        print_test_result("Reject non-existent user", False, f"Exception: {str(e)}")
     
-    return 0
+    return feedback_id
+
+def test_feedback_retrieval_apis():
+    """Test all feedback retrieval APIs"""
+    print("🧪 Testing feedback retrieval APIs...")
+    
+    # Test 1: GET /api/feedback/product/:productId
+    try:
+        response = requests.get(f"{BASE_URL}/api/feedback/product/PROD123")
+        
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('success'):
+                feedbacks = data.get('feedbacks', [])
+                total = data.get('total', 0)
+                print_test_result("Get product feedback", True, 
+                                f"Retrieved {len(feedbacks)} feedbacks, total: {total}")
+            else:
+                print_test_result("Get product feedback", False, f"Response: {data}")
+        else:
+            print_test_result("Get product feedback", False, 
+                            f"Status {response.status_code}: {response.text}")
+            
+    except Exception as e:
+        print_test_result("Get product feedback", False, f"Exception: {str(e)}")
+    
+    # Test 2: GET /api/feedback/product/:productId with limit
+    try:
+        response = requests.get(f"{BASE_URL}/api/feedback/product/PROD123?limit=1")
+        
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('success'):
+                feedbacks = data.get('feedbacks', [])
+                print_test_result("Get product feedback with limit", True, 
+                                f"Retrieved {len(feedbacks)} feedbacks (limit=1)")
+            else:
+                print_test_result("Get product feedback with limit", False, f"Response: {data}")
+        else:
+            print_test_result("Get product feedback with limit", False, 
+                            f"Status {response.status_code}: {response.text}")
+            
+    except Exception as e:
+        print_test_result("Get product feedback with limit", False, f"Exception: {str(e)}")
+    
+    # Test 3: GET /api/users/:phone/feedback
+    encoded_phone = quote(TEST_USER_PHONE, safe='')
+    try:
+        response = requests.get(f"{BASE_URL}/api/users/{encoded_phone}/feedback")
+        
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('success'):
+                feedbacks = data.get('feedbacks', [])
+                print_test_result("Get user feedback", True, 
+                                f"Retrieved {len(feedbacks)} feedbacks for user")
+            else:
+                print_test_result("Get user feedback", False, f"Response: {data}")
+        else:
+            print_test_result("Get user feedback", False, 
+                            f"Status {response.status_code}: {response.text}")
+            
+    except Exception as e:
+        print_test_result("Get user feedback", False, f"Exception: {str(e)}")
+    
+    # Test 4: GET /api/admin/feedback
+    try:
+        response = requests.get(f"{BASE_URL}/api/admin/feedback")
+        
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('success'):
+                feedbacks = data.get('feedbacks', [])
+                print_test_result("Get all feedback (admin)", True, 
+                                f"Retrieved {len(feedbacks)} total feedbacks")
+            else:
+                print_test_result("Get all feedback (admin)", False, f"Response: {data}")
+        else:
+            print_test_result("Get all feedback (admin)", False, 
+                            f"Status {response.status_code}: {response.text}")
+            
+    except Exception as e:
+        print_test_result("Get all feedback (admin)", False, f"Exception: {str(e)}")
+
+def test_question_deactivation():
+    """Test that saving new questionnaire deactivates previous ones"""
+    print("🧪 Testing question deactivation...")
+    
+    # Create first questionnaire
+    first_questionnaire = {
+        "title": "First Survey",
+        "questions": [
+            {"type": "short_text", "question": "First question", "required": True}
+        ]
+    }
+    
+    try:
+        response1 = requests.post(f"{BASE_URL}/api/admin/feedback/questions", json=first_questionnaire)
+        if response1.status_code != 200:
+            print_test_result("Question deactivation test", False, "Failed to create first questionnaire")
+            return
+        
+        # Verify first is active
+        response_check1 = requests.get(f"{BASE_URL}/api/feedback/questions")
+        if response_check1.status_code == 200:
+            data1 = response_check1.json()
+            if data1.get('title') != 'First Survey':
+                print_test_result("Question deactivation test", False, "First questionnaire not active")
+                return
+        
+        # Create second questionnaire
+        second_questionnaire = {
+            "title": "Second Survey",
+            "questions": [
+                {"type": "short_text", "question": "Second question", "required": True}
+            ]
+        }
+        
+        response2 = requests.post(f"{BASE_URL}/api/admin/feedback/questions", json=second_questionnaire)
+        if response2.status_code != 200:
+            print_test_result("Question deactivation test", False, "Failed to create second questionnaire")
+            return
+        
+        # Verify second is now active (and first is deactivated)
+        response_check2 = requests.get(f"{BASE_URL}/api/feedback/questions")
+        if response_check2.status_code == 200:
+            data2 = response_check2.json()
+            if data2.get('title') == 'Second Survey':
+                print_test_result("Question deactivation test", True, 
+                                "New questionnaire activated, previous deactivated")
+            else:
+                print_test_result("Question deactivation test", False, 
+                                f"Expected 'Second Survey', got '{data2.get('title')}'")
+        else:
+            print_test_result("Question deactivation test", False, "Failed to check active questionnaire")
+            
+    except Exception as e:
+        print_test_result("Question deactivation test", False, f"Exception: {str(e)}")
+
+def run_comprehensive_feedback_tests():
+    """Run complete end-to-end feedback system tests"""
+    print("🚀 Starting Comprehensive Feedback System Backend Tests")
+    print("=" * 60)
+    
+    # Test sequence
+    print("📋 Phase 1: Admin Question Management")
+    form_id = test_admin_feedback_questions_post()
+    test_admin_feedback_questions_validation()
+    
+    print("\n📋 Phase 2: Question Retrieval")
+    active_form = test_feedback_questions_get()
+    
+    print("\n📋 Phase 3: Feedback Submission")
+    feedback_id = test_feedback_submit()
+    
+    print("\n📋 Phase 4: Feedback Retrieval")
+    test_feedback_retrieval_apis()
+    
+    print("\n📋 Phase 5: Question Deactivation")
+    test_question_deactivation()
+    
+    print("\n" + "=" * 60)
+    print("🏁 Feedback System Backend Testing Complete!")
 
 if __name__ == "__main__":
-    sys.exit(main())
+    run_comprehensive_feedback_tests()

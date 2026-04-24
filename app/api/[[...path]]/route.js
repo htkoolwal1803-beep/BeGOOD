@@ -418,6 +418,66 @@ export async function GET(request) {
       return NextResponse.json({ success: true, usage })
     }
 
+    // GET /api/feedback/questions - Get active feedback questions
+    if (segments[0] === 'feedback' && segments[1] === 'questions' && segments.length === 2) {
+      const { db } = await connectToDatabase()
+      const form = await db.collection('feedback_questions').findOne({ active: true })
+
+      return NextResponse.json({
+        success: true,
+        questions: form?.questions || [],
+        title: form?.title || 'Share your feedback',
+        description: form?.description || '',
+        updatedAt: form?.updatedAt || null
+      })
+    }
+
+    // GET /api/feedback/product/:productId - Get feedback for a specific product
+    if (segments[0] === 'feedback' && segments[1] === 'product' && segments.length === 3) {
+      const { db } = await connectToDatabase()
+      const productId = segments[2]
+      const { searchParams } = new URL(request.url)
+      const limit = parseInt(searchParams.get('limit') || '0', 10)
+
+      const cursor = db.collection('feedback_submissions')
+        .find({ productId })
+        .sort({ createdAt: -1 })
+
+      const feedbacks = limit > 0
+        ? await cursor.limit(limit).toArray()
+        : await cursor.toArray()
+
+      const total = await db.collection('feedback_submissions').countDocuments({ productId })
+
+      return NextResponse.json({ success: true, feedbacks, total })
+    }
+
+    // GET /api/users/:phone/feedback - Get user's feedback submissions
+    if (segments[0] === 'users' && segments.length === 3 && segments[2] === 'feedback') {
+      const { db } = await connectToDatabase()
+      const phone = decodeURIComponent(segments[1])
+
+      const feedbacks = await db.collection('feedback_submissions')
+        .find({ userPhone: phone })
+        .sort({ createdAt: -1 })
+        .toArray()
+
+      return NextResponse.json({ success: true, feedbacks })
+    }
+
+    // GET /api/admin/feedback - Get all feedback submissions (admin view)
+    if (segments[0] === 'admin' && segments[1] === 'feedback' && segments.length === 2) {
+      const { db } = await connectToDatabase()
+
+      const feedbacks = await db.collection('feedback_submissions')
+        .find({})
+        .sort({ createdAt: -1 })
+        .limit(1000)
+        .toArray()
+
+      return NextResponse.json({ success: true, feedbacks })
+    }
+
     return NextResponse.json({ success: false, message: 'Not found' }, { status: 404 })
   } catch (error) {
     console.error('API Error:', error)
@@ -1274,6 +1334,139 @@ export async function POST(request) {
       await db.collection('contact_messages').insertOne(contactMessage)
       
       return NextResponse.json({ success: true, message: 'Message received successfully' })
+    }
+
+    // POST /api/admin/feedback/questions - Save/update feedback questionnaire (admin)
+    if (segments[0] === 'admin' && segments[1] === 'feedback' && segments[2] === 'questions') {
+      const body = await request.json()
+      const { db } = await connectToDatabase()
+
+      const { questions, title, description } = body
+
+      if (!Array.isArray(questions)) {
+        return NextResponse.json({ success: false, message: 'Questions must be an array' }, { status: 400 })
+      }
+
+      // Validate each question
+      const validTypes = ['short_text', 'long_text', 'single_choice', 'multiple_choice', 'dropdown', 'linear_scale', 'star_rating', 'date', 'time', 'email', 'number']
+      const sanitized = questions.map((q) => {
+        if (!q.type || !validTypes.includes(q.type)) {
+          throw new Error(`Invalid question type: ${q.type}`)
+        }
+        if (!q.question || !q.question.trim()) {
+          throw new Error('Every question must have text')
+        }
+        const base = {
+          id: q.id || uuidv4(),
+          type: q.type,
+          question: q.question.trim(),
+          required: !!q.required
+        }
+        if (['single_choice', 'multiple_choice', 'dropdown'].includes(q.type)) {
+          base.options = Array.isArray(q.options) ? q.options.filter(o => o && o.trim()).map(o => o.trim()) : []
+          if (base.options.length === 0) {
+            throw new Error(`Question "${q.question}" must have at least one option`)
+          }
+        }
+        if (q.type === 'linear_scale') {
+          const min = parseInt(q.scale?.min ?? 1, 10)
+          const max = parseInt(q.scale?.max ?? 5, 10)
+          base.scale = {
+            min: isNaN(min) ? 1 : min,
+            max: isNaN(max) ? 5 : max,
+            minLabel: q.scale?.minLabel || '',
+            maxLabel: q.scale?.maxLabel || ''
+          }
+        }
+        if (q.type === 'star_rating') {
+          const maxR = parseInt(q.maxRating ?? 5, 10)
+          base.maxRating = isNaN(maxR) ? 5 : Math.min(Math.max(maxR, 3), 10)
+        }
+        return base
+      })
+
+      // Deactivate any existing active form, then upsert a new active one
+      await db.collection('feedback_questions').updateMany(
+        { active: true },
+        { $set: { active: false } }
+      )
+
+      const form = {
+        id: uuidv4(),
+        title: title || 'Share your feedback',
+        description: description || '',
+        questions: sanitized,
+        active: true,
+        updatedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString()
+      }
+
+      await db.collection('feedback_questions').insertOne(form)
+
+      return NextResponse.json({ success: true, form })
+    }
+
+    // POST /api/feedback/submit - Submit product feedback (logged-in users only)
+    if (segments[0] === 'feedback' && segments[1] === 'submit' && segments.length === 2) {
+      const body = await request.json()
+      const { db } = await connectToDatabase()
+
+      const { userPhone, productId, productName, answers } = body
+
+      if (!userPhone) {
+        return NextResponse.json({ success: false, message: 'You must be logged in to submit feedback' }, { status: 401 })
+      }
+      if (!productId) {
+        return NextResponse.json({ success: false, message: 'Product selection is required' }, { status: 400 })
+      }
+      if (!Array.isArray(answers) || answers.length === 0) {
+        return NextResponse.json({ success: false, message: 'Answers are required' }, { status: 400 })
+      }
+
+      // Verify user exists
+      const user = await db.collection('users').findOne({ phone: userPhone })
+      if (!user) {
+        return NextResponse.json({ success: false, message: 'User not found. Please complete OTP verification first.' }, { status: 404 })
+      }
+
+      // Check if user has already submitted feedback for this product (once per product per user)
+      const existing = await db.collection('feedback_submissions').findOne({ userPhone, productId })
+      if (existing) {
+        return NextResponse.json({ success: false, message: 'You have already submitted feedback for this product' }, { status: 400 })
+      }
+
+      // Load current active questions to validate required fields
+      const activeForm = await db.collection('feedback_questions').findOne({ active: true })
+      if (activeForm) {
+        const requiredIds = (activeForm.questions || []).filter(q => q.required).map(q => q.id)
+        const answeredIds = new Set(answers.map(a => a.questionId))
+        for (const rid of requiredIds) {
+          const ans = answers.find(a => a.questionId === rid)
+          if (!ans || ans.answer === null || ans.answer === undefined || ans.answer === '' || (Array.isArray(ans.answer) && ans.answer.length === 0)) {
+            return NextResponse.json({ success: false, message: 'Please answer all required questions' }, { status: 400 })
+          }
+        }
+      }
+
+      const submission = {
+        id: uuidv4(),
+        userId: user.id || null,
+        userPhone,
+        userName: user.name || '',
+        productId,
+        productName: productName || '',
+        answers: answers.map(a => ({
+          questionId: a.questionId,
+          question: a.question,
+          type: a.type,
+          answer: a.answer
+        })),
+        createdAt: new Date().toISOString()
+      }
+
+      await db.collection('feedback_submissions').insertOne(submission)
+
+      return NextResponse.json({ success: true, feedback: submission })
     }
 
     return NextResponse.json({ success: false, message: 'Not found' }, { status: 404 })

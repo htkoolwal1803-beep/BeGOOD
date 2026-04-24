@@ -8,6 +8,7 @@ import { useCart } from '@/lib/CartContext'
 import Button from '@/components/Button'
 import { Star, Check, Package, Shield, Truck } from 'lucide-react'
 import Link from 'next/link'
+import ProductFeedbackSection from '@/components/ProductFeedbackSection'
 
 export default function ProductPage() {
   const params = useParams()
@@ -274,6 +275,9 @@ export default function ProductPage() {
               ))}
             </div>
           </section>
+
+          {/* Customer Feedback (admin-defined questionnaire answers) */}
+          <ProductFeedbackSection productId={product.id} productName={product.name} />
         </div>
       </div>
     </div>
