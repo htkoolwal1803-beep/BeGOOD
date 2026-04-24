@@ -10,7 +10,7 @@ import sys
 from urllib.parse import quote
 
 # Base URL from environment
-BASE_URL = "https://ingredient-list-3.preview.emergentagent.com/api"
+BASE_URL = "https://laughing-bhaskara-6.preview.emergentagent.com/api"
 
 def make_request(method, endpoint, data=None):
     """Make HTTP request with proper error handling"""
