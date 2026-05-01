@@ -94,15 +94,6 @@ export default function ProductPage() {
               <p className="text-xl text-gray-600">{product.shortDescription}</p>
             </div>
 
-            {/* Rating */}
-            <div className="flex items-center space-x-2">
-              <div className="flex">
-                {[1,2,3,4,5].map(i => (
-                  <Star key={i} className="w-5 h-5 fill-[#C8A97E] text-[#C8A97E]" />
-                ))}
-              </div>
-              <span className="text-gray-600">({product.reviews?.length || 0} reviews)</span>
-            </div>
 
             {/* Price and Weight */}
             <div>
@@ -253,28 +244,7 @@ export default function ProductPage() {
             <p className="text-gray-700 text-lg">{product.usage}</p>
           </section>
 
-          {/* Reviews */}
-          <section>
-            <h2 className="font-playfair text-3xl font-bold mb-6">Customer Reviews</h2>
-            <div className="space-y-6">
-              {product.reviews.map((review, idx) => (
-                <div key={idx} className="border-b border-gray-200 pb-6 last:border-0">
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <p className="font-semibold">{review.name}</p>
-                      
-                    </div>
-                    <div className="flex">
-                      {[...Array(review.rating)].map((_, i) => (
-                        <Star key={i} className="w-4 h-4 fill-[#C8A97E] text-[#C8A97E]" />
-                      ))}
-                    </div>
-                  </div>
-                  <p className="text-gray-700">{review.comment}</p>
-                </div>
-              ))}
-            </div>
-          </section>
+
 
           {/* Customer Feedback (admin-defined questionnaire answers) */}
           <ProductFeedbackSection productId={product.id} productName={product.name} />
