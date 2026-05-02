@@ -149,7 +149,7 @@ export default function Home() {
               </h1>
               
               <p className="text-xl text-gray-600 leading-relaxed">
-                A premium functional chocolate that reduces anxiety and brings calm focus 
+                A premium functional chocolate that reduces Stress,Nervousness and brings calm focus 
                 when it matters most. 100% natural ingredients. No pills. No powders. Just delicious, science-backed wellness.
               </p>
 
@@ -268,7 +268,7 @@ export default function Home() {
 
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {[
-              'Reduces anxiety and nervousness',
+              'Reduces stress and nervousness',
               'Enhances mental clarity and focus',
               'Promotes calm without drowsiness',
               'Improves performance under pressure',
