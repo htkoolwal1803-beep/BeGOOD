@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useRef } from 'react'
 
@@ -46,7 +46,7 @@ export default function HowItWorksSection() {
           path: [{ x: 152, y: 257 }, { x: 165, y: 208 }, { x: 172, y: 130 }, { x: 176, y: 52 }]
         },
         {
-          id: 'omega', label: 'Ω-3', color: '#F4A261', r: 10,
+          id: 'omega', label: 'Î©-3', color: '#F4A261', r: 10,
           startT: 9000, endT: 17000,
           path: [{ x: 152, y: 257 }, { x: 175, y: 215 }, { x: 178, y: 130 }, { x: 178, y: 52 }]
         },
@@ -598,11 +598,11 @@ export default function HowItWorksSection() {
         // Update label
         let labelText
         if (freq > 4) {
-          labelText = 'Hβ ' + Math.round(freq * 4) + 'Hz'
+          labelText = 'HÎ² ' + Math.round(freq * 4) + 'Hz'
         } else if (freq > 2.5) {
-          labelText = 'Lβ ' + Math.round(freq * 4) + 'Hz'
+          labelText = 'LÎ² ' + Math.round(freq * 4) + 'Hz'
         } else {
-          labelText = 'α ' + Math.round(freq * 4) + 'Hz'
+          labelText = 'Î± ' + Math.round(freq * 4) + 'Hz'
         }
         if (eegLabel) {
           eegLabel.textContent = labelText
@@ -1072,7 +1072,7 @@ export default function HowItWorksSection() {
         }
       `}</style>
 
-      <div ref={containerRef} className="bg-white text-slate-800 relative overflow-x-hidden">
+      <div ref={containerRef} className="bg-[#fbf7ed] text-slate-800 relative overflow-x-hidden">
         <div id="bg-particles" className="pointer-events-none fixed inset-0 -z-10"></div>
 
         <header className="relative z-10 pt-12 pb-8 px-4">
@@ -1084,21 +1084,21 @@ export default function HowItWorksSection() {
             <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight" style={{ color: '#5C3A21' }}>Be Good A-Bar</h1>
             <p className="mt-3 text-xl md:text-2xl font-medium text-stone-600">Calm Your Mind. Own The Moment.</p>
             <div className="flex flex-wrap justify-center gap-3 mt-7">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-stone-200 shadow-sm">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#fbf7ed] border border-stone-200 shadow-sm">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2A9D8F" strokeWidth="2">
                   <path d="M12 2l7 4v6c0 5-3.5 9-7 10-3.5-1-7-5-7-10V6l7-4z" />
                   <path d="M9 12l2 2 4-4" />
                 </svg>
                 <span className="text-sm font-medium text-stone-700">Science-Backed</span>
               </div>
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-stone-200 shadow-sm">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#fbf7ed] border border-stone-200 shadow-sm">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E76F51" strokeWidth="2">
                   <circle cx="12" cy="12" r="9" />
                   <path d="M12 7v5l3 2" />
                 </svg>
                 <span className="text-sm font-medium text-stone-700">Fast Acting (15-20 min)</span>
               </div>
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-stone-200 shadow-sm">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#fbf7ed] border border-stone-200 shadow-sm">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F4A261" strokeWidth="2">
                   <path d="M12 21c-4-3-7-5.5-7-9a4 4 0 0 1 7-2 4 4 0 0 1 7 2c0 3.5-3 6-7 9z" />
                 </svg>
@@ -1112,7 +1112,7 @@ export default function HowItWorksSection() {
           <div className="flex flex-col lg:flex-row gap-10 lg:gap-14 items-start">
             {/* Left Column - Body Visualization */}
             <div className="w-full lg:w-[57%]">
-              <div className="relative bg-white/80 backdrop-blur-xl rounded-[2.5rem] border border-stone-100 shadow-[0_30px_80px_-30px_rgba(92,58,33,0.3)] p-6 md:p-8 lg:sticky lg:top-8">
+              <div className="relative bg-[#fbf7ed]/80 backdrop-blur-xl rounded-[2.5rem] border border-stone-100 shadow-[0_30px_80px_-30px_rgba(92,58,33,0.3)] p-6 md:p-8 lg:sticky lg:top-8">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-[17px] font-semibold tracking-wide" style={{ color: '#5C3A21' }}>
                     HOW IT WORKS IN YOUR BODY
@@ -1122,28 +1122,28 @@ export default function HowItWorksSection() {
                 <div className="flex items-center justify-between gap-2 md:gap-4 body-layout relative">
                   <div className="hormone-panel" id="hormone-panel">
                     <div className="hormone-gauge" id="hg-cortisol">
-                      <div className="h-label"><span style={{ color: '#ef4444' }}>Cortisol</span><span className="h-arrow" style={{ color: '#ef4444' }}>↓</span></div>
+                      <div className="h-label"><span style={{ color: '#ef4444' }}>Cortisol</span><span className="h-arrow" style={{ color: '#ef4444' }}>â†“</span></div>
                       <div className="h-bar-bg">
                         <div className="h-bar-fill" id="hbar-cortisol" style={{ width: '100%', background: '#ef4444' }}></div>
                       </div>
                       <div className="h-val" id="hval-cortisol" style={{ color: '#ef4444' }}>100%</div>
                     </div>
                     <div className="hormone-gauge" id="hg-glutamate">
-                      <div className="h-label"><span style={{ color: '#f97316' }}>Glutamate</span><span className="h-arrow" style={{ color: '#f97316' }}>↓</span></div>
+                      <div className="h-label"><span style={{ color: '#f97316' }}>Glutamate</span><span className="h-arrow" style={{ color: '#f97316' }}>â†“</span></div>
                       <div className="h-bar-bg">
                         <div className="h-bar-fill" id="hbar-glutamate" style={{ width: '100%', background: '#f97316' }}></div>
                       </div>
                       <div className="h-val" id="hval-glutamate" style={{ color: '#f97316' }}>100%</div>
                     </div>
                     <div className="hormone-gauge" id="hg-gaba">
-                      <div className="h-label"><span style={{ color: '#22c55e' }}>GABA</span><span className="h-arrow" style={{ color: '#22c55e' }}>↑</span></div>
+                      <div className="h-label"><span style={{ color: '#22c55e' }}>GABA</span><span className="h-arrow" style={{ color: '#22c55e' }}>â†‘</span></div>
                       <div className="h-bar-bg">
                         <div className="h-bar-fill" id="hbar-gaba" style={{ width: '30%', background: '#22c55e' }}></div>
                       </div>
                       <div className="h-val" id="hval-gaba" style={{ color: '#22c55e' }}>30%</div>
                     </div>
                     <div className="hormone-gauge" id="hg-serotonin">
-                      <div className="h-label"><span style={{ color: '#14b8a6' }}>Serotonin</span><span className="h-arrow" style={{ color: '#14b8a6' }}>↑</span></div>
+                      <div className="h-label"><span style={{ color: '#14b8a6' }}>Serotonin</span><span className="h-arrow" style={{ color: '#14b8a6' }}>â†‘</span></div>
                       <div className="h-bar-bg">
                         <div className="h-bar-fill" id="hbar-serotonin" style={{ width: '40%', background: '#14b8a6' }}></div>
                       </div>
@@ -1280,7 +1280,7 @@ export default function HowItWorksSection() {
                       <g id="vagus-lbl">
                         <rect x="72" y="268" width="54" height="26" rx="7" fill="#81B29A" opacity=".93" />
                         <text x="99" y="278" fontSize="7.5" fontFamily="Inter,sans-serif" fill="white" fontWeight="700" textAnchor="middle">Vagus</text>
-                        <text x="99" y="289" fontSize="7.5" fontFamily="Inter,sans-serif" fill="white" fontWeight="600" textAnchor="middle">Nerve ↑</text>
+                        <text x="99" y="289" fontSize="7.5" fontFamily="Inter,sans-serif" fill="white" fontWeight="600" textAnchor="middle">Nerve â†‘</text>
                       </g>
 
                       <g id="choc-bar">
@@ -1300,39 +1300,39 @@ export default function HowItWorksSection() {
 
                       <g id="svgbadge-cortisol" className="svgbadge">
                         <rect x="252" y="160" width="82" height="22" rx="11" fill="#ef4444" opacity=".95" />
-                        <text x="293" y="174.5" fontSize="9" fontFamily="Inter,sans-serif" fill="white" fontWeight="800" textAnchor="middle">↓ Cortisol</text>
+                        <text x="293" y="174.5" fontSize="9" fontFamily="Inter,sans-serif" fill="white" fontWeight="800" textAnchor="middle">â†“ Cortisol</text>
                       </g>
 
                       <g id="svgbadge-gaba" className="svgbadge">
                         <rect x="252" y="187" width="82" height="22" rx="11" fill="#22c55e" opacity=".95" />
-                        <text x="293" y="201.5" fontSize="9" fontFamily="Inter,sans-serif" fill="white" fontWeight="800" textAnchor="middle">↑ GABA</text>
+                        <text x="293" y="201.5" fontSize="9" fontFamily="Inter,sans-serif" fill="white" fontWeight="800" textAnchor="middle">â†‘ GABA</text>
                       </g>
 
                       <g id="svgbadge-glutamate" className="svgbadge">
                         <rect x="252" y="214" width="82" height="22" rx="11" fill="#f97316" opacity=".95" />
-                        <text x="293" y="228.5" fontSize="9" fontFamily="Inter,sans-serif" fill="white" fontWeight="800" textAnchor="middle">↓ Glutamate</text>
+                        <text x="293" y="228.5" fontSize="9" fontFamily="Inter,sans-serif" fill="white" fontWeight="800" textAnchor="middle">â†“ Glutamate</text>
                       </g>
 
                       <g id="svgbadge-serotonin" className="svgbadge">
                         <rect x="252" y="241" width="82" height="22" rx="11" fill="#14b8a6" opacity=".95" />
-                        <text x="293" y="255.5" fontSize="9" fontFamily="Inter,sans-serif" fill="white" fontWeight="800" textAnchor="middle">↑ Serotonin</text>
+                        <text x="293" y="255.5" fontSize="9" fontFamily="Inter,sans-serif" fill="white" fontWeight="800" textAnchor="middle">â†‘ Serotonin</text>
                       </g>
 
                       <g id="svgbadge-alertness" className="svgbadge">
                         <rect x="252" y="268" width="82" height="22" rx="11" fill="#E76F51" opacity=".95" />
-                        <text x="293" y="282.5" fontSize="9" fontFamily="Inter,sans-serif" fill="white" fontWeight="800" textAnchor="middle">↑ Alertness</text>
+                        <text x="293" y="282.5" fontSize="9" fontFamily="Inter,sans-serif" fill="white" fontWeight="800" textAnchor="middle">â†‘ Alertness</text>
                       </g>
 
                       <g id="svgbadge-membrane" className="svgbadge">
                         <rect x="252" y="295" width="82" height="22" rx="11" fill="#F4A261" opacity=".95" />
-                        <text x="293" y="309.5" fontSize="9" fontFamily="Inter,sans-serif" fill="white" fontWeight="800" textAnchor="middle">↑ Membrane</text>
+                        <text x="293" y="309.5" fontSize="9" fontFamily="Inter,sans-serif" fill="white" fontWeight="800" textAnchor="middle">â†‘ Membrane</text>
                       </g>
                     </svg>
 
                     <div className="eeg-wrap" id="eeg-wrap">
                       <div className="eeg-header">
                         <span className="eeg-title">EEG</span>
-                        <span className="eeg-freq" id="eeg-freq-label" style={{ background: '#ef444420', color: '#ef4444' }}>Hβ 22Hz</span>
+                        <span className="eeg-freq" id="eeg-freq-label" style={{ background: '#ef444420', color: '#ef4444' }}>HÎ² 22Hz</span>
                       </div>
                       <canvas id="eeg-canvas" width="120" height="60"></canvas>
                     </div>
@@ -1375,7 +1375,7 @@ export default function HowItWorksSection() {
             <div className="w-full lg:w-[43%]">
               <div id="timeline" className="space-y-4">
                 {/* Step 0 - Bite */}
-                <div className="timeline-card group relative bg-white rounded-3xl p-5 md:p-6 border border-stone-100 shadow-md cursor-pointer active" data-step="0">
+                <div className="timeline-card group relative bg-[#fbf7ed] rounded-3xl p-5 md:p-6 border border-stone-100 shadow-md cursor-pointer active" data-step="0">
                   <div className="absolute left-0 top-5 bottom-5 w-1 rounded-full" style={{ background: '#5C3A21' }}></div>
                   <div className="flex gap-4">
                     <div className="shrink-0">
@@ -1388,19 +1388,19 @@ export default function HowItWorksSection() {
                         <h3 className="text-lg font-bold" style={{ color: '#5C3A21' }}>Bite</h3>
                         <span className="text-[11px] px-2 py-0.5 rounded-full font-medium text-white" style={{ background: '#5C3A21' }}>Start</span>
                       </div>
-                      <p className="text-[14.5px] leading-snug text-slate-600">You eat the bar. Cocoa and coffee release natural Caffeine and L-Theanine — the <strong>Nootropic Stack</strong> is activated. Magnesium-rich nuts, Omega-3 seeds, and Chicory Root fiber begin digestion in the stomach.</p>
+                      <p className="text-[14.5px] leading-snug text-slate-600">You eat the bar. Walnuts, pumpkin seeds, cocoa butter, and L-Theanine begin working together in a simple, convenient chocolate format.</p>
                       <div className="flex flex-wrap gap-1.5 mt-3">
-                        <span className="source-chip" style={{ background: '#F4A26118', color: '#a06820', border: '1px solid #F4A26140' }}>☕ Coffee & Cocoa</span>
-                        <span className="source-chip" style={{ background: '#A78BFA18', color: '#6d48d6', border: '1px solid #A78BFA40' }}>🥜 Almond Butter</span>
-                        <span className="source-chip" style={{ background: '#81B29A18', color: '#3d7a60', border: '1px solid #81B29A40' }}>🌰 Walnuts & Seeds</span>
-                        <span className="source-chip" style={{ background: '#2A9D8F18', color: '#1a6b62', border: '1px solid #2A9D8F40' }}>🌿 Chicory Root</span>
+                        <span className="source-chip" style={{ background: '#F4A26118', color: '#a06820', border: '1px solid #F4A26140' }}>Cocoa Butter + L-Theanine</span>
+                        <span className="source-chip" style={{ background: '#A78BFA18', color: '#6d48d6', border: '1px solid #A78BFA40' }}>Walnuts</span>
+                        <span className="source-chip" style={{ background: '#81B29A18', color: '#3d7a60', border: '1px solid #81B29A40' }}>Pumpkin Seeds</span>
+                        <span className="source-chip" style={{ background: '#2A9D8F18', color: '#1a6b62', border: '1px solid #2A9D8F40' }}>Cocoa Butter</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Step 1 - Lift */}
-                <div className="timeline-card group relative bg-white rounded-3xl p-5 md:p-6 border border-stone-100 shadow-md cursor-pointer" data-step="1">
+                <div className="timeline-card group relative bg-[#fbf7ed] rounded-3xl p-5 md:p-6 border border-stone-100 shadow-md cursor-pointer" data-step="1">
                   <div className="absolute left-0 top-5 bottom-5 w-1 rounded-full opacity-60 group-[.active]:opacity-100 transition" style={{ background: '#E76F51' }}></div>
                   <div className="flex gap-4">
                     <div className="shrink-0">
@@ -1414,16 +1414,16 @@ export default function HowItWorksSection() {
                         <h4 className="text-lg font-bold" style={{ color: '#E76F51' }}>Lift</h4>
                         <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold text-white" style={{ background: '#E76F51' }}>Clean Calm</span>
                       </div>
-                      <p className="text-[14.5px] leading-snug text-slate-600">Caffeine blocks adenosine (sleepiness signals), sharpening focus. Simultaneously, L-Theanine counters caffeine's vasoconstrictive side-effects — keeping blood flowing to the brain. The <strong>Nootropic Stack</strong> delivers all the focus of coffee, none of the jitters.</p>
+                      <p className="text-[14.5px] leading-snug text-slate-600">L-Theanine supports relaxed alertness, helping you stay composed without feeling drowsy. The smooth cocoa-butter base makes the routine feel like a chocolate moment, not a supplement chore.</p>
                       <div className="flex flex-wrap gap-1.5 mt-3">
-                        <span className="source-chip" style={{ background: '#E76F5118', color: '#b04030', border: '1px solid #E76F5140' }}>☕ Coffee & Cocoa (Caffeine + L-Theanine)</span>
+                        <span className="source-chip" style={{ background: '#E76F5118', color: '#b04030', border: '1px solid #E76F5140' }}>Cocoa Butter + L-Theanine</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Step 2 - Brain Shift */}
-                <div className="timeline-card group relative bg-white rounded-3xl p-5 md:p-6 border border-stone-100 shadow-md cursor-pointer" data-step="2">
+                <div className="timeline-card group relative bg-[#fbf7ed] rounded-3xl p-5 md:p-6 border border-stone-100 shadow-md cursor-pointer" data-step="2">
                   <div className="absolute left-0 top-5 bottom-5 w-1 rounded-full opacity-60 group-[.active]:opacity-100 transition" style={{ background: '#2A9D8F' }}></div>
                   <div className="flex gap-4">
                     <div className="shrink-0">
@@ -1437,16 +1437,16 @@ export default function HowItWorksSection() {
                         <h4 className="text-lg font-bold" style={{ color: '#2A9D8F' }}>Brain Shift</h4>
                         <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold text-white" style={{ background: '#2A9D8F' }}>Alert Relaxation</span>
                       </div>
-                      <p className="text-[14.5px] leading-snug text-slate-600">L-Theanine crosses the blood-brain barrier and quiets overactive cortical neurons — the &quot;stress firing.&quot; The brain shifts from <strong>High Beta</strong> (panic/anxiety) to <strong>Alpha waves (8–14 Hz)</strong>: the rhythm of <em>Alert Relaxation</em> — like meditation, while fully awake. (Hidese et al., 2019)</p>
+                      <p className="text-[14.5px] leading-snug text-slate-600">L-Theanine crosses the blood-brain barrier and quiets overactive cortical neurons â€” the &quot;stress firing.&quot; The brain shifts from <strong>High Beta</strong> (panic/anxiety) to <strong>Alpha waves (8â€“14 Hz)</strong>: the rhythm of <em>Alert Relaxation</em> â€” like meditation, while fully awake. (Hidese et al., 2019)</p>
                       <div className="flex flex-wrap gap-1.5 mt-3">
-                        <span className="source-chip" style={{ background: '#2A9D8F18', color: '#1a6b62', border: '1px solid #2A9D8F40' }}>☕ Coffee & Cocoa (L-Theanine)</span>
+                        <span className="source-chip" style={{ background: '#2A9D8F18', color: '#1a6b62', border: '1px solid #2A9D8F40' }}>Cocoa Butter + L-Theanine</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Step 3 - Steady Calm */}
-                <div className="timeline-card group relative bg-white rounded-3xl p-5 md:p-6 border border-stone-100 shadow-md cursor-pointer" data-step="3">
+                <div className="timeline-card group relative bg-[#fbf7ed] rounded-3xl p-5 md:p-6 border border-stone-100 shadow-md cursor-pointer" data-step="3">
                   <div className="absolute left-0 top-5 bottom-5 w-1 rounded-full opacity-60 group-[.active]:opacity-100 transition" style={{ background: '#A78BFA' }}></div>
                   <div className="flex gap-4">
                     <div className="shrink-0">
@@ -1457,17 +1457,17 @@ export default function HowItWorksSection() {
                     </div>
                     <div className="min-w-0">
                       <h4 className="text-lg font-bold mb-1" style={{ color: '#A78BFA' }}>Steady Calm</h4>
-                      <p className="text-[14.5px] leading-snug text-slate-600">Magnesium works on two fronts: as an <strong>NMDA antagonist</strong> it blocks excess calcium from over-exciting neurons; as a <strong>GABA agonist</strong> it activates the brain&apos;s own calming neurotransmitter. Together, they put a biochemical &quot;brake&quot; on the HPA axis — reducing Cortisol. Omega-3s (EPA/DHA) keep neuron membranes fluid, helping Serotonin and Dopamine bind more easily.</p>
+                      <p className="text-[14.5px] leading-snug text-slate-600">Walnuts and pumpkin seeds add plant-based nourishment, while cocoa butter gives the bar its smooth, premium bite. Together with L-Theanine, A-Bar is built for calm, convenient support before high-stakes moments.</p>
                       <div className="flex flex-wrap gap-1.5 mt-3">
-                        <span className="source-chip" style={{ background: '#A78BFA18', color: '#6d48d6', border: '1px solid #A78BFA40' }}>🥜 Almond Butter · Cocoa · Walnuts · Seeds (Mg)</span>
-                        <span className="source-chip" style={{ background: '#A78BFA18', color: '#6d48d6', border: '1px solid #A78BFA40' }}>🌱 Walnuts · Chia/Flax Seeds (Omega-3)</span>
+                        <span className="source-chip" style={{ background: '#A78BFA18', color: '#6d48d6', border: '1px solid #A78BFA40' }}>Walnuts</span>
+                        <span className="source-chip" style={{ background: '#A78BFA18', color: '#6d48d6', border: '1px solid #A78BFA40' }}>Walnuts + Pumpkin Seeds</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Step 4 - Gut Support */}
-                <div className="timeline-card group relative bg-white rounded-3xl p-5 md:p-6 border border-stone-100 shadow-md cursor-pointer" data-step="4">
+                <div className="timeline-card group relative bg-[#fbf7ed] rounded-3xl p-5 md:p-6 border border-stone-100 shadow-md cursor-pointer" data-step="4">
                   <div className="absolute left-0 top-5 bottom-5 w-1 rounded-full opacity-60 group-[.active]:opacity-100 transition" style={{ background: '#81B29A' }}></div>
                   <div className="flex gap-4">
                     <div className="shrink-0">
@@ -1478,13 +1478,13 @@ export default function HowItWorksSection() {
                     </div>
                     <div className="min-w-0">
                       <h4 className="text-lg font-bold mb-1" style={{ color: '#5a8f7a' }}>Gut Support</h4>
-                      <p className="text-[14.5px] leading-snug text-slate-600">Chicory Root fiber feeds <em>Bifidobacteria</em> in your colon. They produce Short-Chain Fatty Acids — including <strong>Butyrate</strong> — which signal via the <strong>Vagus Nerve</strong> (the gut-brain highway) to lower inflammatory stress markers and support serotonin production.</p>
+                      <p className="text-[14.5px] leading-snug text-slate-600">A-Bar keeps the routine simple: walnuts and pumpkin seeds for plant-based nourishment, cocoa butter for texture, and L-Theanine for calm focus support.</p>
                       <div className="stat-callout mt-3" style={{ background: '#81B29A12', border: '1px solid #81B29A45' }}>
                         <span className="text-2xl font-extrabold shrink-0 leading-none" style={{ color: '#81B29A' }}>+18%</span>
-                        <span className="text-[12px] leading-snug text-slate-600"><strong>Absorption Synergy:</strong> Chicory fiber lowers gut pH, making Magnesium up to 18% more bioavailable — so your body actually absorbs the calm.</span>
+                        <span className="text-[12px] leading-snug text-slate-600"><strong>Ingredient Synergy:</strong> walnuts, pumpkin seeds, cocoa butter, and L-Theanine create a simple functional chocolate for calm focus.</span>
                       </div>
                       <div className="flex flex-wrap gap-1.5 mt-3">
-                        <span className="source-chip" style={{ background: '#81B29A18', color: '#3d7a60', border: '1px solid #81B29A40' }}>🌿 Chicory Root (Inulin / Oligofructose)</span>
+                        <span className="source-chip" style={{ background: '#81B29A18', color: '#3d7a60', border: '1px solid #81B29A40' }}>Cocoa Butter</span>
                       </div>
                     </div>
                   </div>
@@ -1515,25 +1515,19 @@ export default function HowItWorksSection() {
             </h4>
             <ol className="space-y-2 text-[11px] leading-snug text-stone-500 list-decimal list-inside">
               <li>Hidese S et al. Effects of L-Theanine Administration on Stress-Related Symptoms and Cognitive Functions in Healthy Adults. <em>Nutrients.</em> 2019;11(10):2362.
-                <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6836118/" target="_blank" rel="noopener" className="ml-1 underline hover:text-stone-700 transition">↗ Read study</a>
+                <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6836118/" target="_blank" rel="noopener" className="ml-1 underline hover:text-stone-700 transition">â†— Read study</a>
               </li>
               <li>Giesbrecht T et al. The combination of L-theanine and caffeine improves cognitive performance. <em>Nutr Neurosci.</em> 2010;13(6):283-290.
-                <a href="https://pubmed.ncbi.nlm.nih.gov/21040626/" target="_blank" rel="noopener" className="ml-1 underline hover:text-stone-700 transition">↗ Read study</a>
-              </li>
-              <li>Boyle NB et al. The Effects of Magnesium Supplementation on Subjective Anxiety. <em>Nutrients.</em> 2017;9(5):429.
-                <a href="https://www.mdpi.com/2072-6643/9/5/429" target="_blank" rel="noopener" className="ml-1 underline hover:text-stone-700 transition">↗ Read study</a>
-              </li>
-              <li>Su KP et al. Omega-3 Fatty Acids in the Psychiatric Field. <em>Nutrients.</em> 2023.
-                <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9962071/" target="_blank" rel="noopener" className="ml-1 underline hover:text-stone-700 transition">↗ Read study</a>
+                <a href="https://pubmed.ncbi.nlm.nih.gov/21040626/" target="_blank" rel="noopener" className="ml-1 underline hover:text-stone-700 transition">â†— Read study</a>
               </li>
               <li>Deehan EC & Walter J. The Fiber Gap and the Gut-Brain Axis. <em>Trends Endocrinol Metab.</em> 2016.
-                <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5808284/" target="_blank" rel="noopener" className="ml-1 underline hover:text-stone-700 transition">↗ Read study</a>
+                <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5808284/" target="_blank" rel="noopener" className="ml-1 underline hover:text-stone-700 transition">â†— Read study</a>
               </li>
             </ol>
             <p className="mt-4 text-[11px] text-stone-400">Educational information only. A-Bar is a food, not a medicine. Effects vary person to person. Consult a professional for health concerns.</p>
             <div className="mt-6 flex items-center gap-2">
               <span className="text-sm font-semibold" style={{ color: '#5C3A21' }}>be good</span>
-              <span className="text-stone-300">•</span>
+              <span className="text-stone-300">â€¢</span>
               <a href="https://begoodshop.in" className="text-sm text-stone-500 hover:text-stone-700">
                 begoodshop.in
               </a>

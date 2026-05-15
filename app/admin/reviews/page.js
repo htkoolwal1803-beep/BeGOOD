@@ -97,14 +97,14 @@ export default function AdminReviewsPage() {
 
   if (!authenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F5F0E8] to-white">
-        <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
+      <div className="brand-page min-h-screen flex items-center justify-center">
+        <div className="brand-panel p-8 w-full max-w-md">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-[#C8A97E]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Lock className="w-8 h-8 text-[#C8A97E]" />
+            <div className="w-16 h-16 bg-[#6f8a74]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Lock className="w-8 h-8 text-[#6f8a74]" />
             </div>
             <h1 className="font-playfair text-3xl font-bold mb-2">Admin Access</h1>
-            <p className="text-gray-600">Reviews & Notifications Management</p>
+            <p className="text-[#59615b]">Reviews & Notifications Management</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
@@ -114,7 +114,7 @@ export default function AdminReviewsPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C8A97E]"
+                className="w-full px-4 py-3 border border-[#d9cbb5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
                 placeholder="Enter admin password"
                 required
               />
@@ -131,7 +131,7 @@ export default function AdminReviewsPage() {
             <button
               type="button"
               onClick={() => router.push('/admin')}
-              className="w-full text-center text-sm text-gray-600 hover:text-[#C8A97E] mt-4"
+              className="w-full text-center text-sm text-[#59615b] hover:text-[#6f8a74] mt-4"
             >
               ← Back to Dashboard
             </button>
@@ -142,16 +142,16 @@ export default function AdminReviewsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="brand-page min-h-screen py-12">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="font-playfair text-4xl font-bold mb-2">Content Management</h1>
-            <p className="text-gray-600">Manage reviews and notification signups</p>
+            <p className="text-[#59615b]">Manage reviews and notification signups</p>
           </div>
           <button
             onClick={() => router.push('/admin')}
-            className="text-gray-600 hover:text-[#C8A97E]"
+            className="text-[#59615b] hover:text-[#6f8a74]"
           >
             ← Back to Dashboard
           </button>
@@ -163,8 +163,8 @@ export default function AdminReviewsPage() {
             onClick={() => setActiveTab('reviews')}
             className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
               activeTab === 'reviews'
-                ? 'bg-[#C8A97E] text-white'
-                : 'bg-white text-gray-600 hover:bg-gray-100'
+                ? 'bg-[#6f8a74] text-white'
+                : 'bg-[#fbf7ed] text-[#59615b] hover:bg-[#dce6d7]'
             }`}
           >
             <Star className="inline-block w-5 h-5 mr-2" />
@@ -174,8 +174,8 @@ export default function AdminReviewsPage() {
             onClick={() => setActiveTab('notifications')}
             className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
               activeTab === 'notifications'
-                ? 'bg-[#C8A97E] text-white'
-                : 'bg-white text-gray-600 hover:bg-gray-100'
+                ? 'bg-[#6f8a74] text-white'
+                : 'bg-[#fbf7ed] text-[#59615b] hover:bg-[#dce6d7]'
             }`}
           >
             <Bell className="inline-block w-5 h-5 mr-2" />
@@ -186,7 +186,7 @@ export default function AdminReviewsPage() {
         {/* Reviews Tab */}
         {activeTab === 'reviews' && (
           <div>
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+            <div className="brand-card p-6 mb-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="font-playfair text-2xl font-bold">Customer Reviews</h2>
                 <Button onClick={() => setShowAddReview(!showAddReview)}>
@@ -197,7 +197,7 @@ export default function AdminReviewsPage() {
 
               {/* Add Review Form */}
               {showAddReview && (
-                <form onSubmit={handleAddReview} className="mb-8 p-6 bg-[#F5F0E8] rounded-xl">
+                <form onSubmit={handleAddReview} className="mb-8 p-6 bg-[#f4ecdd] rounded-xl">
                   <h3 className="font-semibold text-lg mb-4">Add New Review</h3>
                   <div className="grid gap-4">
                     <div>
@@ -205,7 +205,7 @@ export default function AdminReviewsPage() {
                       <select
                         value={reviewForm.productId}
                         onChange={(e) => setReviewForm({ ...reviewForm, productId: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C8A97E]"
+                        className="w-full px-4 py-3 border border-[#d9cbb5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
                       >
                         <option value="begood-abar-001">A-Bar</option>
                       </select>
@@ -217,7 +217,7 @@ export default function AdminReviewsPage() {
                         type="text"
                         value={reviewForm.name}
                         onChange={(e) => setReviewForm({ ...reviewForm, name: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C8A97E]"
+                        className="w-full px-4 py-3 border border-[#d9cbb5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
                         placeholder="John D."
                         required
                       />
@@ -228,7 +228,7 @@ export default function AdminReviewsPage() {
                       <select
                         value={reviewForm.rating}
                         onChange={(e) => setReviewForm({ ...reviewForm, rating: parseInt(e.target.value) })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C8A97E]"
+                        className="w-full px-4 py-3 border border-[#d9cbb5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
                       >
                         <option value={5}>5 Stars</option>
                         <option value={4}>4 Stars</option>
@@ -243,7 +243,7 @@ export default function AdminReviewsPage() {
                       <textarea
                         value={reviewForm.comment}
                         onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C8A97E]"
+                        className="w-full px-4 py-3 border border-[#d9cbb5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
                         rows={4}
                         placeholder="This product really helped me..."
                         required
@@ -263,25 +263,25 @@ export default function AdminReviewsPage() {
               {/* Reviews List */}
               <div className="space-y-4">
                 {reviews.length === 0 ? (
-                  <p className="text-gray-500 text-center py-8">No reviews yet</p>
+                  <p className="text-[#6b736d] text-center py-8">No reviews yet</p>
                 ) : (
                   reviews.map((review) => (
-                    <div key={review._id} className="border border-gray-200 rounded-lg p-6">
+                    <div key={review._id} className="border border-[#d9cbb5] rounded-lg p-6">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-4 mb-3">
                             <p className="font-semibold">{review.name}</p>
                             <div className="flex">
                               {[...Array(review.rating)].map((_, i) => (
-                                <Star key={i} className="w-4 h-4 fill-[#C8A97E] text-[#C8A97E]" />
+                                <Star key={i} className="w-4 h-4 fill-[#6f8a74] text-[#6f8a74]" />
                               ))}
                             </div>
-                            <span className="text-sm text-gray-500">
+                            <span className="text-sm text-[#6b736d]">
                               {new Date(review.date).toLocaleDateString()}
                             </span>
                           </div>
-                          <p className="text-gray-700">{review.comment}</p>
-                          <p className="text-sm text-gray-500 mt-2">Product: {review.productId === 'begood-abar-001' ? 'A-Bar' : review.productId}</p>
+                          <p className="text-[#464c49]">{review.comment}</p>
+                          <p className="text-sm text-[#6b736d] mt-2">Product: {review.productId === 'begood-abar-001' ? 'A-Bar' : review.productId}</p>
                         </div>
                       </div>
                     </div>
@@ -294,16 +294,16 @@ export default function AdminReviewsPage() {
 
         {/* Notifications Tab */}
         {activeTab === 'notifications' && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="brand-card p-6">
             <h2 className="font-playfair text-2xl font-bold mb-6">P-Bar Launch Notifications</h2>
             
             {notifications.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">No signups yet</p>
+              <p className="text-[#6b736d] text-center py-8">No signups yet</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-gray-200">
+                    <tr className="border-b border-[#d9cbb5]">
                       <th className="text-left py-3 px-4 font-semibold text-sm">#</th>
                       <th className="text-left py-3 px-4 font-semibold text-sm">Email</th>
                       <th className="text-left py-3 px-4 font-semibold text-sm">Product</th>
@@ -316,7 +316,7 @@ export default function AdminReviewsPage() {
                         <td className="py-4 px-4 text-sm">{idx + 1}</td>
                         <td className="py-4 px-4 text-sm font-medium">{notification.email}</td>
                         <td className="py-4 px-4 text-sm">{notification.product}</td>
-                        <td className="py-4 px-4 text-sm text-gray-600">
+                        <td className="py-4 px-4 text-sm text-[#59615b]">
                           {new Date(notification.createdAt).toLocaleDateString()}
                         </td>
                       </tr>

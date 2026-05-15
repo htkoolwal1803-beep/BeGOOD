@@ -71,12 +71,12 @@ export default function ProductPage() {
   }
 
   return (
-    <div className="min-h-screen py-12 md:py-20">
+    <div className="brand-page min-h-screen py-12 md:py-20">
       <div className="container mx-auto px-4">
         {/* Product Main Section */}
-        <div className="grid md:grid-cols-2 gap-12 mb-20">
+        <div className="brand-panel grid md:grid-cols-2 gap-12 mb-20 p-6 md:p-10">
           {/* Image */}
-          <div className="relative aspect-square bg-[#F5F0E8] rounded-2xl overflow-hidden">
+          <div className="relative aspect-square bg-[#f4ecdd] rounded-[1.5rem] overflow-hidden">
             <Image
               src={product.image}
               alt={product.name}
@@ -89,30 +89,30 @@ export default function ProductPage() {
           {/* Product Info */}
           <div className="space-y-6">
             <div>
-              <p className="text-[#C8A97E] font-semibold mb-2">{product.category}</p>
+              <p className="text-[#6f8a74] font-semibold mb-2">{product.category}</p>
               <h1 className="font-playfair text-4xl md:text-5xl font-bold mb-4">{product.name}</h1>
-              <p className="text-xl text-gray-600">{product.shortDescription}</p>
+              <p className="text-xl text-[#59615b]">{product.shortDescription}</p>
             </div>
 
 
             {/* Price and Weight */}
             <div>
               <div className="flex items-baseline gap-3 mb-2">
-                <div className="text-4xl font-bold text-[#C8A97E]">₹{product.price}</div>
+                <div className="text-4xl font-bold text-[#6f8a74]">₹{product.price}</div>
                 {product.weight && (
-                  <span className="text-xl text-gray-600">({product.weight})</span>
+                  <span className="text-xl text-[#59615b]">({product.weight})</span>
                 )}
               </div>
             </div>
 
             {/* Key Aspects */}
             {product.keyAspects && (
-              <div className="bg-[#F5F0E8] p-6 rounded-xl">
+              <div className="bg-[#dce6d7]/60 p-6 rounded-2xl border border-[#d9cbb5]">
                 <h3 className="font-semibold mb-3">Key Features:</h3>
                 <ul className="space-y-2">
                   {product.keyAspects.map((aspect, idx) => (
                     <li key={idx} className="flex items-center text-sm">
-                      <Check className="w-4 h-4 text-[#C8A97E] mr-2 flex-shrink-0" />
+                      <Check className="w-4 h-4 text-[#6f8a74] mr-2 flex-shrink-0" />
                       {aspect}
                     </li>
                   ))}
@@ -126,14 +126,14 @@ export default function ProductPage() {
               <div className="flex items-center space-x-3">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-10 h-10 rounded-lg border-2 border-gray-300 hover:border-[#C8A97E] transition-colors"
+                  className="w-10 h-10 rounded-lg border-2 border-[#d9cbb5] hover:border-[#6f8a74] transition-colors"
                 >
                   -
                 </button>
                 <span className="w-12 text-center font-semibold">{quantity}</span>
                 <button
                   onClick={() => setQuantity(quantity + 1)}
-                  className="w-10 h-10 rounded-lg border-2 border-gray-300 hover:border-[#C8A97E] transition-colors"
+                  className="w-10 h-10 rounded-lg border-2 border-[#d9cbb5] hover:border-[#6f8a74] transition-colors"
                 >
                   +
                 </button>
@@ -162,16 +162,16 @@ export default function ProductPage() {
             {/* Features */}
             <div className="grid grid-cols-3 gap-4 pt-6 border-t">
               <div className="text-center">
-                <Package className="w-6 h-6 mx-auto mb-2 text-[#C8A97E]" />
-                <p className="text-xs text-gray-600">Premium Quality</p>
+                <Package className="w-6 h-6 mx-auto mb-2 text-[#6f8a74]" />
+                <p className="text-xs text-[#59615b]">Premium Quality</p>
               </div>
               <div className="text-center">
-                <Shield className="w-6 h-6 mx-auto mb-2 text-[#C8A97E]" />
-                <p className="text-xs text-gray-600">Lab Tested</p>
+                <Shield className="w-6 h-6 mx-auto mb-2 text-[#6f8a74]" />
+                <p className="text-xs text-[#59615b]">Lab Tested</p>
               </div>
               <div className="text-center">
-                <Truck className="w-6 h-6 mx-auto mb-2 text-[#C8A97E]" />
-                <p className="text-xs text-gray-600">Fast Delivery</p>
+                <Truck className="w-6 h-6 mx-auto mb-2 text-[#6f8a74]" />
+                <p className="text-xs text-[#59615b]">Fast Delivery</p>
               </div>
             </div>
 
@@ -188,9 +188,9 @@ export default function ProductPage() {
         {/* Product Details Tabs */}
         <div className="max-w-4xl mx-auto space-y-12">
           {/* Description */}
-          <section>
+          <section className="brand-card p-6 md:p-8">
             <h2 className="font-playfair text-3xl font-bold mb-6">About This Product</h2>
-            <p className="text-gray-700 text-lg leading-relaxed">{product.fullDescription}</p>
+            <p className="text-[#464c49] text-lg leading-relaxed">{product.fullDescription}</p>
           </section>
 
           {/* Key Ingredients */}
@@ -198,9 +198,21 @@ export default function ProductPage() {
             <h2 className="font-playfair text-3xl font-bold mb-6">Key Ingredients</h2>
             <div className="grid md:grid-cols-2 gap-6">
               {product.ingredients.map((ingredient, idx) => (
-                <div key={idx} className="bg-[#F5F0E8] p-6 rounded-xl">
-                  <h3 className="font-semibold text-xl mb-2">{ingredient.name}</h3>
-                  <p className="text-gray-700">{ingredient.benefit}</p>
+                <div key={idx} className="brand-card overflow-hidden">
+                  {ingredient.image && (
+                    <div className="relative aspect-[4/3] bg-[#f4ecdd]">
+                      <Image
+                        src={ingredient.image}
+                        alt={ingredient.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  )}
+                  <div className="p-6">
+                    <h3 className="font-semibold text-xl mb-2">{ingredient.name}</h3>
+                    <p className="text-[#464c49]">{ingredient.benefit}</p>
+                  </div>
                 </div>
               ))}
             </div>
@@ -208,40 +220,40 @@ export default function ProductPage() {
 
           {/* Full Ingredients List */}
           {product.ingredientsList && (
-            <section className="bg-white border border-gray-200 p-6 rounded-xl">
+            <section className="brand-card p-6">
               <h2 className="font-playfair text-2xl font-bold mb-4">Full Ingredients List</h2>
-              <p className="text-gray-700 leading-relaxed">
-                <span className="font-semibold text-gray-900">Ingredients: </span>
+              <p className="text-[#464c49] leading-relaxed">
+                <span className="font-semibold text-[#1f2229]">Ingredients: </span>
                 {product.ingredientsList}
               </p>
             </section>
           )}
 
           {/* How It Works */}
-          <section>
+          <section className="brand-card p-6 md:p-8">
             <h2 className="font-playfair text-3xl font-bold mb-6">How It Works</h2>
-            <div className="text-gray-700 text-lg leading-relaxed whitespace-pre-line">
+            <div className="text-[#464c49] text-lg leading-relaxed whitespace-pre-line">
               {product.howItWorks}
             </div>
           </section>
 
           {/* When To Use */}
-          <section>
+          <section className="brand-card p-6 md:p-8">
             <h2 className="font-playfair text-3xl font-bold mb-6">When To Use</h2>
             <div className="grid md:grid-cols-2 gap-4">
               {product.occasions.map((occasion, idx) => (
-                <div key={idx} className="flex items-center space-x-3 p-4 bg-[#F5F0E8] rounded-lg">
-                  <Check className="w-5 h-5 text-[#C8A97E] flex-shrink-0" />
-                  <span className="text-gray-700">{occasion}</span>
+                <div key={idx} className="flex items-center space-x-3 p-4 bg-[#dce6d7]/60 rounded-xl border border-[#d9cbb5]">
+                  <Check className="w-5 h-5 text-[#6f8a74] flex-shrink-0" />
+                  <span className="text-[#464c49]">{occasion}</span>
                 </div>
               ))}
             </div>
           </section>
 
           {/* Usage */}
-          <section className="bg-[#C8A97E]/10 p-8 rounded-2xl">
+          <section className="bg-[#dce6d7]/70 border border-[#d9cbb5] p-8 rounded-2xl">
             <h2 className="font-playfair text-2xl font-bold mb-4">Usage Instructions</h2>
-            <p className="text-gray-700 text-lg">{product.usage}</p>
+            <p className="text-[#464c49] text-lg">{product.usage}</p>
           </section>
 
 

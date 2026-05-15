@@ -6,7 +6,7 @@ import Button from '@/components/Button'
 import ProductCard from '@/components/ProductCard'
 import SubscriptionCard from '@/components/SubscriptionCard'
 import { getFeaturedProducts, getUpcomingProducts } from '@/lib/products'
-import { ArrowRight, CheckCircle, Star, Brain, Focus, Heart, Zap, Bell } from 'lucide-react'
+import { ArrowRight, Bell, Brain, CheckCircle, Clock3, Focus, Heart, Leaf, PackageCheck, ShieldCheck, Star, Zap } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 export default function Home() {
@@ -15,16 +15,13 @@ export default function Home() {
   const [notifyError, setNotifyError] = useState('')
 
   useEffect(() => {
-    // Track affiliate code from URL
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search)
       const refCode = urlParams.get('ref')
-      
+
       if (refCode) {
-        // Store affiliate code in localStorage
         localStorage.setItem('affiliateCode', refCode.toUpperCase())
-        
-        // Track affiliate click
+
         fetch('/api/affiliate/track', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -33,7 +30,6 @@ export default function Home() {
       }
     }
 
-    // Track page view
     if (typeof window !== 'undefined' && window.gtag) {
       window.gtag('event', 'page_view', {
         page_title: 'Home',
@@ -42,7 +38,6 @@ export default function Home() {
       })
     }
 
-    // Track to backend analytics
     fetch('/api/analytics/track', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -58,19 +53,19 @@ export default function Home() {
   const handleNotifySubmit = async (e) => {
     e.preventDefault()
     setNotifyError('')
-    
+
     try {
       const response = await fetch('/api/notify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           email: notifyEmail,
           product: 'P-Bar'
         })
       })
 
       const data = await response.json()
-      
+
       if (data.success) {
         setNotifySuccess(true)
         setNotifyEmail('')
@@ -86,326 +81,293 @@ export default function Home() {
   const featuredProducts = getFeaturedProducts()
   const upcomingProducts = getUpcomingProducts()
 
+  const quickRelief = [
+    { title: 'Science-Backed', desc: 'Research-based formulations', icon: Brain },
+    { title: 'Fast Acting', desc: 'Works in 15-20 minutes', icon: Clock3 },
+    { title: 'Delicious', desc: 'Tastes like premium chocolate', icon: PackageCheck }
+  ]
+
+  const occasions = [
+    { title: 'Before Your Exam', icon: Brain, desc: 'Stay calm and focused during tests' },
+    { title: 'Before Your Interview', icon: Focus, desc: 'Project confidence and clarity' },
+    { title: 'Before Presentations', icon: Zap, desc: 'Speak with poise and assurance' },
+    { title: 'When Feeling Anxious', icon: Heart, desc: 'Restore calm and composure' }
+  ]
+
+  const aspects = [
+    '100% Natural Ingredients',
+    'No Added Sugar',
+    'No Added Preservatives',
+    'Science-Backed Formula',
+    'Quick Acting (15-20 min)',
+    'Delicious & Convenient'
+  ]
+
+  const benefits = [
+    'Reduces stress and nervousness',
+    'Enhances mental clarity and focus',
+    'Promotes calm without drowsiness',
+    'Improves performance under pressure',
+    'Shifts brain from panic to alpha-wave calm',
+    'Balances cortisol and stress hormones'
+  ]
+
+  const ingredientTiles = [
+    { name: 'Walnuts', image: '/ingredients/walnuts.jpg' },
+    { name: 'Pumpkin Seeds', image: '/ingredients/pumpkin-seeds.jpg' },
+    { name: 'Cocoa Butter', image: '/ingredients/cocoa-butter.jpg' },
+    { name: 'L-Theanine', image: '/ingredients/l-theanine.jpg' }
+  ]
+
+  const testimonials = [
+    {
+      name: 'Siddhant',
+      role: 'Student',
+      comment: 'I was not able to concentrate due to overthinking.After eat the bar within like just 15-20min. it felt so relaxed and calm. Plus it tastes amazing!',
+      rating: 5
+    },
+    {
+      name: 'Shubhe Aditya',
+      role: 'Person',
+      comment: 'I had a fight with my girlfriend and i was thinking so much about it. I wasted an hour thinking about it and then I ate it and it just all felt so normal and relaxing. I think it just save me time.',
+      rating: 5
+    },
+    {
+      name: 'Saksham Jain',
+      role: 'Working Professional',
+      comment: 'I had an interview and I was not fully prepared and so was very nervous, but after eating it I gave answers very calmly and luckily cracked it too. Worth every rupee!',
+      rating: 5
+    }
+  ]
+
   return (
-    <div className="animate-fade-in">
-      {/* Brand Introduction Section */}
-      <section className="bg-white py-16 border-b border-gray-200">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center space-y-6">
-            <div className="inline-block px-6 py-2 bg-[#F5F0E8] rounded-full mb-4">
-              <span className="text-[#C8A97E] font-semibold text-sm">Introducing BeGood</span>
-            </div>
-            
-            <h1 className="font-playfair text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-              Balance Your Emotions,
-              <br />
-              <span className="text-[#C8A97E]">The Convenient Way</span>
-            </h1>
-            
-            <p className="text-xl md:text-2xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
-              The only brand that helps you balance your emotions in the most convenient and fast way
-            </p>
-
-            <p className="text-lg text-gray-600 leading-relaxed max-w-2xl mx-auto">
-              We create science-backed functional foods that help you manage your emotions naturally. 
-              No therapy sessions, no complicated routines just convenient and delicious products that work when you need them most.
-            </p>
-
-            <div className="grid md:grid-cols-3 gap-6 mt-12 max-w-3xl mx-auto">
-              <div className="text-center">
-                <div className="text-3xl mb-2">🧠</div>
-                <h3 className="font-semibold mb-1">Science-Backed</h3>
-                <p className="text-sm text-gray-600">Research-based formulations</p>
+    <div className="brand-page animate-fade-in">
+      <section className="brand-section pt-10 md:pt-16">
+        <div className="brand-container">
+          <div className="brand-panel overflow-hidden">
+            <div className="grid items-center gap-10 px-6 py-10 md:grid-cols-2 md:px-12 md:py-16">
+              <div className="relative order-2 md:order-1">
+                <div className="relative mx-auto aspect-[4/3] max-w-xl">
+                  <Image
+                    src="/a-bar-packaging.png"
+                    alt="BeGood A-Bar"
+                    fill
+                    className="object-contain drop-shadow-2xl"
+                    priority
+                  />
+                </div>
               </div>
-              <div className="text-center">
-                <div className="text-3xl mb-2">⚡</div>
-                <h3 className="font-semibold mb-1">Fast Acting</h3>
-                <p className="text-sm text-gray-600">Works in 15-20 minutes</p>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl mb-2">🍫</div>
-                <h3 className="font-semibold mb-1">Delicious</h3>
-                <p className="text-sm text-gray-600">Tastes like premium chocolate</p>
+
+              <div className="order-1 space-y-7 md:order-2">
+                <span className="brand-pill">Introducing BeGood</span>
+                <div className="space-y-4">
+                  <h1 className="font-playfair text-5xl font-bold leading-tight text-[#15171d] md:text-6xl lg:text-7xl">
+                    Calm Your Mind.
+                    <span className="block text-[#536a58]">Own The Moment.</span>
+                  </h1>
+                  <p className="max-w-xl text-lg leading-relaxed text-[#464c49]">
+                    A premium functional chocolate that reduces Stress,Nervousness and brings calm focus when it matters most.
+                    100% natural ingredients. No pills. No powders. Just delicious, science-backed wellness.
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <Link href="/shop">
+                    <Button size="lg" className="w-full sm:w-auto">
+                      Shop Now <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                  </Link>
+                  <Link href="/about">
+                    <Button variant="outline" size="lg" className="w-full sm:w-auto">
+                      Learn More
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-[#F5F0E8] to-white py-20 md:py-32 overflow-hidden">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            {/* Left Content */}
-            <div className="space-y-8">
-              <div className="inline-block px-4 py-2 bg-[#C8A97E]/10 rounded-full">
-                <span className="text-[#C8A97E] font-semibold text-sm">Just Feel It</span>
-              </div>
-              
-              <h1 className="font-playfair text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
-                Calm Your Mind.
-                <br />
-                <span className="text-[#C8A97E]">Own The Moment.</span>
-              </h1>
-              
-              <p className="text-xl text-gray-600 leading-relaxed">
-                A premium functional chocolate that reduces Stress,Nervousness and brings calm focus 
-                when it matters most. 100% natural ingredients. No pills. No powders. Just delicious, science-backed wellness.
-              </p>
-
-              {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/shop">
-                  <Button size="lg" className="w-full sm:w-auto">
-                    Shop Now <ArrowRight className="ml-2 w-5 h-5" />
-                  </Button>
-                </Link>
-                <Link href="/about">
-                  <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                    Learn More
-                  </Button>
-                </Link>
-              </div>
-
-              {/* Social Proof */}
-              <div className="flex items-center space-x-6 pt-4">
-                <div className="flex -space-x-2">
-                  {[1, 2, 3, 4].map(i => (
-                    <div key={i} className="w-10 h-10 rounded-full bg-gradient-to-br from-[#C8A97E] to-[#B8956E] border-2 border-white" />
-                  ))}
+      <section className="bg-[#dce6d7]/80 py-12 md:py-16">
+        <div className="brand-container">
+          <div className="mb-10 text-center">
+            <h2 className="font-playfair text-3xl font-bold md:text-4xl">Quick Relief, Anytime</h2>
+          </div>
+          <div className="mx-auto grid max-w-5xl gap-8 md:grid-cols-3">
+            {quickRelief.map((item) => (
+              <div key={item.title} className="text-center">
+                <div className="brand-icon mx-auto mb-4 h-14 w-14">
+                  <item.icon className="h-7 w-7" />
                 </div>
-                <div>
-                  <div className="flex items-center space-x-1 mb-1">
-                    {[1, 2, 3, 4, 5].map(i => (
-                      <Star key={i} className="w-4 h-4 fill-[#C8A97E] text-[#C8A97E]" />
-                    ))}
+                <h3 className="font-semibold text-[#1f2229]">{item.title}</h3>
+                <p className="text-sm text-[#59615b]">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="brand-dark py-16 md:py-20">
+        <div className="brand-container">
+          <div className="grid items-center gap-10 md:grid-cols-[1.05fr_0.95fr]">
+            <div className="grid grid-cols-2 gap-4">
+              {ingredientTiles.map((ingredient) => (
+                <div key={ingredient.name} className="group overflow-hidden rounded-2xl border border-[#fbf7ed]/15 bg-[#fbf7ed]/10">
+                  <div className="relative aspect-square">
+                    <Image src={ingredient.image} alt={ingredient.name} fill className="object-cover transition-transform duration-500 group-hover:scale-105" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#1f2229]/70 via-transparent to-transparent" />
+                    <p className="absolute bottom-4 left-4 right-4 font-playfair text-xl font-semibold text-[#fbf7ed]">{ingredient.name}</p>
                   </div>
-                  <p className="text-sm text-gray-600">Trusted by 1000+ Users</p>
                 </div>
+              ))}
+            </div>
+            <div className="space-y-6">
+              <span className="inline-flex rounded-full border border-[#fbf7ed]/20 px-4 py-2 text-sm text-[#dce6d7]">Science Meets Taste</span>
+              <h2 className="font-playfair text-4xl font-bold leading-tight md:text-5xl">Nature's Best for Your Wellbeing</h2>
+              <p className="text-[#dce6d7]">
+                We create science-backed functional foods that help you manage your emotions naturally.
+                No therapy sessions, no complicated routines just convenient and delicious products made with walnuts, pumpkin seeds, cocoa butter, and L-Theanine.
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {benefits.map((benefit) => (
+                  <div key={benefit} className="flex items-start gap-3">
+                    <CheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#9dae99]" />
+                    <span className="text-sm text-[#fbf7ed]">{benefit}</span>
+                  </div>
+                ))}
               </div>
             </div>
+          </div>
+        </div>
+      </section>
 
-            {/* Right Content - Product Image */}
-            <div className="relative">
-              <div className="relative aspect-square">
-                <Image
-                  src="https://customer-assets.emergentagent.com/job_aba2787e-1b7f-4ca4-8c0f-6bdec7418ef0/artifacts/e2gmlali_A%20chocolate%20that%20Induces%20Calm%20and%20Focus..jpg"
-                  alt="BeGood A-Bar"
-                  fill
-                  className="object-contain drop-shadow-2xl p-4"
-                  priority
-                />
+      <section className="brand-section">
+        <div className="brand-container">
+          <div className="mb-12 text-center">
+            <h2 className="font-playfair text-4xl font-bold md:text-5xl">When It Matters Most</h2>
+            <p className="mx-auto mt-3 max-w-2xl text-lg text-[#59615b]">Your perfect companion for high-stakes moments</p>
+          </div>
+
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+            {occasions.map((occasion) => (
+              <div key={occasion.title} className="brand-card p-6">
+                <div className="brand-icon mb-5 h-12 w-12">
+                  <occasion.icon className="h-6 w-6" />
+                </div>
+                <h3 className="font-playfair text-xl font-semibold">{occasion.title}</h3>
+                <p className="mt-2 text-sm text-[#59615b]">{occasion.desc}</p>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 md:py-20">
+        <div className="brand-container">
+          <div className="brand-panel p-8 md:p-12">
+            <div className="mb-10 text-center">
+              <ShieldCheck className="mx-auto mb-4 h-12 w-12 text-[#536a58]" />
+              <h2 className="font-playfair text-4xl font-bold md:text-5xl">Why Choose BeGood?</h2>
+              <p className="mx-auto mt-3 max-w-2xl text-[#59615b]">Premium quality you can trust</p>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {aspects.map((aspect) => (
+                <div key={aspect} className="flex items-start gap-3 rounded-2xl border border-[#d9cbb5] bg-[#fbf7ed]/55 p-4">
+                  <Leaf className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#536a58]" />
+                  <span className="text-[#2f332f]">{aspect}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* When To Use Section */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="font-playfair text-4xl md:text-5xl font-bold mb-4">When It Matters Most</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Your perfect companion for high-stakes moments
-            </p>
+      <section className="brand-section bg-[#fbf7ed]/70">
+        <div className="brand-container">
+          <div className="mb-12 text-center">
+            <h2 className="font-playfair text-4xl font-bold md:text-5xl">Our Products</h2>
+            <p className="mt-3 text-lg text-[#59615b]">Functional wellness, perfectly crafted</p>
           </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { title: 'Before Your Exam', icon: Brain, desc: 'Stay calm and focused during tests' },
-              { title: 'Before Your Interview', icon: Focus, desc: 'Project confidence and clarity' },
-              { title: 'Before Presentations', icon: Zap, desc: 'Speak with poise and assurance' },
-              { title: 'When Feeling Anxious', icon: Heart, desc: 'Restore calm and composure' }
-            ].map((occasion, idx) => (
-              <div key={idx} className="bg-[#F5F0E8] p-8 rounded-2xl hover:shadow-lg transition-shadow">
-                <occasion.icon className="w-12 h-12 text-[#C8A97E] mb-4" />
-                <h3 className="font-playfair text-xl font-semibold mb-2">{occasion.title}</h3>
-                <p className="text-gray-600">{occasion.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Key Aspects Section */}
-      <section className="py-20 bg-gradient-to-br from-[#F5F0E8] to-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="font-playfair text-4xl md:text-5xl font-bold mb-4">Why Choose BeGood?</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Premium quality you can trust
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto mb-12">
-            {[
-              '100% Natural Ingredients',
-              'No Added Sugar',
-              'No Added Preservatives',
-              'Science-Backed Formula',
-              'Quick Acting (15-20 min)',
-              'Delicious & Convenient'
-            ].map((aspect, idx) => (
-              <div key={idx} className="flex items-start space-x-4">
-                <CheckCircle className="w-6 h-6 text-[#C8A97E] flex-shrink-0 mt-1" />
-                <p className="text-lg text-gray-700">{aspect}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Benefits Section */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="font-playfair text-4xl md:text-5xl font-bold mb-4">Science Meets Taste</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Functional ingredients that work, wrapped in delicious chocolate
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {[
-              'Reduces stress and nervousness',
-              'Enhances mental clarity and focus',
-              'Promotes calm without drowsiness',
-              'Improves performance under pressure',
-              'Shifts brain from panic to alpha-wave calm',
-              'Balances cortisol and stress hormones'
-            ].map((benefit, idx) => (
-              <div key={idx} className="flex items-start space-x-4">
-                <CheckCircle className="w-6 h-6 text-[#C8A97E] flex-shrink-0 mt-1" />
-                <p className="text-lg text-gray-700">{benefit}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Product Highlight */}
-      <section className="py-20 bg-gradient-to-br from-[#F5F0E8] to-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="font-playfair text-4xl md:text-5xl font-bold mb-4">Our Products</h2>
-            <p className="text-xl text-gray-600">Functional wellness, perfectly crafted</p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-2 lg:grid-cols-3">
             {featuredProducts.map(product => (
               <ProductCard key={product.id} product={product} />
             ))}
-            
-            {/* Subscription Card */}
             <SubscriptionCard />
           </div>
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="font-playfair text-4xl md:text-5xl font-bold mb-4">What Our Customers Say</h2>
+      <section className="brand-section">
+        <div className="brand-container">
+          <div className="mb-12 text-center">
+            <h2 className="font-playfair text-4xl font-bold md:text-5xl">What Our Customers Say</h2>
           </div>
-
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {[
-              {
-                name: 'Siddhant',
-                role: 'Student',
-                comment: 'I was not able to concentrate due to overthinking.After eat the bar within like just 15-20min. it felt so relaxed and calm. Plus it tastes amazing!',
-                rating: 5
-              },
-              {
-                name: 'Shubhe Aditya',
-                role: 'Person',
-                comment: 'I had a fight with my girlfriend and i was thinking so much about it. I wasted an hour thinking about it and then I ate it and it just all felt so normal and relaxing. I think it just save me time.',
-                rating: 5
-              },
-              {
-                name: 'Saksham Jain',
-                role: 'Working Professional',
-                comment: 'I had an interview and I was not fully prepared and so was very nervous, but after eating it I gave answers very calmly and luckily cracked it too. Worth every rupee!',
-                rating: 5
-              }
-            ].map((testimonial, idx) => (
-              <div key={idx} className="bg-[#F5F0E8] p-8 rounded-2xl shadow-sm">
-                <div className="flex items-center space-x-1 mb-4">
+          <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-3">
+            {testimonials.map((testimonial) => (
+              <div key={testimonial.name} className="brand-card p-7">
+                <div className="mb-4 flex items-center gap-1">
                   {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 fill-[#C8A97E] text-[#C8A97E]" />
+                    <Star key={i} className="h-5 w-5 fill-[#6f8a74] text-[#6f8a74]" />
                   ))}
                 </div>
-                <p className="text-gray-700 mb-6 italic">"{testimonial.comment}"</p>
-                <div>
-                  <p className="font-semibold">{testimonial.name}</p>
-                  <p className="text-sm text-gray-500">{testimonial.role}</p>
-                </div>
+                <p className="mb-6 italic text-[#464c49]">"{testimonial.comment}"</p>
+                <p className="font-semibold">{testimonial.name}</p>
+                <p className="text-sm text-[#59615b]">{testimonial.role}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Upcoming Product - P-Bar */}
       {upcomingProducts.length > 0 && (
-        <section className="py-20 bg-gradient-to-br from-[#C8A97E] to-[#B8956E] text-white">
-          <div className="container mx-auto px-4">
-            <div className="max-w-4xl mx-auto text-center">
-              <Bell className="w-16 h-16 mx-auto mb-6 animate-pulse" />
-              <h2 className="font-playfair text-4xl md:text-5xl font-bold mb-4">Coming Soon: P-Bar</h2>
-              <p className="text-xl mb-8 opacity-90">
-                A functional chocolate bar designed to help manage menstrual discomfort. 
+        <section className="bg-[#3f4350] py-16 text-[#fbf7ed] md:py-20">
+          <div className="brand-container">
+            <div className="mx-auto max-w-4xl text-center">
+              <Bell className="mx-auto mb-6 h-14 w-14 animate-pulse text-[#dce6d7]" />
+              <h2 className="font-playfair text-4xl font-bold md:text-5xl">Coming Soon: P-Bar</h2>
+              <p className="mx-auto mt-4 max-w-2xl text-lg text-[#dce6d7]">
+                A functional chocolate bar designed to help manage menstrual discomfort.
                 Be the first to know when we launch!
               </p>
 
-              {/* Notify Me Form */}
-              <form onSubmit={handleNotifySubmit} className="max-w-md mx-auto">
-                <div className="flex flex-col sm:flex-row gap-3">
+              <form onSubmit={handleNotifySubmit} className="mx-auto mt-8 max-w-md">
+                <div className="flex flex-col gap-3 sm:flex-row">
                   <input
                     type="email"
                     value={notifyEmail}
                     onChange={(e) => setNotifyEmail(e.target.value)}
                     placeholder="Enter your email"
                     required
-                    className="flex-1 px-6 py-4 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-white"
+                    className="flex-1 rounded-full px-6 py-4 text-[#1f2229] focus:outline-none focus:ring-2 focus:ring-[#dce6d7]"
                   />
-                  <Button 
-                    type="submit" 
-                    variant="secondary" 
-                    size="lg"
-                    className="whitespace-nowrap"
-                  >
+                  <Button type="submit" variant="secondary" size="lg" className="whitespace-nowrap">
                     Notify Me
                   </Button>
                 </div>
                 {notifySuccess && (
-                  <p className="mt-4 text-white font-semibold">✓ Thanks! We'll notify you when P-Bar launches.</p>
+                  <p className="mt-4 font-semibold text-[#dce6d7]">Thanks! We'll notify you when P-Bar launches.</p>
                 )}
                 {notifyError && (
                   <p className="mt-4 text-red-200">{notifyError}</p>
                 )}
               </form>
 
-              <p className="mt-6 text-sm opacity-75">
-                Join the waitlist and get exclusive early access
-              </p>
+              <p className="mt-6 text-sm text-[#dce6d7]/80">Join the waitlist and get exclusive early access</p>
             </div>
           </div>
         </section>
       )}
 
-      {/* CTA Section */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="font-playfair text-4xl md:text-5xl font-bold mb-6">Ready To Feel Your Best?</h2>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+      <section className="brand-section">
+        <div className="brand-container text-center">
+          <h2 className="font-playfair text-4xl font-bold md:text-5xl">Ready To Feel Your Best?</h2>
+          <p className="mx-auto mb-8 mt-4 max-w-2xl text-lg text-[#59615b]">
             Join thousands who trust BeGood for their most important moments
           </p>
           <Link href="/shop">
             <Button size="lg">
-              Shop Now <ArrowRight className="ml-2 w-5 h-5" />
+              Shop Now <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>
         </div>

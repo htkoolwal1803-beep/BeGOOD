@@ -54,15 +54,15 @@ export default function ProductFeedbackSection({ productId, productName }) {
   }
 
   const renderFeedbackCard = (fb) => (
-    <div key={fb.id} className="border-b border-gray-200 pb-6 last:border-0">
+    <div key={fb.id} className="border-b border-[#d9cbb5] pb-6 last:border-0">
       <div className="flex items-start justify-between mb-3 gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-[#C8A97E]/20 text-[#C8A97E] flex items-center justify-center font-semibold text-sm">
+          <div className="w-10 h-10 rounded-full bg-[#6f8a74]/20 text-[#6f8a74] flex items-center justify-center font-semibold text-sm">
             {getInitials(fb.userName || 'User')}
           </div>
           <div>
             <p className="font-semibold">{fb.userName || 'Anonymous'}</p>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-[#6b736d]">
               {new Date(fb.createdAt).toLocaleDateString(undefined, {
                 year: 'numeric',
                 month: 'short',
@@ -78,7 +78,7 @@ export default function ProductFeedbackSection({ productId, productName }) {
           return (
             <div className="flex">
               {Array.from({ length: starA.answer }).map((_, i) => (
-                <Star key={i} className="w-4 h-4 fill-[#C8A97E] text-[#C8A97E]" />
+                <Star key={i} className="w-4 h-4 fill-[#6f8a74] text-[#6f8a74]" />
               ))}
             </div>
           )
@@ -99,8 +99,8 @@ export default function ProductFeedbackSection({ productId, productName }) {
           }
           return (
             <div key={i}>
-              <div className="font-semibold text-gray-700">{a.question}</div>
-              <div className="text-gray-600">{formatAnswer(a.answer)}</div>
+              <div className="font-semibold text-[#464c49]">{a.question}</div>
+              <div className="text-[#59615b]">{formatAnswer(a.answer)}</div>
             </div>
           )
         })}
@@ -113,7 +113,7 @@ export default function ProductFeedbackSection({ productId, productName }) {
       <section>
         <h2 className="font-playfair text-3xl font-bold mb-6">Customer Feedback</h2>
         <div className="flex items-center justify-center py-8">
-          <Loader2 className="w-6 h-6 animate-spin text-[#C8A97E]" />
+          <Loader2 className="w-6 h-6 animate-spin text-[#6f8a74]" />
         </div>
       </section>
     )
@@ -136,20 +136,20 @@ export default function ProductFeedbackSection({ productId, productName }) {
                     key={i}
                     className={`w-5 h-5 ${
                       i < Math.round(avgRatingInfo.avg)
-                        ? 'fill-[#C8A97E] text-[#C8A97E]'
+                        ? 'fill-[#6f8a74] text-[#6f8a74]'
                         : 'text-gray-300'
                     }`}
                   />
                 ))}
               </div>
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-[#59615b]">
                 {avgRatingInfo.avg.toFixed(1)} · Based on {avgRatingInfo.count} rating
                 {avgRatingInfo.count !== 1 ? 's' : ''}
               </span>
             </div>
           )}
         </div>
-        <div className="text-sm text-gray-500">{total} feedback{total !== 1 ? 's' : ''}</div>
+        <div className="text-sm text-[#6b736d]">{total} feedback{total !== 1 ? 's' : ''}</div>
       </div>
 
       <div className="space-y-6">{visible.map(renderFeedbackCard)}</div>
@@ -169,7 +169,7 @@ export default function ProductFeedbackSection({ productId, productName }) {
           onClick={() => setShowAll(false)}
         >
           <div
-            className="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+            className="bg-[#fbf7ed] rounded-xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between px-6 py-4 border-b">
@@ -178,7 +178,7 @@ export default function ProductFeedbackSection({ productId, productName }) {
               </h3>
               <button
                 onClick={() => setShowAll(false)}
-                className="p-2 text-gray-500 hover:text-gray-700"
+                className="p-2 text-[#6b736d] hover:text-[#464c49]"
               >
                 <X className="w-5 h-5" />
               </button>

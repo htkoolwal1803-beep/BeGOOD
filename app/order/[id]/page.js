@@ -35,8 +35,8 @@ export default function OrderConfirmationPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-[#C8A97E] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading order details...</p>
+          <div className="w-16 h-16 border-4 border-[#6f8a74] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-[#59615b]">Loading order details...</p>
         </div>
       </div>
     )
@@ -47,7 +47,7 @@ export default function OrderConfirmationPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h1 className="font-playfair text-3xl font-bold mb-4">Order Not Found</h1>
-          <p className="text-gray-600 mb-8">We couldn't find the order you're looking for</p>
+          <p className="text-[#59615b] mb-8">We couldn't find the order you're looking for</p>
           <Link href="/shop">
             <Button>Continue Shopping</Button>
           </Link>
@@ -57,7 +57,7 @@ export default function OrderConfirmationPage() {
   }
 
   return (
-    <div className="min-h-screen py-12 md:py-20">
+    <div className="brand-page min-h-screen py-12 md:py-20">
       <div className="container mx-auto px-4">
         <div className="max-w-3xl mx-auto">
           {/* Success Message */}
@@ -66,46 +66,46 @@ export default function OrderConfirmationPage() {
               <CheckCircle className="w-12 h-12 text-green-600" />
             </div>
             <h1 className="font-playfair text-4xl md:text-5xl font-bold mb-4">Order Confirmed!</h1>
-            <p className="text-xl text-gray-600 mb-2">
+            <p className="text-xl text-[#59615b] mb-2">
               Thank you for your order, {order.customerName}!
             </p>
-            <p className="text-gray-500">
+            <p className="text-[#6b736d]">
               Order ID: <span className="font-mono font-semibold">{order.orderId}</span>
             </p>
           </div>
 
           {/* Order Details */}
-          <div className="bg-white border border-gray-200 rounded-xl p-8 mb-6">
+          <div className="brand-panel p-8 mb-6">
             <h2 className="font-playfair text-2xl font-bold mb-6 flex items-center">
-              <Package className="w-6 h-6 mr-2 text-[#C8A97E]" />
+              <Package className="w-6 h-6 mr-2 text-[#6f8a74]" />
               Order Details
             </h2>
 
             <div className="space-y-4 mb-6">
               {order.products.map((product, index) => (
-                <div key={index} className="flex justify-between items-start pb-4 border-b border-gray-200 last:border-0">
+                <div key={index} className="flex justify-between items-start pb-4 border-b border-[#d9cbb5] last:border-0">
                   <div>
                     <p className="font-semibold">{product.productName}</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-[#59615b]">
                       {product.variant.size} - {product.variant.flavor}
                     </p>
-                    <p className="text-sm text-gray-600">Quantity: {product.quantity}</p>
+                    <p className="text-sm text-[#59615b]">Quantity: {product.quantity}</p>
                   </div>
                   <div className="text-right">
                     <p className="font-semibold">₹{product.price * product.quantity}</p>
-                    <p className="text-xs text-gray-500">₹{product.price} each</p>
+                    <p className="text-xs text-[#6b736d]">₹{product.price} each</p>
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="border-t border-gray-200 pt-4 space-y-2">
+            <div className="border-t border-[#d9cbb5] pt-4 space-y-2">
               <div className="flex justify-between text-lg">
                 <span className="font-semibold">Total Amount</span>
-                <span className="font-bold text-[#C8A97E]">₹{order.totalAmount}</span>
+                <span className="font-bold text-[#6f8a74]">₹{order.totalAmount}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Status</span>
+                <span className="text-[#59615b]">Status</span>
                 <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-semibold">
                   {order.status}
                 </span>
@@ -114,27 +114,27 @@ export default function OrderConfirmationPage() {
           </div>
 
           {/* Shipping Information */}
-          <div className="bg-[#F5F0E8] rounded-xl p-8 mb-6">
+          <div className="brand-card p-8 mb-6">
             <h2 className="font-playfair text-2xl font-bold mb-6">Shipping Information</h2>
             <div className="space-y-3">
               <div className="flex items-start">
-                <Mail className="w-5 h-5 text-[#C8A97E] mr-3 mt-0.5" />
+                <Mail className="w-5 h-5 text-[#6f8a74] mr-3 mt-0.5" />
                 <div>
-                  <p className="text-sm text-gray-600">Email</p>
+                  <p className="text-sm text-[#59615b]">Email</p>
                   <p className="font-semibold">{order.email}</p>
                 </div>
               </div>
               <div className="flex items-start">
-                <Phone className="w-5 h-5 text-[#C8A97E] mr-3 mt-0.5" />
+                <Phone className="w-5 h-5 text-[#6f8a74] mr-3 mt-0.5" />
                 <div>
-                  <p className="text-sm text-gray-600">Phone</p>
+                  <p className="text-sm text-[#59615b]">Phone</p>
                   <p className="font-semibold">{order.phone}</p>
                 </div>
               </div>
               <div className="flex items-start">
-                <Package className="w-5 h-5 text-[#C8A97E] mr-3 mt-0.5" />
+                <Package className="w-5 h-5 text-[#6f8a74] mr-3 mt-0.5" />
                 <div>
-                  <p className="text-sm text-gray-600">Delivery Address</p>
+                  <p className="text-sm text-[#59615b]">Delivery Address</p>
                   <p className="font-semibold">{order.address}</p>
                   <p className="font-semibold">Pincode: {order.pincode}</p>
                 </div>
@@ -143,7 +143,7 @@ export default function OrderConfirmationPage() {
           </div>
 
           {/* What's Next */}
-          <div className="bg-gradient-to-br from-[#C8A97E] to-[#B8956E] text-white rounded-xl p-8 mb-6">
+          <div className="bg-gradient-to-br from-[#6f8a74] to-[#536a58] text-white rounded-xl p-8 mb-6">
             <h2 className="font-playfair text-2xl font-bold mb-4">What's Next?</h2>
             <ul className="space-y-3">
               <li className="flex items-start">

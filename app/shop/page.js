@@ -31,12 +31,13 @@ export default function ShopPage() {
   const availableProducts = products.filter(p => !p.upcoming || p.comingSoon)
 
   return (
-    <div className="min-h-screen py-20">
+    <div className="brand-page min-h-screen py-16 md:py-20">
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-16 animate-fade-in">
-          <h1 className="font-playfair text-5xl md:text-6xl font-bold mb-6">Shop BeGood</h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <span className="brand-pill mb-5">Functional wellness, perfectly crafted</span>
+          <h1 className="font-playfair text-5xl md:text-6xl font-bold mb-6 text-[#1f2229]">Shop BeGood</h1>
+          <p className="text-xl text-[#59615b] max-w-2xl mx-auto">
             Discover our science-backed functional chocolates designed to help you balance your emotions
           </p>
         </div>
@@ -52,9 +53,9 @@ export default function ShopPage() {
         </div>
 
         {/* Info Section */}
-        <div className="mt-20 bg-[#F5F0E8] rounded-2xl p-8 md:p-12 text-center max-w-4xl mx-auto">
+        <div className="brand-panel mt-20 p-8 md:p-12 text-center max-w-4xl mx-auto">
           <h2 className="font-playfair text-3xl font-bold mb-4">Why BeGood?</h2>
-          <p className="text-gray-700 text-lg leading-relaxed">
+          <p className="text-[#464c49] text-lg leading-relaxed">
             Every BeGood product is crafted with science-backed ingredients to help you manage your emotions naturally. 
             No therapy sessions, no complicated routines—just delicious, convenient foods that work when you need them most.
           </p>

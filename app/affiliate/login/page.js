@@ -46,14 +46,14 @@ export default function AffiliateLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F5F0E8] to-white flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full">
+    <div className="brand-page min-h-screen flex items-center justify-center p-4">
+      <div className="brand-panel p-8 max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-[#C8A97E] rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-[#6f8a74] rounded-full flex items-center justify-center mx-auto mb-4">
             <Users className="w-8 h-8 text-white" />
           </div>
           <h1 className="font-playfair text-3xl font-bold">Affiliate Portal</h1>
-          <p className="text-gray-600 mt-2">Login to view your performance dashboard</p>
+          <p className="text-[#59615b] mt-2">Login to view your performance dashboard</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
@@ -64,7 +64,7 @@ export default function AffiliateLoginPage() {
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
               placeholder="Enter your affiliate code"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C8A97E] uppercase"
+              className="w-full px-4 py-3 border border-[#d9cbb5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74] uppercase"
               required
             />
           </div>
@@ -75,7 +75,7 @@ export default function AffiliateLoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C8A97E]"
+              className="w-full px-4 py-3 border border-[#d9cbb5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
               required
             />
           </div>
@@ -97,13 +97,13 @@ export default function AffiliateLoginPage() {
         </form>
 
         <div className="mt-8 pt-6 border-t text-center">
-          <p className="text-gray-500 text-sm">
-            Need help? Contact us at <a href="mailto:healhat25@gmail.com" className="text-[#C8A97E] hover:underline">healhat25@gmail.com</a>
+          <p className="text-[#6b736d] text-sm">
+            Need help? Contact us at <a href="mailto:healhat25@gmail.com" className="text-[#6f8a74] hover:underline">healhat25@gmail.com</a>
           </p>
         </div>
 
         <div className="mt-4 text-center">
-          <Link href="/" className="text-gray-500 hover:text-gray-700 text-sm">
+          <Link href="/" className="text-[#6b736d] hover:text-[#464c49] text-sm">
             ← Back to Website
           </Link>
         </div>

@@ -226,14 +226,14 @@ export default function AdminCouponsPage() {
 
   if (!authenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F5F0E8] to-white">
-        <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
+      <div className="brand-page min-h-screen flex items-center justify-center">
+        <div className="brand-panel p-8 w-full max-w-md">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-[#C8A97E]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Tag className="w-8 h-8 text-[#C8A97E]" />
+            <div className="w-16 h-16 bg-[#6f8a74]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Tag className="w-8 h-8 text-[#6f8a74]" />
             </div>
             <h1 className="font-playfair text-3xl font-bold mb-2">Coupon Management</h1>
-            <p className="text-gray-600">Enter admin password to continue</p>
+            <p className="text-[#59615b]">Enter admin password to continue</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
@@ -243,7 +243,7 @@ export default function AdminCouponsPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C8A97E]"
+                className="w-full px-4 py-3 border border-[#d9cbb5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
                 placeholder="Enter admin password"
                 required
               />
@@ -263,18 +263,18 @@ export default function AdminCouponsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="brand-page min-h-screen py-12">
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="mb-8">
-          <Link href="/admin" className="inline-flex items-center text-gray-600 hover:text-[#C8A97E] mb-4">
+          <Link href="/admin" className="inline-flex items-center text-[#59615b] hover:text-[#6f8a74] mb-4">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Dashboard
           </Link>
           <div className="flex items-center justify-between">
             <div>
               <h1 className="font-playfair text-4xl font-bold mb-2">Coupon Management</h1>
-              <p className="text-gray-600">Create and manage discount coupons for content creators</p>
+              <p className="text-[#59615b]">Create and manage discount coupons for content creators</p>
             </div>
             <Button onClick={() => setShowForm(true)} disabled={showForm}>
               <Plus className="w-4 h-4 mr-2" />
@@ -285,7 +285,7 @@ export default function AdminCouponsPage() {
 
         {/* Create/Edit Form */}
         {showForm && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+          <div className="brand-card p-6 mb-8">
             <h2 className="font-playfair text-2xl font-bold mb-6">
               {editingCoupon ? 'Edit Coupon' : 'Create New Coupon'}
             </h2>
@@ -298,11 +298,11 @@ export default function AdminCouponsPage() {
                     value={formData.code}
                     onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
                     placeholder="e.g., RAHUL20"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C8A97E]"
+                    className="w-full px-4 py-3 border border-[#d9cbb5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
                     required
                     disabled={editingCoupon}
                   />
-                  <p className="text-xs text-gray-500 mt-1">Unique code for the content creator</p>
+                  <p className="text-xs text-[#6b736d] mt-1">Unique code for the content creator</p>
                 </div>
 
                 <div>
@@ -310,7 +310,7 @@ export default function AdminCouponsPage() {
                   <select
                     value={formData.discountType}
                     onChange={(e) => setFormData({ ...formData, discountType: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C8A97E]"
+                    className="w-full px-4 py-3 border border-[#d9cbb5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
                     required
                   >
                     <option value="percentage">Percentage (%)</option>
@@ -329,7 +329,7 @@ export default function AdminCouponsPage() {
                     placeholder={formData.discountType === 'percentage' ? 'e.g., 10' : 'e.g., 50'}
                     min="1"
                     max={formData.discountType === 'percentage' ? '100' : undefined}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C8A97E]"
+                    className="w-full px-4 py-3 border border-[#d9cbb5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
                     required
                   />
                 </div>
@@ -342,7 +342,7 @@ export default function AdminCouponsPage() {
                     onChange={(e) => setFormData({ ...formData, maxUses: e.target.value })}
                     placeholder="Leave empty for unlimited"
                     min="1"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C8A97E]"
+                    className="w-full px-4 py-3 border border-[#d9cbb5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
                   />
                 </div>
 
@@ -353,9 +353,9 @@ export default function AdminCouponsPage() {
                     value={formData.expiryDate}
                     onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
                     min={new Date().toISOString().split('T')[0]}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C8A97E]"
+                    className="w-full px-4 py-3 border border-[#d9cbb5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Leave empty for no expiry</p>
+                  <p className="text-xs text-[#6b736d] mt-1">Leave empty for no expiry</p>
                 </div>
               </div>
 
@@ -373,7 +373,7 @@ export default function AdminCouponsPage() {
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  className="px-4 py-2 border border-[#d9cbb5] rounded-lg hover:bg-[#eef3ea]"
                 >
                   Cancel
                 </button>
@@ -383,20 +383,20 @@ export default function AdminCouponsPage() {
         )}
 
         {/* Coupons List */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="brand-card p-6">
           <h2 className="font-playfair text-2xl font-bold mb-6">All Coupons ({coupons.length})</h2>
           
           {coupons.length === 0 ? (
             <div className="text-center py-12">
               <Tag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-600 mb-4">No coupons created yet</p>
+              <p className="text-[#59615b] mb-4">No coupons created yet</p>
               <Button onClick={() => setShowForm(true)}>Create Your First Coupon</Button>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-gray-200">
+                  <tr className="border-b border-[#d9cbb5]">
                     <th className="text-left py-3 px-4 font-semibold text-sm">Code</th>
                     <th className="text-left py-3 px-4 font-semibold text-sm">Discount</th>
                     <th className="text-left py-3 px-4 font-semibold text-sm">Usage</th>
@@ -408,10 +408,10 @@ export default function AdminCouponsPage() {
                 <tbody>
                   {coupons.map(coupon => (
                     <>
-                      <tr key={coupon.id} className={`border-b border-gray-100 hover:bg-gray-50 ${expandedCouponId === coupon.id ? 'bg-gray-50' : ''}`}>
+                      <tr key={coupon.id} className={`border-b border-gray-100 hover:bg-[#eef3ea] ${expandedCouponId === coupon.id ? 'bg-[#eef3ea]' : ''}`}>
                         <td className="py-4 px-4">
                           <div className="flex items-center">
-                            <Tag className="w-4 h-4 mr-2 text-[#C8A97E]" />
+                            <Tag className="w-4 h-4 mr-2 text-[#6f8a74]" />
                             <span className="font-mono font-bold">{coupon.code}</span>
                           </div>
                         </td>
@@ -434,14 +434,14 @@ export default function AdminCouponsPage() {
                           <div className="flex items-center">
                             <Users className="w-4 h-4 mr-1 text-blue-600" />
                             <span className="font-semibold">{coupon.usedCount}</span>
-                            <span className="text-gray-500 ml-1">
+                            <span className="text-[#6b736d] ml-1">
                               / {coupon.maxUses || '∞'}
                             </span>
                           </div>
                         </td>
                         <td className="py-4 px-4">
                           <div className="flex items-center">
-                            <Calendar className="w-4 h-4 mr-1 text-gray-500" />
+                            <Calendar className="w-4 h-4 mr-1 text-[#6b736d]" />
                             <span className={coupon.expiryDate && new Date(coupon.expiryDate) < new Date() ? 'text-red-500' : ''}>
                               {formatDate(coupon.expiryDate)}
                             </span>
@@ -474,14 +474,14 @@ export default function AdminCouponsPage() {
                             </button>
                             <button
                               onClick={() => startEdit(coupon)}
-                              className="p-2 text-gray-500 hover:text-[#C8A97E] hover:bg-gray-100 rounded"
+                              className="p-2 text-[#6b736d] hover:text-[#6f8a74] hover:bg-[#dce6d7] rounded"
                               title="Edit"
                             >
                               <Edit2 className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDeleteCoupon(coupon.id)}
-                              className="p-2 text-gray-500 hover:text-red-500 hover:bg-gray-100 rounded"
+                              className="p-2 text-[#6b736d] hover:text-red-500 hover:bg-[#dce6d7] rounded"
                               title="Delete"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -491,24 +491,24 @@ export default function AdminCouponsPage() {
                       </tr>
                       {/* Expanded Usage Details */}
                       {expandedCouponId === coupon.id && (
-                        <tr key={`${coupon.id}-usage`} className="bg-gray-50">
+                        <tr key={`${coupon.id}-usage`} className="bg-[#eef3ea]">
                           <td colSpan="6" className="py-4 px-4">
-                            <div className="bg-white rounded-lg p-4 border border-gray-200">
+                            <div className="bg-[#fbf7ed] rounded-lg p-4 border border-[#d9cbb5]">
                               <h4 className="font-semibold mb-3 flex items-center">
-                                <Users className="w-4 h-4 mr-2 text-[#C8A97E]" />
+                                <Users className="w-4 h-4 mr-2 text-[#6f8a74]" />
                                 Usage Details - {coupon.usedCount} Referrals
                               </h4>
                               {!couponUsage[coupon.id] ? (
                                 <div className="flex items-center justify-center py-4">
-                                  <Loader2 className="w-5 h-5 animate-spin text-[#C8A97E]" />
+                                  <Loader2 className="w-5 h-5 animate-spin text-[#6f8a74]" />
                                 </div>
                               ) : couponUsage[coupon.id].length === 0 ? (
-                                <p className="text-gray-500 text-sm">No usage records yet</p>
+                                <p className="text-[#6b736d] text-sm">No usage records yet</p>
                               ) : (
                                 <div className="overflow-x-auto">
                                   <table className="w-full text-sm">
                                     <thead>
-                                      <tr className="border-b border-gray-200">
+                                      <tr className="border-b border-[#d9cbb5]">
                                         <th className="text-left py-2 px-3 font-semibold">User Phone</th>
                                         <th className="text-left py-2 px-3 font-semibold">Order ID</th>
                                         <th className="text-left py-2 px-3 font-semibold">Discount Given</th>

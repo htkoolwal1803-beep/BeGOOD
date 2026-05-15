@@ -28,9 +28,9 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 bg-[#1A1A1A]/95 backdrop-blur-sm border-b border-gray-700">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-20">
+    <header className="sticky top-0 z-50 px-3 pt-3">
+      <div className="container mx-auto rounded-[1.35rem] border border-[#d9cbb5]/80 bg-[#fbf7ed]/92 px-4 shadow-[0_18px_45px_-32px_rgba(31,34,41,0.65)] backdrop-blur-md">
+        <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
             <Image
@@ -38,19 +38,17 @@ export default function Header() {
               alt="BeGood Logo"
               width={240}
               height={80}
-              className="h-20 w-auto"
+              className="h-14 md:h-16 w-auto"
             />
           </Link>
-Line numbers are visible
-
   
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex items-center space-x-7">
             {navLinks.map(link => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-gray-700 hover:text-[#C8A97E] transition-colors font-medium"
+                className="text-sm font-medium text-[#2f332f] transition-colors hover:text-[#6f8a74]"
               >
                 {link.label}
               </Link>
@@ -66,7 +64,7 @@ Line numbers are visible
                   <>
                     <button
                       onClick={() => setUserMenuOpen(!userMenuOpen)}
-                      className="flex items-center space-x-2 text-gray-700 hover:text-[#C8A97E] transition-colors"
+                      className="flex items-center space-x-2 text-[#2f332f] hover:text-[#6f8a74] transition-colors"
                     >
                       <User className="w-6 h-6" />
                       <span className="hidden md:inline text-sm font-medium">
@@ -76,24 +74,24 @@ Line numbers are visible
                     
                     {/* User Dropdown Menu */}
                     {userMenuOpen && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                      <div className="absolute right-0 mt-3 w-52 rounded-2xl border border-[#d9cbb5] bg-[#fbf7ed] py-2 shadow-xl z-50">
                         <Link
                           href="/profile"
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          className="block px-4 py-2 text-sm text-[#2f332f] hover:bg-[#dce6d7]/70"
                           onClick={() => setUserMenuOpen(false)}
                         >
                           My Profile
                         </Link>
                         <Link
                           href="/profile?tab=orders"
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          className="block px-4 py-2 text-sm text-[#2f332f] hover:bg-[#dce6d7]/70"
                           onClick={() => setUserMenuOpen(false)}
                         >
                           Order History
                         </Link>
                         <Link
                           href="/profile?tab=addresses"
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          className="block px-4 py-2 text-sm text-[#2f332f] hover:bg-[#dce6d7]/70"
                           onClick={() => setUserMenuOpen(false)}
                         >
                           Saved Addresses
@@ -101,7 +99,7 @@ Line numbers are visible
                         <hr className="my-2" />
                         <button
                           onClick={handleSignOut}
-                          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center space-x-2"
+                          className="w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-red-50 flex items-center space-x-2"
                         >
                           <LogOut className="w-4 h-4" />
                           <span>Sign Out</span>
@@ -112,7 +110,7 @@ Line numbers are visible
                 ) : (
                   <Link
                     href="/login"
-                    className="flex items-center space-x-2 text-gray-700 hover:text-[#C8A97E] transition-colors"
+                    className="flex items-center space-x-2 text-[#2f332f] hover:text-[#6f8a74] transition-colors"
                   >
                     <User className="w-6 h-6" />
                     <span className="hidden md:inline text-sm font-medium">Login</span>
@@ -121,10 +119,10 @@ Line numbers are visible
               </div>
             )}
 
-            <Link href="/cart" className="relative group">
-              <ShoppingCart className="w-6 h-6 text-gray-700 group-hover:text-[#C8A97E] transition-colors" />
+            <Link href="/cart" className="relative group rounded-full bg-[#dce6d7]/70 p-2">
+              <ShoppingCart className="w-5 h-5 text-[#2f332f] group-hover:text-[#6f8a74] transition-colors" />
               {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-[#C8A97E] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                <span className="absolute -top-2 -right-2 bg-[#6f8a74] text-[#fbf7ed] text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                   {cartCount}
                 </span>
               )}
@@ -136,9 +134,9 @@ Line numbers are visible
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? (
-                <X className="w-6 h-6 text-gray-700" />
+                <X className="w-6 h-6 text-[#2f332f]" />
               ) : (
-                <Menu className="w-6 h-6 text-gray-700" />
+                <Menu className="w-6 h-6 text-[#2f332f]" />
               )}
             </button>
           </div>
@@ -146,12 +144,12 @@ Line numbers are visible
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <nav className="md:hidden py-4 border-t border-gray-200">
+          <nav className="md:hidden py-4 border-t border-[#d9cbb5]">
             {navLinks.map(link => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="block py-3 text-gray-700 hover:text-[#C8A97E] transition-colors font-medium"
+                className="block py-3 text-[#2f332f] hover:text-[#6f8a74] transition-colors font-medium"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {link.label}
@@ -161,7 +159,7 @@ Line numbers are visible
               <>
                 <Link
                   href="/profile"
-                  className="block py-3 text-gray-700 hover:text-[#C8A97E] transition-colors font-medium"
+                  className="block py-3 text-[#2f332f] hover:text-[#6f8a74] transition-colors font-medium"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   My Profile
@@ -179,7 +177,7 @@ Line numbers are visible
             ) : (
               <Link
                 href="/login"
-                className="block py-3 text-[#C8A97E] hover:text-[#b8996e] transition-colors font-medium"
+                className="block py-3 text-[#536a58] hover:text-[#1f2229] transition-colors font-medium"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Login / Sign Up

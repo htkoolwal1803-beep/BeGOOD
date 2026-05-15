@@ -6,24 +6,35 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 15%;
-    --card: 40 33% 95%;
-    --card-foreground: 0 0% 15%;
-    --primary: 38 30% 65%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 40 33% 95%;
-    --secondary-foreground: 0 0% 15%;
-    --muted: 40 33% 95%;
-    --muted-foreground: 0 0% 45%;
-    --accent: 38 30% 65%;
-    --accent-foreground: 0 0% 15%;
+    --background: 95 25% 84%;
+    --foreground: 222 14% 17%;
+    --card: 42 48% 94%;
+    --card-foreground: 222 14% 17%;
+    --primary: 134 15% 47%;
+    --primary-foreground: 42 48% 96%;
+    --secondary: 42 48% 91%;
+    --secondary-foreground: 222 14% 17%;
+    --muted: 98 22% 86%;
+    --muted-foreground: 222 9% 39%;
+    --accent: 36 29% 54%;
+    --accent-foreground: 42 48% 96%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 38 30% 65%;
-    --radius: 0.5rem;
+    --border: 38 24% 79%;
+    --input: 38 24% 79%;
+    --ring: 134 15% 47%;
+    --radius: 0.875rem;
+
+    --brand-sage: #9dae99;
+    --brand-sage-light: #dce6d7;
+    --brand-cream: #f4ecdd;
+    --brand-paper: #fbf7ed;
+    --brand-charcoal: #3f4350;
+    --brand-ink: #1f2229;
+    --brand-green: #6f8a74;
+    --brand-green-dark: #536a58;
+    --brand-clay: #b58c70;
+    --brand-line: #d9cbb5;
   }
 }
 
@@ -34,15 +45,63 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', sans-serif;
+    color: var(--brand-ink);
+    background:
+      radial-gradient(circle at top left, rgba(244, 236, 221, 0.78), transparent 32rem),
+      linear-gradient(180deg, #aab9a3 0%, #dce6d7 38%, #fbf7ed 100%);
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Playfair Display', serif;
+    letter-spacing: 0;
+  }
+  input,
+  textarea,
+  select {
+    @apply border border-border bg-white/85 text-foreground shadow-sm transition-colors;
+  }
+  input:focus,
+  textarea:focus,
+  select:focus {
+    @apply outline-none ring-2 ring-primary/30 border-primary;
   }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+  .brand-page {
+    background: linear-gradient(180deg, rgba(251, 247, 237, 0.75) 0%, rgba(220, 230, 215, 0.62) 100%);
+  }
+  .brand-section {
+    @apply py-16 md:py-24;
+  }
+  .brand-container {
+    @apply container mx-auto px-4;
+  }
+  .brand-panel {
+    @apply rounded-[1.75rem] border border-[#d9cbb5]/70 bg-[#fbf7ed]/90 shadow-[0_24px_70px_-44px_rgba(31,34,41,0.55)];
+  }
+  .brand-card {
+    @apply rounded-2xl border border-[#d9cbb5]/70 bg-[#fbf7ed]/95 shadow-[0_18px_50px_-38px_rgba(31,34,41,0.55)];
+  }
+  .brand-dark {
+    @apply bg-[#3f4350] text-[#fbf7ed];
+  }
+  .brand-pill {
+    @apply inline-flex items-center rounded-full border border-[#6f8a74]/25 bg-[#dce6d7]/80 px-4 py-2 text-sm font-semibold text-[#536a58];
+  }
+  .brand-icon {
+    @apply flex items-center justify-center rounded-full bg-[#9dae99] text-[#1f2229];
+  }
+  .brand-input {
+    @apply w-full rounded-xl border border-[#d9cbb5] bg-white/85 px-4 py-3 focus:border-[#6f8a74] focus:outline-none focus:ring-2 focus:ring-[#6f8a74]/25;
+  }
+  .brand-muted {
+    color: #59615b;
+  }
+  .brand-link {
+    @apply text-[#536a58] transition-colors hover:text-[#1f2229];
   }
 }
 

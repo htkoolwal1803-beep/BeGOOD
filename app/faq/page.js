@@ -9,11 +9,11 @@ export default function FAQPage() {
   const faqs = [
     {
       question: 'What is BeGood A-Bar?',
-      answer: 'BeGood A-Bar is a premium functional chocolate bar infused with science-backed ingredients like L-Theanine, Dark Cocoa, Omega-3 and Magnesium. It\'s designed to help reduce anxiety and promote calm focus during high-stakes moments.'
+      answer: 'BeGood A-Bar is a premium functional chocolate bar made with walnuts, pumpkin seeds, cocoa butter, and L-Theanine. It\'s designed to help reduce anxiety and promote calm focus during high-stakes moments.'
     },
     {
       question: 'How does it work?',
-      answer: 'The combination of Magnesium and L-Theanine works synergistically to reduce cortisol levels and promote alpha brain waves associated with relaxation and focus. Magnesium supports your nervous system, while dark cocoa provides natural mood enhancement.'
+      answer: 'A-Bar combines nourishing ingredients with L-Theanine to support calm focus. Walnuts and pumpkin seeds add plant-based goodness, cocoa butter creates the smooth chocolate experience, and L-Theanine supports relaxed alertness.'
     },
     {
       question: 'When should I consume it?',
@@ -58,12 +58,12 @@ export default function FAQPage() {
   ]
 
   return (
-    <div className="min-h-screen py-20">
+    <div className="brand-page min-h-screen py-20">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
             <h1 className="font-playfair text-5xl md:text-6xl font-bold mb-6">Frequently Asked Questions</h1>
-            <p className="text-xl text-gray-600">
+            <p className="text-xl text-[#59615b]">
               Everything you need to know about BeGood
             </p>
           </div>
@@ -72,27 +72,27 @@ export default function FAQPage() {
             {faqs.map((faq, index) => (
               <details
                 key={index}
-                className="bg-white border border-gray-200 rounded-xl overflow-hidden group"
+                className="brand-card overflow-hidden group"
               >
-                <summary className="flex items-center justify-between p-6 cursor-pointer hover:bg-gray-50 transition-colors">
+                <summary className="flex items-center justify-between p-6 cursor-pointer hover:bg-[#eef3ea] transition-colors">
                   <h3 className="font-semibold text-lg pr-4">{faq.question}</h3>
-                  <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0 group-open:rotate-180 transition-transform" />
+                  <ChevronDown className="w-5 h-5 text-[#8b938b] flex-shrink-0 group-open:rotate-180 transition-transform" />
                 </summary>
-                <div className="px-6 pb-6 text-gray-700 leading-relaxed">
+                <div className="px-6 pb-6 text-[#464c49] leading-relaxed">
                   {faq.answer}
                 </div>
               </details>
             ))}
           </div>
 
-          <div className="mt-12 bg-[#F5F0E8] rounded-xl p-8 text-center">
+          <div className="mt-12 brand-panel p-8 text-center">
             <h2 className="font-playfair text-2xl font-bold mb-4">Still have questions?</h2>
-            <p className="text-gray-700 mb-6">
+            <p className="text-[#464c49] mb-6">
               We're here to help! Reach out to our customer support team.
             </p>
             <a
               href="/contact"
-              className="inline-flex items-center justify-center font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 bg-[#C8A97E] text-white hover:bg-[#B8956E] focus:ring-[#C8A97E] px-8 py-4 text-lg rounded-lg"
+              className="inline-flex items-center justify-center font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 bg-[#6f8a74] text-white hover:bg-[#536a58] focus:ring-[#6f8a74] px-8 py-4 text-lg rounded-lg"
             >
               Contact Us
             </a>

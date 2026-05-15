@@ -4,7 +4,7 @@ import { Star } from 'lucide-react'
 
 // Renders an individual question for the user to answer and calls onChange with the answer value.
 export default function FeedbackQuestionRenderer({ question, value, onChange }) {
-  const common = 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#C8A97E]'
+  const common = 'w-full px-4 py-2 border border-[#d9cbb5] rounded-lg focus:outline-none focus:border-[#6f8a74]'
 
   switch (question.type) {
     case 'short_text':
@@ -88,7 +88,7 @@ export default function FeedbackQuestionRenderer({ question, value, onChange }) 
                 name={`q-${question.id}`}
                 checked={value === opt}
                 onChange={() => onChange(opt)}
-                className="w-4 h-4 text-[#C8A97E] focus:ring-[#C8A97E]"
+                className="w-4 h-4 text-[#6f8a74] focus:ring-[#6f8a74]"
               />
               <span>{opt}</span>
             </label>
@@ -109,7 +109,7 @@ export default function FeedbackQuestionRenderer({ question, value, onChange }) 
                 type="checkbox"
                 checked={arr.includes(opt)}
                 onChange={() => toggle(opt)}
-                className="w-4 h-4 text-[#C8A97E] focus:ring-[#C8A97E] rounded"
+                className="w-4 h-4 text-[#6f8a74] focus:ring-[#6f8a74] rounded"
               />
               <span>{opt}</span>
             </label>
@@ -132,8 +132,8 @@ export default function FeedbackQuestionRenderer({ question, value, onChange }) 
                 onClick={() => onChange(v)}
                 className={`w-10 h-10 rounded-full border-2 font-medium transition-colors ${
                   value === v
-                    ? 'bg-[#C8A97E] text-white border-[#C8A97E]'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-[#C8A97E]'
+                    ? 'bg-[#6f8a74] text-white border-[#6f8a74]'
+                    : 'bg-[#fbf7ed] text-[#464c49] border-[#d9cbb5] hover:border-[#6f8a74]'
                 }`}
               >
                 {v}
@@ -141,7 +141,7 @@ export default function FeedbackQuestionRenderer({ question, value, onChange }) 
             ))}
           </div>
           {(question.scale?.minLabel || question.scale?.maxLabel) && (
-            <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
+            <div className="flex items-center justify-between text-xs text-[#6b736d] mt-2">
               <span>{question.scale?.minLabel}</span>
               <span>{question.scale?.maxLabel}</span>
             </div>
@@ -166,13 +166,13 @@ export default function FeedbackQuestionRenderer({ question, value, onChange }) 
               >
                 <Star
                   className={`w-7 h-7 ${
-                    n <= current ? 'fill-[#C8A97E] text-[#C8A97E]' : 'text-gray-300'
+                    n <= current ? 'fill-[#6f8a74] text-[#6f8a74]' : 'text-gray-300'
                   }`}
                 />
               </button>
             )
           })}
-          {current > 0 && <span className="ml-2 text-sm text-gray-600">{current}/{maxR}</span>}
+          {current > 0 && <span className="ml-2 text-sm text-[#59615b]">{current}/{maxR}</span>}
         </div>
       )
     }

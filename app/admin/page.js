@@ -80,14 +80,14 @@ export default function AdminDashboard() {
 
   if (!authenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F5F0E8] to-white">
-        <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
+      <div className="brand-page min-h-screen flex items-center justify-center">
+        <div className="brand-panel p-8 w-full max-w-md">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-[#C8A97E]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Lock className="w-8 h-8 text-[#C8A97E]" />
+            <div className="w-16 h-16 bg-[#6f8a74]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Lock className="w-8 h-8 text-[#6f8a74]" />
             </div>
             <h1 className="font-playfair text-3xl font-bold mb-2">Admin Dashboard</h1>
-            <p className="text-gray-600">Enter password to continue</p>
+            <p className="text-[#59615b]">Enter password to continue</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
@@ -97,7 +97,7 @@ export default function AdminDashboard() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C8A97E]"
+                className="w-full px-4 py-3 border border-[#d9cbb5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
                 placeholder="Enter admin password"
                 required
               />
@@ -117,13 +117,13 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="brand-page min-h-screen py-12">
       <div className="container mx-auto px-4">
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="font-playfair text-4xl font-bold mb-2">Admin Dashboard</h1>
-              <p className="text-gray-600">Manage orders and view analytics</p>
+              <p className="text-[#59615b]">Manage orders and view analytics</p>
             </div>
             <div className="flex flex-wrap gap-2">
               <Link href="/admin/users">
@@ -169,33 +169,33 @@ export default function AdminDashboard() {
         {/* Stats Cards */}
         {analytics && (
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <div className="brand-card p-6">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-gray-600 text-sm">Total Orders</p>
-                <ShoppingCart className="w-5 h-5 text-[#C8A97E]" />
+                <p className="text-[#59615b] text-sm">Total Orders</p>
+                <ShoppingCart className="w-5 h-5 text-[#6f8a74]" />
               </div>
               <p className="text-3xl font-bold">{analytics.totalOrders}</p>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <div className="brand-card p-6">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-gray-600 text-sm">Total Revenue</p>
+                <p className="text-[#59615b] text-sm">Total Revenue</p>
                 <TrendingUp className="w-5 h-5 text-green-600" />
               </div>
               <p className="text-3xl font-bold">₹{analytics.totalRevenue}</p>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <div className="brand-card p-6">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-gray-600 text-sm">Unique Visitors</p>
+                <p className="text-[#59615b] text-sm">Unique Visitors</p>
                 <Users className="w-5 h-5 text-blue-600" />
               </div>
               <p className="text-3xl font-bold">{analytics.uniqueVisitors}</p>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <div className="brand-card p-6">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-gray-600 text-sm">Conversion Rate</p>
+                <p className="text-[#59615b] text-sm">Conversion Rate</p>
                 <TrendingUp className="w-5 h-5 text-purple-600" />
               </div>
               <p className="text-3xl font-bold">
@@ -211,7 +211,7 @@ export default function AdminDashboard() {
         {analytics && (
           <div className="grid md:grid-cols-2 gap-6 mb-8">
             {/* Funnel */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <div className="brand-card p-6">
               <h2 className="font-playfair text-2xl font-bold mb-6">Conversion Funnel</h2>
               <div className="space-y-4">
                 <div>
@@ -220,7 +220,7 @@ export default function AdminDashboard() {
                     <span className="text-sm font-bold">{analytics.funnel.pageViews}</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-3">
-                    <div className="bg-[#C8A97E] h-3 rounded-full" style={{ width: '100%' }}></div>
+                    <div className="bg-[#6f8a74] h-3 rounded-full" style={{ width: '100%' }}></div>
                   </div>
                 </div>
 
@@ -231,7 +231,7 @@ export default function AdminDashboard() {
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-3">
                     <div 
-                      className="bg-[#C8A97E] h-3 rounded-full" 
+                      className="bg-[#6f8a74] h-3 rounded-full" 
                       style={{ 
                         width: `${analytics.funnel.pageViews > 0 ? (analytics.funnel.addToCart / analytics.funnel.pageViews * 100) : 0}%` 
                       }}
@@ -246,7 +246,7 @@ export default function AdminDashboard() {
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-3">
                     <div 
-                      className="bg-[#C8A97E] h-3 rounded-full" 
+                      className="bg-[#6f8a74] h-3 rounded-full" 
                       style={{ 
                         width: `${analytics.funnel.pageViews > 0 ? (analytics.funnel.checkout / analytics.funnel.pageViews * 100) : 0}%` 
                       }}
@@ -274,19 +274,19 @@ export default function AdminDashboard() {
             {/* Devices & Locations */}
             <div className="space-y-6">
               {/* Devices */}
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+              <div className="brand-card p-6">
                 <h2 className="font-playfair text-xl font-bold mb-4">Device Breakdown</h2>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
-                      <Smartphone className="w-5 h-5 text-[#C8A97E] mr-2" />
+                      <Smartphone className="w-5 h-5 text-[#6f8a74] mr-2" />
                       <span>Mobile</span>
                     </div>
                     <span className="font-bold">{analytics.devices.mobile}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
-                      <Monitor className="w-5 h-5 text-[#C8A97E] mr-2" />
+                      <Monitor className="w-5 h-5 text-[#6f8a74] mr-2" />
                       <span>Desktop</span>
                     </div>
                     <span className="font-bold">{analytics.devices.desktop}</span>
@@ -295,20 +295,20 @@ export default function AdminDashboard() {
               </div>
 
               {/* Top Locations */}
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+              <div className="brand-card p-6">
                 <h2 className="font-playfair text-xl font-bold mb-4">Top Locations</h2>
                 <div className="space-y-3">
                   {analytics.topLocations.slice(0, 5).map((location, idx) => (
                     <div key={idx} className="flex items-center justify-between">
                       <div className="flex items-center">
-                        <MapPin className="w-4 h-4 text-[#C8A97E] mr-2" />
+                        <MapPin className="w-4 h-4 text-[#6f8a74] mr-2" />
                         <span className="text-sm">{location.pincode}</span>
                       </div>
                       <span className="text-sm font-bold">{location.orders} orders</span>
                     </div>
                   ))}
                   {analytics.topLocations.length === 0 && (
-                    <p className="text-gray-500 text-sm">No data yet</p>
+                    <p className="text-[#6b736d] text-sm">No data yet</p>
                   )}
                 </div>
               </div>
@@ -317,12 +317,12 @@ export default function AdminDashboard() {
         )}
 
         {/* Recent Orders */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="brand-card p-6">
           <h2 className="font-playfair text-2xl font-bold mb-6">Recent Orders</h2>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200">
+                <tr className="border-b border-[#d9cbb5]">
                   <th className="text-left py-3 px-4 font-semibold text-sm">Order ID</th>
                   <th className="text-left py-3 px-4 font-semibold text-sm">Customer</th>
                   <th className="text-left py-3 px-4 font-semibold text-sm">Amount</th>
@@ -335,14 +335,14 @@ export default function AdminDashboard() {
               <tbody>
                 {orders.length === 0 ? (
                   <tr>
-                    <td colSpan="7" className="text-center py-8 text-gray-500">
+                    <td colSpan="7" className="text-center py-8 text-[#6b736d]">
                       No orders yet
                     </td>
                   </tr>
                 ) : (
                   orders.map(order => (
                     <>
-                      <tr key={order.orderId} className={`border-b border-gray-100 hover:bg-gray-50 ${expandedOrderId === order.orderId ? 'bg-gray-50' : ''}`}>
+                      <tr key={order.orderId} className={`border-b border-gray-100 hover:bg-[#eef3ea] ${expandedOrderId === order.orderId ? 'bg-[#eef3ea]' : ''}`}>
                         <td className="py-4 px-4 text-sm font-mono">{order.orderId.slice(0, 8)}</td>
                         <td className="py-4 px-4 text-sm">{order.customerName}</td>
                         <td className="py-4 px-4 text-sm font-semibold">₹{order.totalAmount}</td>
@@ -353,14 +353,14 @@ export default function AdminDashboard() {
                               {order.affiliateCode}
                             </span>
                           ) : (
-                            <span className="text-gray-400 text-xs">-</span>
+                            <span className="text-[#8b938b] text-xs">-</span>
                           )}
                         </td>
                         <td className="py-4 px-4 text-sm">
                           <select
                             value={order.status}
                             onChange={(e) => updateOrderStatus(order.orderId, e.target.value)}
-                            className="px-3 py-1 rounded-full text-xs font-semibold border-0 focus:outline-none focus:ring-2 focus:ring-[#C8A97E]"
+                            className="px-3 py-1 rounded-full text-xs font-semibold border-0 focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
                             style={{
                               backgroundColor: 
                                 order.status === 'Pending' ? '#FEF3C7' :
@@ -381,14 +381,14 @@ export default function AdminDashboard() {
                             <option value="Cancelled">Cancelled</option>
                           </select>
                         </td>
-                        <td className="py-4 px-4 text-sm text-gray-600">
+                        <td className="py-4 px-4 text-sm text-[#59615b]">
                           {new Date(order.createdAt).toLocaleDateString()}
                         </td>
                         <td className="py-4 px-4 text-sm">
                           <div className="flex items-center gap-3">
                             <button
                               onClick={() => toggleOrderDetails(order.orderId)}
-                              className="flex items-center text-[#C8A97E] hover:text-[#B8996E] font-medium"
+                              className="flex items-center text-[#6f8a74] hover:text-[#536a58] font-medium"
                             >
                               {expandedOrderId === order.orderId ? (
                                 <>
@@ -415,58 +415,58 @@ export default function AdminDashboard() {
                       </tr>
                       {/* Expanded Shipping Details Row */}
                       {expandedOrderId === order.orderId && (
-                        <tr key={`${order.orderId}-details`} className="bg-gray-50">
+                        <tr key={`${order.orderId}-details`} className="bg-[#eef3ea]">
                           <td colSpan="6" className="py-4 px-4">
                             <div className="grid md:grid-cols-3 gap-6">
                               {/* Shipping Information */}
-                              <div className="bg-white rounded-lg p-4 border border-gray-200">
-                                <h4 className="font-semibold text-gray-800 mb-3 flex items-center">
-                                  <MapPin className="w-4 h-4 mr-2 text-[#C8A97E]" />
+                              <div className="bg-[#fbf7ed] rounded-lg p-4 border border-[#d9cbb5]">
+                                <h4 className="font-semibold text-[#1f2229] mb-3 flex items-center">
+                                  <MapPin className="w-4 h-4 mr-2 text-[#6f8a74]" />
                                   Shipping Address
                                 </h4>
                                 <div className="space-y-2 text-sm">
                                   <p className="font-medium">{order.customerName}</p>
-                                  <p className="text-gray-600">{order.address || 'N/A'}</p>
-                                  <p className="text-gray-600">
+                                  <p className="text-[#59615b]">{order.address || 'N/A'}</p>
+                                  <p className="text-[#59615b]">
                                     {[order.city, order.state].filter(Boolean).join(', ') || ''}
                                   </p>
-                                  <p className="text-gray-600">Pincode: {order.pincode || 'N/A'}</p>
+                                  <p className="text-[#59615b]">Pincode: {order.pincode || 'N/A'}</p>
                                 </div>
                               </div>
 
                               {/* Contact Information */}
-                              <div className="bg-white rounded-lg p-4 border border-gray-200">
-                                <h4 className="font-semibold text-gray-800 mb-3 flex items-center">
-                                  <Phone className="w-4 h-4 mr-2 text-[#C8A97E]" />
+                              <div className="bg-[#fbf7ed] rounded-lg p-4 border border-[#d9cbb5]">
+                                <h4 className="font-semibold text-[#1f2229] mb-3 flex items-center">
+                                  <Phone className="w-4 h-4 mr-2 text-[#6f8a74]" />
                                   Contact Details
                                 </h4>
                                 <div className="space-y-2 text-sm">
                                   <p>
-                                    <span className="text-gray-500">Phone:</span>{' '}
+                                    <span className="text-[#6b736d]">Phone:</span>{' '}
                                     <span className="font-medium">{order.phone || 'N/A'}</span>
                                   </p>
                                   <p>
-                                    <span className="text-gray-500">Email:</span>{' '}
+                                    <span className="text-[#6b736d]">Email:</span>{' '}
                                     <span className="font-medium">{order.email || 'N/A'}</span>
                                   </p>
                                   <p>
-                                    <span className="text-gray-500">Payment ID:</span>{' '}
+                                    <span className="text-[#6b736d]">Payment ID:</span>{' '}
                                     <span className="font-mono text-xs">{order.paymentId || 'N/A'}</span>
                                   </p>
                                 </div>
                               </div>
 
                               {/* Order Items */}
-                              <div className="bg-white rounded-lg p-4 border border-gray-200">
-                                <h4 className="font-semibold text-gray-800 mb-3 flex items-center">
-                                  <Package className="w-4 h-4 mr-2 text-[#C8A97E]" />
+                              <div className="bg-[#fbf7ed] rounded-lg p-4 border border-[#d9cbb5]">
+                                <h4 className="font-semibold text-[#1f2229] mb-3 flex items-center">
+                                  <Package className="w-4 h-4 mr-2 text-[#6f8a74]" />
                                   Order Items
                                 </h4>
                                 <div className="space-y-2 text-sm max-h-32 overflow-y-auto">
                                   {order.products && order.products.length > 0 ? (
                                     order.products.map((product, idx) => (
                                       <div key={idx} className="flex justify-between">
-                                        <span className="text-gray-600">
+                                        <span className="text-[#59615b]">
                                           {product.productName || product.name} 
                                           {product.variant?.size && ` (${product.variant.size})`} 
                                           × {product.quantity}
@@ -475,11 +475,11 @@ export default function AdminDashboard() {
                                       </div>
                                     ))
                                   ) : (
-                                    <p className="text-gray-500">No items</p>
+                                    <p className="text-[#6b736d]">No items</p>
                                   )}
                                   <div className="border-t pt-2 mt-2">
                                     {order.shippingFee !== undefined && (
-                                      <div className="flex justify-between text-gray-500">
+                                      <div className="flex justify-between text-[#6b736d]">
                                         <span>Shipping</span>
                                         <span>{order.shippingFee === 0 ? 'FREE' : `₹${order.shippingFee}`}</span>
                                       </div>

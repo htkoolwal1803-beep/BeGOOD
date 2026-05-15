@@ -260,10 +260,10 @@ export default function AdminFeedbackPage() {
   // Auth screen
   if (!authenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-        <div className="bg-white rounded-xl shadow-sm p-8 w-full max-w-md">
+      <div className="brand-page min-h-screen flex items-center justify-center p-4">
+        <div className="bg-[#fbf7ed] rounded-xl shadow-sm p-8 w-full max-w-md">
           <div className="flex items-center space-x-3 mb-6">
-            <MessageSquare className="w-8 h-8 text-[#C8A97E]" />
+            <MessageSquare className="w-8 h-8 text-[#6f8a74]" />
             <h1 className="font-playfair text-2xl font-bold">Feedback Admin</h1>
           </div>
           <form onSubmit={handleLogin} className="space-y-4">
@@ -273,7 +273,7 @@ export default function AdminFeedbackPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#C8A97E]"
+                className="w-full px-4 py-2 border border-[#d9cbb5] rounded-lg focus:outline-none focus:border-[#6f8a74]"
                 required
               />
             </div>
@@ -281,7 +281,7 @@ export default function AdminFeedbackPage() {
             <Button type="submit" disabled={authLoading} className="w-full">
               {authLoading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Login'}
             </Button>
-            <Link href="/admin" className="block text-center text-sm text-gray-500 hover:text-[#C8A97E]">
+            <Link href="/admin" className="block text-center text-sm text-[#6b736d] hover:text-[#6f8a74]">
               <ArrowLeft className="w-3 h-3 inline mr-1" /> Back to Admin
             </Link>
           </form>
@@ -291,11 +291,11 @@ export default function AdminFeedbackPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="brand-page min-h-screen py-8">
       <div className="container mx-auto px-4 max-w-5xl">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <Link href="/admin" className="text-sm text-gray-500 hover:text-[#C8A97E] flex items-center">
+            <Link href="/admin" className="text-sm text-[#6b736d] hover:text-[#6f8a74] flex items-center">
               <ArrowLeft className="w-4 h-4 mr-1" /> Back to Admin
             </Link>
             <h1 className="font-playfair text-3xl font-bold mt-2">Feedback Management</h1>
@@ -303,11 +303,11 @@ export default function AdminFeedbackPage() {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-xl shadow-sm p-2 flex space-x-2 mb-6 w-fit">
+        <div className="bg-[#fbf7ed] rounded-xl shadow-sm p-2 flex space-x-2 mb-6 w-fit">
           <button
             onClick={() => setTab('questions')}
             className={`px-4 py-2 rounded-lg font-medium flex items-center space-x-2 transition ${
-              tab === 'questions' ? 'bg-[#C8A97E] text-white' : 'text-gray-700 hover:bg-gray-100'
+              tab === 'questions' ? 'bg-[#6f8a74] text-white' : 'text-[#464c49] hover:bg-[#dce6d7]'
             }`}
           >
             <ListChecks className="w-4 h-4" />
@@ -316,7 +316,7 @@ export default function AdminFeedbackPage() {
           <button
             onClick={() => setTab('submissions')}
             className={`px-4 py-2 rounded-lg font-medium flex items-center space-x-2 transition ${
-              tab === 'submissions' ? 'bg-[#C8A97E] text-white' : 'text-gray-700 hover:bg-gray-100'
+              tab === 'submissions' ? 'bg-[#6f8a74] text-white' : 'text-[#464c49] hover:bg-[#dce6d7]'
             }`}
           >
             <MessageSquare className="w-4 h-4" />
@@ -328,14 +328,14 @@ export default function AdminFeedbackPage() {
         {tab === 'questions' && (
           <div className="space-y-6">
             {/* Product selector - always visible */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="brand-card p-6">
               <label className="block text-sm font-semibold mb-2">
                 Select product to configure feedback for
               </label>
               <select
                 value={selectedProductId}
                 onChange={(e) => setSelectedProductId(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#C8A97E]"
+                className="w-full px-4 py-2 border border-[#d9cbb5] rounded-lg focus:outline-none focus:border-[#6f8a74]"
               >
                 {products.map((p) => (
                   <option key={p.id} value={p.id}>
@@ -343,25 +343,25 @@ export default function AdminFeedbackPage() {
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-gray-500 mt-2">
+              <p className="text-xs text-[#6b736d] mt-2">
                 Each product has its own set of feedback questions. Users will only be able to submit feedback for products that have a configured questionnaire.
               </p>
             </div>
 
             {loading ? (
               <div className="flex justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin text-[#C8A97E]" />
+                <Loader2 className="w-6 h-6 animate-spin text-[#6f8a74]" />
               </div>
             ) : (
               <>
-                <div className="bg-white rounded-xl shadow-sm p-6 space-y-4">
+                <div className="brand-card p-6 space-y-4">
                   <div>
                     <label className="block text-sm font-semibold mb-2">Form Title</label>
                     <input
                       type="text"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#C8A97E]"
+                      className="w-full px-4 py-2 border border-[#d9cbb5] rounded-lg focus:outline-none focus:border-[#6f8a74]"
                     />
                   </div>
                   <div>
@@ -370,33 +370,33 @@ export default function AdminFeedbackPage() {
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       rows={2}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#C8A97E]"
+                      className="w-full px-4 py-2 border border-[#d9cbb5] rounded-lg focus:outline-none focus:border-[#6f8a74]"
                     />
                   </div>
                 </div>
 
                 {/* Question cards */}
                 {questions.map((q, idx) => (
-                  <div key={q.id} className="bg-white rounded-xl shadow-sm p-6">
+                  <div key={q.id} className="brand-card p-6">
                     <div className="flex items-start justify-between mb-4 gap-4">
                       <div className="flex-1">
-                        <div className="text-xs text-gray-500 mb-1">Question {idx + 1}</div>
+                        <div className="text-xs text-[#6b736d] mb-1">Question {idx + 1}</div>
                         <input
                           type="text"
                           value={q.question}
                           onChange={(e) => updateQuestion(idx, { question: e.target.value })}
                           placeholder="Type your question here"
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#C8A97E] text-lg"
+                          className="w-full px-4 py-2 border border-[#d9cbb5] rounded-lg focus:outline-none focus:border-[#6f8a74] text-lg"
                         />
                       </div>
                       <div className="flex items-center space-x-1">
-                        <button onClick={() => moveQuestion(idx, -1)} className="p-2 text-gray-500 hover:text-[#C8A97E] hover:bg-gray-100 rounded" title="Move up">
+                        <button onClick={() => moveQuestion(idx, -1)} className="p-2 text-[#6b736d] hover:text-[#6f8a74] hover:bg-[#dce6d7] rounded" title="Move up">
                           <ArrowUp className="w-4 h-4" />
                         </button>
-                        <button onClick={() => moveQuestion(idx, 1)} className="p-2 text-gray-500 hover:text-[#C8A97E] hover:bg-gray-100 rounded" title="Move down">
+                        <button onClick={() => moveQuestion(idx, 1)} className="p-2 text-[#6b736d] hover:text-[#6f8a74] hover:bg-[#dce6d7] rounded" title="Move down">
                           <ArrowDown className="w-4 h-4" />
                         </button>
-                        <button onClick={() => removeQuestion(idx)} className="p-2 text-gray-500 hover:text-red-500 hover:bg-gray-100 rounded" title="Delete">
+                        <button onClick={() => removeQuestion(idx)} className="p-2 text-[#6b736d] hover:text-red-500 hover:bg-[#dce6d7] rounded" title="Delete">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -404,11 +404,11 @@ export default function AdminFeedbackPage() {
 
                     <div className="grid md:grid-cols-2 gap-4 mb-4">
                       <div>
-                        <label className="block text-xs font-semibold mb-1 text-gray-600">Type</label>
+                        <label className="block text-xs font-semibold mb-1 text-[#59615b]">Type</label>
                         <select
                           value={q.type}
                           onChange={(e) => changeType(idx, e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#C8A97E]"
+                          className="w-full px-3 py-2 border border-[#d9cbb5] rounded-lg focus:outline-none focus:border-[#6f8a74]"
                         >
                           {QUESTION_TYPES.map((t) => (
                             <option key={t.value} value={t.value}>{t.label}</option>
@@ -420,7 +420,7 @@ export default function AdminFeedbackPage() {
                           type="checkbox"
                           checked={q.required}
                           onChange={(e) => updateQuestion(idx, { required: e.target.checked })}
-                          className="w-4 h-4 text-[#C8A97E] rounded"
+                          className="w-4 h-4 text-[#6f8a74] rounded"
                         />
                         <span className="text-sm">Required</span>
                       </label>
@@ -429,18 +429,18 @@ export default function AdminFeedbackPage() {
                     {/* Options editor */}
                     {needsOptions(q.type) && (
                       <div className="space-y-2 mb-2">
-                        <div className="text-xs font-semibold text-gray-600">Options</div>
+                        <div className="text-xs font-semibold text-[#59615b]">Options</div>
                         {(q.options || []).map((opt, oIdx) => (
                           <div key={oIdx} className="flex items-center space-x-2">
                             <input
                               type="text"
                               value={opt}
                               onChange={(e) => updateOption(idx, oIdx, e.target.value)}
-                              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#C8A97E]"
+                              className="flex-1 px-3 py-2 border border-[#d9cbb5] rounded-lg focus:outline-none focus:border-[#6f8a74]"
                             />
                             <button
                               onClick={() => removeOption(idx, oIdx)}
-                              className="p-2 text-gray-400 hover:text-red-500"
+                              className="p-2 text-[#8b938b] hover:text-red-500"
                               disabled={(q.options || []).length <= 1}
                             >
                               <Trash2 className="w-4 h-4" />
@@ -449,7 +449,7 @@ export default function AdminFeedbackPage() {
                         ))}
                         <button
                           onClick={() => addOption(idx)}
-                          className="text-sm text-[#C8A97E] hover:underline flex items-center space-x-1"
+                          className="text-sm text-[#6f8a74] hover:underline flex items-center space-x-1"
                         >
                           <Plus className="w-3 h-3" /> <span>Add option</span>
                         </button>
@@ -460,41 +460,41 @@ export default function AdminFeedbackPage() {
                     {q.type === 'linear_scale' && (
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-2">
                         <div>
-                          <label className="block text-xs text-gray-600 mb-1">Min</label>
+                          <label className="block text-xs text-[#59615b] mb-1">Min</label>
                           <input
                             type="number"
                             value={q.scale?.min ?? 1}
                             onChange={(e) => updateQuestion(idx, { scale: { ...(q.scale || {}), min: Number(e.target.value) } })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                            className="w-full px-3 py-2 border border-[#d9cbb5] rounded-lg"
                           />
                         </div>
                         <div>
-                          <label className="block text-xs text-gray-600 mb-1">Max</label>
+                          <label className="block text-xs text-[#59615b] mb-1">Max</label>
                           <input
                             type="number"
                             value={q.scale?.max ?? 5}
                             onChange={(e) => updateQuestion(idx, { scale: { ...(q.scale || {}), max: Number(e.target.value) } })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                            className="w-full px-3 py-2 border border-[#d9cbb5] rounded-lg"
                           />
                         </div>
                         <div>
-                          <label className="block text-xs text-gray-600 mb-1">Min Label</label>
+                          <label className="block text-xs text-[#59615b] mb-1">Min Label</label>
                           <input
                             type="text"
                             value={q.scale?.minLabel || ''}
                             onChange={(e) => updateQuestion(idx, { scale: { ...(q.scale || {}), minLabel: e.target.value } })}
                             placeholder="e.g. Poor"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                            className="w-full px-3 py-2 border border-[#d9cbb5] rounded-lg"
                           />
                         </div>
                         <div>
-                          <label className="block text-xs text-gray-600 mb-1">Max Label</label>
+                          <label className="block text-xs text-[#59615b] mb-1">Max Label</label>
                           <input
                             type="text"
                             value={q.scale?.maxLabel || ''}
                             onChange={(e) => updateQuestion(idx, { scale: { ...(q.scale || {}), maxLabel: e.target.value } })}
                             placeholder="e.g. Excellent"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                            className="w-full px-3 py-2 border border-[#d9cbb5] rounded-lg"
                           />
                         </div>
                       </div>
@@ -503,14 +503,14 @@ export default function AdminFeedbackPage() {
                     {/* Star rating config */}
                     {q.type === 'star_rating' && (
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">Max stars (3–10)</label>
+                        <label className="block text-xs text-[#59615b] mb-1">Max stars (3–10)</label>
                         <input
                           type="number"
                           min={3}
                           max={10}
                           value={q.maxRating || 5}
                           onChange={(e) => updateQuestion(idx, { maxRating: Number(e.target.value) })}
-                          className="w-32 px-3 py-2 border border-gray-300 rounded-lg"
+                          className="w-32 px-3 py-2 border border-[#d9cbb5] rounded-lg"
                         />
                       </div>
                     )}
@@ -518,10 +518,10 @@ export default function AdminFeedbackPage() {
                 ))}
 
                 {/* Add buttons & save */}
-                <div className="bg-white rounded-xl shadow-sm p-4 flex flex-wrap gap-2">
+                <div className="brand-card p-4 flex flex-wrap gap-2">
                   <button
                     onClick={() => setQuestions((prev) => [...prev, newQuestion('short_text')])}
-                    className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm"
+                    className="flex items-center space-x-2 px-4 py-2 bg-[#dce6d7] hover:bg-gray-200 rounded-lg text-sm"
                   >
                     <Plus className="w-4 h-4" />
                     <span>Add question</span>
@@ -546,14 +546,14 @@ export default function AdminFeedbackPage() {
                 {/* Preview modal */}
                 {previewing && (
                   <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setPreviewing(false)}>
-                    <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-8" onClick={(e) => e.stopPropagation()}>
+                    <div className="bg-[#fbf7ed] rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-8" onClick={(e) => e.stopPropagation()}>
                       <h2 className="font-playfair text-2xl font-bold mb-2">{title}</h2>
-                      {description && <p className="text-gray-600 mb-6">{description}</p>}
+                      {description && <p className="text-[#59615b] mb-6">{description}</p>}
                       <div className="space-y-6">
                         {questions.map((q, i) => (
                           <div key={q.id}>
                             <div className="font-medium mb-2">
-                              {i + 1}. {q.question || <span className="text-gray-400 italic">Untitled</span>}
+                              {i + 1}. {q.question || <span className="text-[#8b938b] italic">Untitled</span>}
                               {q.required && <span className="text-red-500 ml-1">*</span>}
                             </div>
                             <FeedbackQuestionRenderer question={q} value={undefined} onChange={() => {}} />
@@ -576,20 +576,20 @@ export default function AdminFeedbackPage() {
           <div className="space-y-4">
             {submissionsLoading ? (
               <div className="flex justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin text-[#C8A97E]" />
+                <Loader2 className="w-6 h-6 animate-spin text-[#6f8a74]" />
               </div>
             ) : submissions.length === 0 ? (
-              <div className="bg-white rounded-xl shadow-sm p-8 text-center text-gray-500">
+              <div className="bg-[#fbf7ed] rounded-xl shadow-sm p-8 text-center text-[#6b736d]">
                 No feedback submissions yet.
               </div>
             ) : (
               <>
-                <div className="bg-white rounded-xl shadow-sm p-4 flex items-center gap-3">
+                <div className="brand-card p-4 flex items-center gap-3">
                   <label className="text-sm font-semibold">Filter by product:</label>
                   <select
                     value={selectedProduct}
                     onChange={(e) => setSelectedProduct(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#C8A97E]"
+                    className="px-3 py-2 border border-[#d9cbb5] rounded-lg focus:outline-none focus:border-[#6f8a74]"
                   >
                     <option value="all">All products ({submissions.length})</option>
                     {Object.values(grouped).map((g) => (
@@ -603,22 +603,22 @@ export default function AdminFeedbackPage() {
                 {Object.values(grouped)
                   .filter((g) => selectedProduct === 'all' || g.productId === selectedProduct)
                   .map((group) => (
-                    <div key={group.productId} className="bg-white rounded-xl shadow-sm overflow-hidden">
-                      <div className="bg-[#F5F0E8] px-6 py-3 font-semibold">
+                    <div key={group.productId} className="brand-card overflow-hidden">
+                      <div className="bg-[#f4ecdd] px-6 py-3 font-semibold">
                         {group.productName || group.productId} · {group.items.length} feedback{group.items.length !== 1 ? 's' : ''}
                       </div>
                       <div className="divide-y">
                         {group.items.map((s) => (
                           <div key={s.id} className="p-6">
-                            <div className="flex items-center justify-between mb-3 text-sm text-gray-500">
-                              <span className="font-medium text-gray-800">{s.userName || 'Anonymous'} · {s.userPhone}</span>
+                            <div className="flex items-center justify-between mb-3 text-sm text-[#6b736d]">
+                              <span className="font-medium text-[#1f2229]">{s.userName || 'Anonymous'} · {s.userPhone}</span>
                               <span>{new Date(s.createdAt).toLocaleString()}</span>
                             </div>
                             <div className="space-y-2">
                               {(s.answers || []).map((a, i) => (
                                 <div key={i} className="text-sm">
-                                  <div className="font-semibold text-gray-700">{a.question}</div>
-                                  <div className="text-gray-600">{formatAnswer(a.answer)}</div>
+                                  <div className="font-semibold text-[#464c49]">{a.question}</div>
+                                  <div className="text-[#59615b]">{formatAnswer(a.answer)}</div>
                                 </div>
                               ))}
                             </div>

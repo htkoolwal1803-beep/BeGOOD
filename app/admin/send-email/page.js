@@ -71,26 +71,26 @@ export default function SendEmailPage() {
 
   if (sent) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#F5F0E8] to-white flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
+      <div className="brand-page min-h-screen flex items-center justify-center p-4">
+        <div className="brand-panel p-8 max-w-md w-full text-center">
           <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
           <h1 className="font-playfair text-2xl font-bold mb-2">Email Sent Successfully!</h1>
-          <p className="text-gray-600">Confirmation email has been sent to {orderDetails.email}</p>
+          <p className="text-[#59615b]">Confirmation email has been sent to {orderDetails.email}</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F5F0E8] to-white flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-lg p-8 max-w-lg w-full">
+    <div className="brand-page min-h-screen flex items-center justify-center p-4">
+      <div className="brand-panel p-8 max-w-lg w-full">
         <div className="text-center mb-6">
-          <Mail className="w-12 h-12 text-[#C8A97E] mx-auto mb-4" />
+          <Mail className="w-12 h-12 text-[#6f8a74] mx-auto mb-4" />
           <h1 className="font-playfair text-2xl font-bold mb-2">Send Order Confirmation</h1>
-          <p className="text-gray-600">Send confirmation email for the manually created order</p>
+          <p className="text-[#59615b]">Send confirmation email for the manually created order</p>
         </div>
 
-        <div className="bg-gray-50 rounded-lg p-4 mb-6 space-y-2">
+        <div className="bg-[#eef3ea] rounded-lg p-4 mb-6 space-y-2">
           <p><span className="font-semibold">Order ID:</span> {orderDetails.orderId}</p>
           <p><span className="font-semibold">Customer:</span> {orderDetails.customerName}</p>
           <p><span className="font-semibold">Email:</span> {orderDetails.email}</p>

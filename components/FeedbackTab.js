@@ -131,9 +131,9 @@ export default function FeedbackTab({ userPhone, userName }) {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="bg-[#fbf7ed] rounded-xl shadow-sm p-6">
         <div className="flex justify-center py-8">
-          <Loader2 className="w-6 h-6 animate-spin text-[#C8A97E]" />
+          <Loader2 className="w-6 h-6 animate-spin text-[#6f8a74]" />
         </div>
       </div>
     )
@@ -149,11 +149,11 @@ export default function FeedbackTab({ userPhone, userName }) {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="bg-[#fbf7ed] rounded-xl shadow-sm p-6">
         <div className="flex items-center justify-between mb-6 gap-3 flex-wrap">
           <div>
             <h2 className="font-playfair text-2xl font-bold">Feedback</h2>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-[#59615b] mt-1">
               Share your thoughts about a product you&apos;ve tried.
             </p>
           </div>
@@ -164,33 +164,33 @@ export default function FeedbackTab({ userPhone, userName }) {
         </div>
 
         {questions.length === 0 && !selectedProduct && (
-          <div className="border border-dashed border-gray-300 rounded-lg p-6 text-center text-gray-500">
+          <div className="border border-dashed border-[#d9cbb5] rounded-lg p-6 text-center text-[#6b736d]">
             Click &quot;Give Feedback for a Product&quot; above to start. You&apos;ll only see products that have a feedback form configured by the admin.
           </div>
         )}
 
         {/* Active feedback form */}
         {selectedProduct && (
-          <div className="border border-[#C8A97E]/30 rounded-xl p-6 bg-[#F5F0E8]/30">
+          <div className="border border-[#6f8a74]/30 rounded-xl p-6 bg-[#f4ecdd]/30">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="font-playfair text-xl font-bold">{formTitle}</h3>
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-sm text-[#59615b] mt-1">
                   Product: <span className="font-semibold">{selectedProduct.name}</span>
                 </p>
-                {formDescription && <p className="text-sm text-gray-600 mt-1">{formDescription}</p>}
+                {formDescription && <p className="text-sm text-[#59615b] mt-1">{formDescription}</p>}
               </div>
-              <button onClick={cancelFeedback} className="p-2 text-gray-500 hover:text-red-500">
+              <button onClick={cancelFeedback} className="p-2 text-[#6b736d] hover:text-red-500">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {formLoading ? (
               <div className="flex justify-center py-6">
-                <Loader2 className="w-6 h-6 animate-spin text-[#C8A97E]" />
+                <Loader2 className="w-6 h-6 animate-spin text-[#6f8a74]" />
               </div>
             ) : questions.length === 0 ? (
-              <div className="bg-white border border-dashed border-gray-300 rounded-lg p-6 text-center text-gray-500">
+              <div className="bg-[#fbf7ed] border border-dashed border-[#d9cbb5] rounded-lg p-6 text-center text-[#6b736d]">
                 The admin hasn&apos;t set up a feedback form for this product yet. Please check back later.
               </div>
             ) : (
@@ -227,14 +227,14 @@ export default function FeedbackTab({ userPhone, userName }) {
 
       {/* Past feedback (categorized by product) */}
       {mySubmissions.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="bg-[#fbf7ed] rounded-xl shadow-sm p-6">
           <h3 className="font-playfair text-xl font-bold mb-4">Your Feedback History</h3>
           <div className="space-y-4">
             {Object.values(groupedByProduct).map((g) => (
-              <div key={g.productId} className="border border-gray-200 rounded-lg overflow-hidden">
-                <div className="bg-[#F5F0E8] px-4 py-3 font-semibold flex items-center justify-between">
+              <div key={g.productId} className="border border-[#d9cbb5] rounded-lg overflow-hidden">
+                <div className="bg-[#f4ecdd] px-4 py-3 font-semibold flex items-center justify-between">
                   <span>{g.productName || g.productId}</span>
-                  <span className="text-xs text-gray-500 font-normal">
+                  <span className="text-xs text-[#6b736d] font-normal">
                     {g.items.length} submission{g.items.length !== 1 ? 's' : ''}
                   </span>
                 </div>
@@ -247,7 +247,7 @@ export default function FeedbackTab({ userPhone, userName }) {
                           className="w-full flex items-center justify-between text-left"
                           onClick={() => setExpandedSubmission(isOpen ? null : s.id)}
                         >
-                          <span className="text-sm text-gray-600">
+                          <span className="text-sm text-[#59615b]">
                             Submitted {new Date(s.createdAt).toLocaleDateString()}
                           </span>
                           {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -256,8 +256,8 @@ export default function FeedbackTab({ userPhone, userName }) {
                           <div className="mt-3 space-y-2 text-sm">
                             {(s.answers || []).map((a, i) => (
                               <div key={i}>
-                                <div className="font-semibold text-gray-700">{a.question}</div>
-                                <div className="text-gray-600">{formatAnswer(a.answer)}</div>
+                                <div className="font-semibold text-[#464c49]">{a.question}</div>
+                                <div className="text-[#59615b]">{formatAnswer(a.answer)}</div>
                               </div>
                             ))}
                           </div>
@@ -278,10 +278,10 @@ export default function FeedbackTab({ userPhone, userName }) {
           className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
           onClick={() => setShowPicker(false)}
         >
-          <div className="bg-white rounded-xl max-w-lg w-full p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-[#fbf7ed] rounded-xl max-w-lg w-full p-6" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-playfair text-xl font-bold">Pick a product</h3>
-              <button onClick={() => setShowPicker(false)} className="p-2 text-gray-500 hover:text-gray-700">
+              <button onClick={() => setShowPicker(false)} className="p-2 text-[#6b736d] hover:text-[#464c49]">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -297,20 +297,20 @@ export default function FeedbackTab({ userPhone, userName }) {
                     disabled={disabled}
                     className={`w-full text-left p-3 rounded-lg border flex items-center justify-between transition ${
                       disabled
-                        ? 'border-gray-200 bg-gray-50 cursor-not-allowed'
-                        : 'border-gray-200 hover:border-[#C8A97E] hover:bg-[#F5F0E8]/50'
+                        ? 'border-[#d9cbb5] bg-[#eef3ea] cursor-not-allowed'
+                        : 'border-[#d9cbb5] hover:border-[#6f8a74] hover:bg-[#f4ecdd]/50'
                     }`}
                   >
                     <div>
                       <div className="font-semibold">{p.name}</div>
-                      <div className="text-xs text-gray-500">{p.tagline}</div>
+                      <div className="text-xs text-[#6b736d]">{p.tagline}</div>
                     </div>
                     {already ? (
                       <span className="flex items-center text-xs text-green-600">
                         <Check className="w-4 h-4 mr-1" /> Submitted
                       </span>
                     ) : !configured ? (
-                      <span className="text-xs text-gray-400">Not set up yet</span>
+                      <span className="text-xs text-[#8b938b]">Not set up yet</span>
                     ) : null}
                   </button>
                 )

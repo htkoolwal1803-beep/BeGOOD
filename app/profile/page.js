@@ -328,14 +328,14 @@ function ProfileContent() {
       case 'shipped': return 'bg-blue-100 text-blue-800'
       case 'processing': return 'bg-yellow-100 text-yellow-800'
       case 'cancelled': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
+      default: return 'bg-[#dce6d7] text-[#1f2229]'
     }
   }
 
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-[#C8A97E]" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#6f8a74]" />
       </div>
     )
   }
@@ -345,18 +345,18 @@ function ProfileContent() {
   }
 
   return (
-    <div className="min-h-screen py-12 md:py-20 bg-gray-50">
+    <div className="brand-page min-h-screen py-12 md:py-20">
       <div className="container mx-auto px-4">
         <h1 className="font-playfair text-4xl font-bold mb-8">My Account</h1>
 
         <div className="grid lg:grid-cols-4 gap-8">
           {/* Sidebar */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-sm p-4 space-y-2">
+            <div className="brand-card p-4 space-y-2">
               <button
                 onClick={() => setActiveTab('profile')}
                 className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                  activeTab === 'profile' ? 'bg-[#C8A97E]/10 text-[#C8A97E]' : 'hover:bg-gray-100'
+                  activeTab === 'profile' ? 'bg-[#6f8a74]/10 text-[#6f8a74]' : 'hover:bg-[#dce6d7]'
                 }`}
               >
                 <User className="w-5 h-5" />
@@ -365,7 +365,7 @@ function ProfileContent() {
               <button
                 onClick={() => setActiveTab('orders')}
                 className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                  activeTab === 'orders' ? 'bg-[#C8A97E]/10 text-[#C8A97E]' : 'hover:bg-gray-100'
+                  activeTab === 'orders' ? 'bg-[#6f8a74]/10 text-[#6f8a74]' : 'hover:bg-[#dce6d7]'
                 }`}
               >
                 <Package className="w-5 h-5" />
@@ -374,7 +374,7 @@ function ProfileContent() {
               <button
                 onClick={() => setActiveTab('addresses')}
                 className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                  activeTab === 'addresses' ? 'bg-[#C8A97E]/10 text-[#C8A97E]' : 'hover:bg-gray-100'
+                  activeTab === 'addresses' ? 'bg-[#6f8a74]/10 text-[#6f8a74]' : 'hover:bg-[#dce6d7]'
                 }`}
               >
                 <MapPin className="w-5 h-5" />
@@ -383,7 +383,7 @@ function ProfileContent() {
               <button
                 onClick={() => setActiveTab('feedback')}
                 className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                  activeTab === 'feedback' ? 'bg-[#C8A97E]/10 text-[#C8A97E]' : 'hover:bg-gray-100'
+                  activeTab === 'feedback' ? 'bg-[#6f8a74]/10 text-[#6f8a74]' : 'hover:bg-[#dce6d7]'
                 }`}
               >
                 <MessageSquare className="w-5 h-5" />
@@ -396,13 +396,13 @@ function ProfileContent() {
           <div className="lg:col-span-3">
             {/* Profile Tab */}
             {activeTab === 'profile' && (
-              <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="brand-card p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="font-playfair text-2xl font-bold">Profile Information</h2>
                   {!editingProfile && (
                     <button
                       onClick={() => setEditingProfile(true)}
-                      className="flex items-center space-x-2 text-[#C8A97E] hover:text-[#b8996e]"
+                      className="flex items-center space-x-2 text-[#6f8a74] hover:text-[#536a58]"
                     >
                       <Edit2 className="w-4 h-4" />
                       <span>Edit</span>
@@ -418,7 +418,7 @@ function ProfileContent() {
                         type="text"
                         value={profileForm.name}
                         onChange={(e) => setProfileForm({...profileForm, name: e.target.value})}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C8A97E]"
+                        className="w-full px-4 py-3 border border-[#d9cbb5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
                       />
                     </div>
                     <div>
@@ -427,7 +427,7 @@ function ProfileContent() {
                         type="email"
                         value={profileForm.email}
                         onChange={(e) => setProfileForm({...profileForm, email: e.target.value})}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C8A97E]"
+                        className="w-full px-4 py-3 border border-[#d9cbb5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
                       />
                     </div>
                     <div>
@@ -438,7 +438,7 @@ function ProfileContent() {
                         onChange={(e) => setProfileForm({...profileForm, age: e.target.value})}
                         min="1"
                         max="120"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C8A97E]"
+                        className="w-full px-4 py-3 border border-[#d9cbb5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
                       />
                     </div>
                     <div>
@@ -447,9 +447,9 @@ function ProfileContent() {
                         type="text"
                         value={user.phoneNumber}
                         disabled
-                        className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 text-gray-500"
+                        className="w-full px-4 py-3 border border-[#d9cbb5] rounded-lg bg-[#eef3ea] text-[#6b736d]"
                       />
-                      <p className="text-xs text-gray-500 mt-1">Phone number cannot be changed</p>
+                      <p className="text-xs text-[#6b736d] mt-1">Phone number cannot be changed</p>
                     </div>
                     <div className="flex space-x-3">
                       <Button type="submit" disabled={loading}>
@@ -465,7 +465,7 @@ function ProfileContent() {
                             age: userProfile?.age?.toString() || ''
                           })
                         }}
-                        className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                        className="px-4 py-2 border border-[#d9cbb5] rounded-lg hover:bg-[#eef3ea]"
                       >
                         Cancel
                       </button>
@@ -474,19 +474,19 @@ function ProfileContent() {
                 ) : (
                   <div className="space-y-4">
                     <div>
-                      <p className="text-sm text-gray-500">Full Name</p>
+                      <p className="text-sm text-[#6b736d]">Full Name</p>
                       <p className="font-medium">{userProfile?.name || 'Not set'}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Email</p>
+                      <p className="text-sm text-[#6b736d]">Email</p>
                       <p className="font-medium">{userProfile?.email || 'Not set'}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Age</p>
+                      <p className="text-sm text-[#6b736d]">Age</p>
                       <p className="font-medium">{userProfile?.age || 'Not set'}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Phone Number</p>
+                      <p className="text-sm text-[#6b736d]">Phone Number</p>
                       <p className="font-medium">{user.phoneNumber}</p>
                     </div>
                   </div>
@@ -496,13 +496,13 @@ function ProfileContent() {
 
             {/* Orders Tab */}
             {activeTab === 'orders' && (
-              <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="brand-card p-6">
                 <h2 className="font-playfair text-2xl font-bold mb-6">Order History</h2>
 
                 {orders.length === 0 ? (
                   <div className="text-center py-12">
                     <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-600 mb-4">You haven't placed any orders yet</p>
+                    <p className="text-[#59615b] mb-4">You haven't placed any orders yet</p>
                     <Link href="/shop">
                       <Button>Start Shopping</Button>
                     </Link>
@@ -510,11 +510,11 @@ function ProfileContent() {
                 ) : (
                   <div className="space-y-4">
                     {orders.map((order) => (
-                      <div key={order.orderId} className="border border-gray-200 rounded-lg p-4">
+                      <div key={order.orderId} className="border border-[#d9cbb5] rounded-lg p-4">
                         <div className="flex items-center justify-between mb-3">
                           <div>
                             <p className="font-semibold">Order #{order.orderId.slice(0, 8)}</p>
-                            <p className="text-sm text-gray-500">{formatDate(order.createdAt)}</p>
+                            <p className="text-sm text-[#6b736d]">{formatDate(order.createdAt)}</p>
                           </div>
                           <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
                             {order.status}
@@ -531,7 +531,7 @@ function ProfileContent() {
                         <div className="border-t pt-3 flex justify-between items-center">
                           <span className="font-semibold">Total: ₹{order.totalAmount}</span>
                           <Link href={`/order/${order.orderId}`}>
-                            <button className="text-[#C8A97E] hover:underline text-sm">View Details</button>
+                            <button className="text-[#6f8a74] hover:underline text-sm">View Details</button>
                           </Link>
                         </div>
                       </div>
@@ -543,13 +543,13 @@ function ProfileContent() {
 
             {/* Addresses Tab */}
             {activeTab === 'addresses' && (
-              <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="brand-card p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="font-playfair text-2xl font-bold">Saved Addresses</h2>
                   {!showAddressForm && (
                     <button
                       onClick={() => setShowAddressForm(true)}
-                      className="flex items-center space-x-2 text-[#C8A97E] hover:text-[#b8996e]"
+                      className="flex items-center space-x-2 text-[#6f8a74] hover:text-[#536a58]"
                     >
                       <Plus className="w-4 h-4" />
                       <span>Add New</span>
@@ -558,7 +558,7 @@ function ProfileContent() {
                 </div>
 
                 {showAddressForm && (
-                  <form onSubmit={editingAddressId ? handleUpdateAddress : handleAddAddress} className="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                  <form onSubmit={editingAddressId ? handleUpdateAddress : handleAddAddress} className="mb-6 p-4 border border-[#d9cbb5] rounded-lg bg-[#eef3ea]">
                     <h3 className="font-semibold mb-4">{editingAddressId ? 'Edit Address' : 'Add New Address'}</h3>
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
@@ -566,7 +566,7 @@ function ProfileContent() {
                         <select
                           value={addressForm.label}
                           onChange={(e) => setAddressForm({...addressForm, label: e.target.value})}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C8A97E]"
+                          className="w-full px-4 py-3 border border-[#d9cbb5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
                         >
                           <option value="Home">Home</option>
                           <option value="Work">Work</option>
@@ -581,14 +581,14 @@ function ProfileContent() {
                             value={addressForm.pincode}
                             onChange={handlePincodeChange}
                             placeholder="6-digit pincode"
-                            className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C8A97E] ${
-                              pincodeError ? 'border-red-500' : pincodeValidated ? 'border-green-500' : 'border-gray-300'
+                            className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74] ${
+                              pincodeError ? 'border-red-500' : pincodeValidated ? 'border-green-500' : 'border-[#d9cbb5]'
                             }`}
                             required
                           />
                           {pincodeLoading && (
                             <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                              <Loader2 className="w-5 h-5 animate-spin text-[#C8A97E]" />
+                              <Loader2 className="w-5 h-5 animate-spin text-[#6f8a74]" />
                             </div>
                           )}
                           {pincodeValidated && !pincodeLoading && (
@@ -607,7 +607,7 @@ function ProfileContent() {
                           onChange={(e) => setAddressForm({...addressForm, fullAddress: e.target.value})}
                           placeholder="House no., Street, Locality"
                           rows={2}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C8A97E]"
+                          className="w-full px-4 py-3 border border-[#d9cbb5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
                           required
                         />
                       </div>
@@ -618,7 +618,7 @@ function ProfileContent() {
                           value={addressForm.city}
                           readOnly
                           placeholder="Auto-filled from pincode"
-                          className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-100 text-gray-600"
+                          className="w-full px-4 py-3 border border-[#d9cbb5] rounded-lg bg-[#dce6d7] text-[#59615b]"
                         />
                       </div>
                       <div>
@@ -628,7 +628,7 @@ function ProfileContent() {
                           value={addressForm.state}
                           readOnly
                           placeholder="Auto-filled from pincode"
-                          className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-100 text-gray-600"
+                          className="w-full px-4 py-3 border border-[#d9cbb5] rounded-lg bg-[#dce6d7] text-[#59615b]"
                         />
                       </div>
                       <div className="md:col-span-2">
@@ -637,7 +637,7 @@ function ProfileContent() {
                             type="checkbox"
                             checked={addressForm.isDefault}
                             onChange={(e) => setAddressForm({...addressForm, isDefault: e.target.checked})}
-                            className="w-4 h-4 text-[#C8A97E] rounded"
+                            className="w-4 h-4 text-[#6f8a74] rounded"
                           />
                           <span className="text-sm">Set as default address</span>
                         </label>
@@ -651,7 +651,7 @@ function ProfileContent() {
                       <button
                         type="button"
                         onClick={resetAddressForm}
-                        className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                        className="px-4 py-2 border border-[#d9cbb5] rounded-lg hover:bg-[#eef3ea]"
                       >
                         Cancel
                       </button>
@@ -662,15 +662,15 @@ function ProfileContent() {
                 {addresses.length === 0 && !showAddressForm ? (
                   <div className="text-center py-12">
                     <MapPin className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-600 mb-4">No saved addresses yet</p>
+                    <p className="text-[#59615b] mb-4">No saved addresses yet</p>
                     <Button onClick={() => setShowAddressForm(true)}>Add Your First Address</Button>
                   </div>
                 ) : (
                   <div className="grid md:grid-cols-2 gap-4">
                     {addresses.map((address) => (
-                      <div key={address.id} className={`border rounded-lg p-4 relative ${address.isDefault ? 'border-[#C8A97E]' : 'border-gray-200'}`}>
+                      <div key={address.id} className={`border rounded-lg p-4 relative ${address.isDefault ? 'border-[#6f8a74]' : 'border-[#d9cbb5]'}`}>
                         {address.isDefault && (
-                          <span className="absolute -top-2 left-4 bg-[#C8A97E] text-white text-xs px-2 py-0.5 rounded">
+                          <span className="absolute -top-2 left-4 bg-[#6f8a74] text-white text-xs px-2 py-0.5 rounded">
                             Default
                           </span>
                         )}
@@ -679,21 +679,21 @@ function ProfileContent() {
                             <p className="font-semibold flex items-center space-x-2">
                               <span>{address.label}</span>
                             </p>
-                            <p className="text-sm text-gray-600 mt-1">{address.fullAddress}</p>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-[#59615b] mt-1">{address.fullAddress}</p>
+                            <p className="text-sm text-[#59615b]">
                               {[address.city, address.state, address.pincode].filter(Boolean).join(', ')}
                             </p>
                           </div>
                           <div className="flex space-x-2">
                             <button
                               onClick={() => startEditAddress(address)}
-                              className="p-2 text-gray-500 hover:text-[#C8A97E] hover:bg-gray-100 rounded"
+                              className="p-2 text-[#6b736d] hover:text-[#6f8a74] hover:bg-[#dce6d7] rounded"
                             >
                               <Edit2 className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDeleteAddress(address.id)}
-                              className="p-2 text-gray-500 hover:text-red-500 hover:bg-gray-100 rounded"
+                              className="p-2 text-[#6b736d] hover:text-red-500 hover:bg-[#dce6d7] rounded"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -724,7 +724,7 @@ export default function ProfilePage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-[#C8A97E]" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#6f8a74]" />
       </div>
     }>
       <ProfileContent />

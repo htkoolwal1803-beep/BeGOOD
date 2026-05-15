@@ -60,12 +60,12 @@ export default function AdminUsersPage() {
 
   if (!authenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#F5F0E8] to-white flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full">
+      <div className="brand-page min-h-screen flex items-center justify-center p-4">
+        <div className="brand-panel p-8 max-w-md w-full">
           <div className="text-center mb-6">
-            <Lock className="w-12 h-12 text-[#C8A97E] mx-auto mb-4" />
+            <Lock className="w-12 h-12 text-[#6f8a74] mx-auto mb-4" />
             <h1 className="font-playfair text-2xl font-bold">Admin Access</h1>
-            <p className="text-gray-600 mt-2">Enter password to view users</p>
+            <p className="text-[#59615b] mt-2">Enter password to view users</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
@@ -74,7 +74,7 @@ export default function AdminUsersPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter admin password"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C8A97E]"
+              className="w-full px-4 py-3 border border-[#d9cbb5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
             />
             {error && <p className="text-red-500 text-sm">{error}</p>}
             <Button type="submit" className="w-full" disabled={loading}>
@@ -87,36 +87,36 @@ export default function AdminUsersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F5F0E8] to-white p-6">
+    <div className="brand-page min-h-screen p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <Link href="/admin" className="flex items-center text-[#C8A97E] hover:underline mb-2">
+            <Link href="/admin" className="flex items-center text-[#6f8a74] hover:underline mb-2">
               <ArrowLeft className="w-4 h-4 mr-1" />
               Back to Dashboard
             </Link>
             <h1 className="font-playfair text-3xl font-bold">Users</h1>
-            <p className="text-gray-600">Total: {users.length} users</p>
+            <p className="text-[#59615b]">Total: {users.length} users</p>
           </div>
         </div>
 
         {/* Search */}
-        <div className="bg-white rounded-xl p-4 mb-6 shadow-sm">
+        <div className="brand-card p-4 mb-6 shadow-sm">
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by name, phone, or email..."
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C8A97E]"
+            className="w-full px-4 py-3 border border-[#d9cbb5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
           />
         </div>
 
         {/* Users Table */}
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div className="brand-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b">
+              <thead className="bg-[#eef3ea] border-b">
                 <tr>
                   <th className="text-left p-4 font-semibold">Name</th>
                   <th className="text-left p-4 font-semibold">Phone</th>
@@ -129,35 +129,35 @@ export default function AdminUsersPage() {
               <tbody>
                 {filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="p-8 text-center text-gray-500">
+                    <td colSpan="6" className="p-8 text-center text-[#6b736d]">
                       {searchTerm ? 'No users found matching your search' : 'No users yet'}
                     </td>
                   </tr>
                 ) : (
                   filteredUsers.map((user, index) => (
-                    <tr key={user.uid || index} className="border-b hover:bg-gray-50">
+                    <tr key={user.uid || index} className="border-b hover:bg-[#eef3ea]">
                       <td className="p-4">
                         <div className="flex items-center">
-                          <div className="w-10 h-10 bg-[#C8A97E] rounded-full flex items-center justify-center text-white font-bold mr-3">
+                          <div className="w-10 h-10 bg-[#6f8a74] rounded-full flex items-center justify-center text-white font-bold mr-3">
                             {user.name ? user.name.charAt(0).toUpperCase() : '?'}
                           </div>
                           <span className="font-medium">{user.name || 'Not provided'}</span>
                         </div>
                       </td>
                       <td className="p-4">
-                        <a href={`tel:${user.phone}`} className="flex items-center text-[#C8A97E] hover:underline">
+                        <a href={`tel:${user.phone}`} className="flex items-center text-[#6f8a74] hover:underline">
                           <Phone className="w-4 h-4 mr-1" />
                           {user.phone || 'N/A'}
                         </a>
                       </td>
                       <td className="p-4">
                         {user.email ? (
-                          <a href={`mailto:${user.email}`} className="flex items-center text-[#C8A97E] hover:underline">
+                          <a href={`mailto:${user.email}`} className="flex items-center text-[#6f8a74] hover:underline">
                             <Mail className="w-4 h-4 mr-1" />
                             {user.email}
                           </a>
                         ) : (
-                          <span className="text-gray-400">Not provided</span>
+                          <span className="text-[#8b938b]">Not provided</span>
                         )}
                       </td>
                       <td className="p-4">{user.age || '-'}</td>
@@ -169,10 +169,10 @@ export default function AdminUsersPage() {
                             </span>
                           </div>
                         ) : (
-                          <span className="text-gray-400">None</span>
+                          <span className="text-[#8b938b]">None</span>
                         )}
                       </td>
-                      <td className="p-4 text-sm text-gray-600">
+                      <td className="p-4 text-sm text-[#59615b]">
                         {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-'}
                       </td>
                     </tr>

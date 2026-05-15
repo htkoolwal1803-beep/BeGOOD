@@ -24,16 +24,16 @@ export default function ProductCard({ product }) {
 
   return (
     <CardWrapper href={product.comingSoon ? undefined : `/product/${product.id}`}>
-      <div className={`group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 ${product.comingSoon ? 'opacity-90' : ''}`}>
+      <div className={`group brand-card relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_55px_-38px_rgba(31,34,41,0.6)] ${product.comingSoon ? 'opacity-90' : ''}`}>
         {/* Coming Soon Badge */}
         {product.comingSoon && (
-          <div className="absolute top-4 right-4 z-10 bg-[#C8A97E] text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
+          <div className="absolute top-4 right-4 z-10 bg-[#6f8a74] text-[#fbf7ed] px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
             Coming Soon
           </div>
         )}
 
         {/* Image */}
-        <div className="relative aspect-square overflow-hidden bg-[#F5F0E8]">
+        <div className="relative aspect-square overflow-hidden bg-[#f4ecdd]">
           <Image
             src={product.comingSoon ? '/coming-soon-placeholder.svg' : product.image}
             alt={product.name}
@@ -44,30 +44,30 @@ export default function ProductCard({ product }) {
 
         {/* Content */}
         <div className="p-6">
-          <h3 className="font-playfair text-xl font-semibold mb-2">{product.name}</h3>
-          <p className="text-gray-600 text-sm mb-4 line-clamp-2">{product.shortDescription}</p>
+          <h3 className="font-playfair text-2xl font-semibold mb-2 text-[#1f2229]">{product.name}</h3>
+          <p className="text-[#59615b] text-sm mb-4 line-clamp-2">{product.shortDescription}</p>
 
           {/* Weight */}
           {product.weight && !product.comingSoon && (
             <div className="mb-4">
-              <span className="text-sm text-gray-500">{product.weight}</span>
+              <span className="text-sm text-[#6b736d]">{product.weight}</span>
             </div>
           )}
 
           {/* Price & Action */}
           {product.comingSoon ? (
             <div className="flex items-center justify-center">
-              <span className="text-lg font-semibold text-[#C8A97E] flex items-center">
+              <span className="text-lg font-semibold text-[#536a58] flex items-center">
                 <Bell className="w-4 h-4 mr-2" />
                 Notify Me on Homepage
               </span>
             </div>
           ) : (
             <div className="flex items-center justify-between">
-              <span className="text-2xl font-bold text-[#C8A97E]">₹{product.price}</span>
+              <span className="text-2xl font-bold text-[#536a58]">₹{product.price}</span>
               <button
                 onClick={handleAddToCart}
-                className="bg-[#C8A97E] text-white px-4 py-2 rounded-lg hover:bg-[#B8956E] transition-colors flex items-center space-x-2"
+                className="bg-[#6f8a74] text-[#fbf7ed] px-4 py-2 rounded-full hover:bg-[#536a58] transition-colors flex items-center space-x-2"
               >
                 <ShoppingCart className="w-4 h-4" />
                 <span className="text-sm">{added ? 'Added!' : 'Add'}</span>

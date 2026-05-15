@@ -57,23 +57,23 @@ function PendingOrderContent() {
 
   if (retrySuccess) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#F5F0E8] to-white flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
+      <div className="brand-page min-h-screen flex items-center justify-center p-4">
+        <div className="brand-panel p-8 max-w-md w-full text-center">
           <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
           <h1 className="font-playfair text-2xl font-bold mb-2">Order Created Successfully!</h1>
-          <p className="text-gray-600">Redirecting to your order...</p>
+          <p className="text-[#59615b]">Redirecting to your order...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F5F0E8] to-white flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-lg p-8 max-w-lg w-full">
+    <div className="brand-page min-h-screen flex items-center justify-center p-4">
+      <div className="brand-panel p-8 max-w-lg w-full">
         <div className="text-center mb-6">
           <AlertCircle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
           <h1 className="font-playfair text-2xl font-bold mb-2">Payment Received</h1>
-          <p className="text-gray-600">Your order is being processed</p>
+          <p className="text-[#59615b]">Your order is being processed</p>
         </div>
 
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
@@ -90,8 +90,8 @@ function PendingOrderContent() {
         </div>
 
         {paymentId && (
-          <div className="bg-gray-50 rounded-lg p-4 mb-6">
-            <p className="text-sm text-gray-500 mb-1">Payment ID</p>
+          <div className="bg-[#eef3ea] rounded-lg p-4 mb-6">
+            <p className="text-sm text-[#6b736d] mb-1">Payment ID</p>
             <p className="font-mono text-sm font-medium">{paymentId}</p>
           </div>
         )}
@@ -112,21 +112,21 @@ function PendingOrderContent() {
         )}
 
         <div className="border-t pt-6">
-          <p className="text-gray-600 text-sm mb-4 text-center">
+          <p className="text-[#59615b] text-sm mb-4 text-center">
             If the issue persists, please contact us:
           </p>
           
           <div className="space-y-3">
             <a 
               href="mailto:healhat25@gmail.com?subject=Order Issue - Payment ID: ${paymentId}"
-              className="flex items-center justify-center space-x-2 text-[#C8A97E] hover:underline"
+              className="flex items-center justify-center space-x-2 text-[#6f8a74] hover:underline"
             >
               <Mail className="w-4 h-4" />
               <span>healhat25@gmail.com</span>
             </a>
             <a 
               href="tel:+918209828412"
-              className="flex items-center justify-center space-x-2 text-[#C8A97E] hover:underline"
+              className="flex items-center justify-center space-x-2 text-[#6f8a74] hover:underline"
             >
               <Phone className="w-4 h-4" />
               <span>+91 82098 28412</span>
@@ -135,7 +135,7 @@ function PendingOrderContent() {
         </div>
 
         <div className="mt-6 text-center">
-          <Link href="/" className="text-gray-500 hover:text-gray-700 text-sm">
+          <Link href="/" className="text-[#6b736d] hover:text-[#464c49] text-sm">
             Return to Home
           </Link>
         </div>
@@ -147,10 +147,10 @@ function PendingOrderContent() {
 export default function PendingOrderPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-[#F5F0E8] to-white flex items-center justify-center">
+      <div className="brand-page min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="w-8 h-8 border-4 border-[#C8A97E] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <div className="w-8 h-8 border-4 border-[#6f8a74] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-[#59615b]">Loading...</p>
         </div>
       </div>
     }>
