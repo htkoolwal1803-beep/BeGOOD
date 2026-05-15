@@ -41,8 +41,8 @@ export default function AboutPage() {
                 </p>
                 <p>
                   We asked ourselves: why is that so and we figured that that's because we have been told that emotions can 
-                  only be controlled or balanced with your will and mind persistance. It was hard and inconvinient. So we asked
-                  ourselves, What if it was something you actually enjoyed and is fast and convinient?
+                  only be controlled or balanced with your will and mind persistence. It was hard and inconvenient. So we asked
+                  ourselves, What if it was something you actually enjoyed and is fast and convenient?
                 </p>
                 <p>
                   That's how BeGood came to life—premium products with science-backed ingredients. Delicious. Effective. Convenient.
