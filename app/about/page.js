@@ -42,8 +42,8 @@ export default function AboutPage() {
               Just Feel It
             </h1>
             <p className="text-xl md:text-2xl text-[#59615b] leading-relaxed">
-              We believe wellness should be delicious, convenient, and effective. 
-              That's why we created BeGood—functional consumables that helps you improve your human performance
+              We believe emotional balance should be convenient and effective. 
+              That's why we created BeGood-functional consumables that helps you improve your human performance
               when it matters most.
             </p>
           </div>
@@ -64,8 +64,8 @@ export default function AboutPage() {
                 </p>
                 <p>
                   We asked ourselves: why is that so and we figured that that's because we have been told that emotions can 
-                  only be controlled or balanced with your will and mind persistence. It was hard and inconvenient. So we asked
-                  ourselves, What if it was something you actually enjoyed and is fast and convenient?
+                  only be controlled or balanced with your will and mind persistence. It was tough and inconvenient. So we created BeGood to help humans
+                  to not lose their decision-making consciousness when you are impulsive and vulnerable ?
                 </p>
                 <p>
                   That's how BeGood came to life—premium products with science-backed ingredients. Delicious. Effective. Convenient.
