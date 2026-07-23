@@ -99,10 +99,18 @@ export default function ProductPage() {
             <div>
               <div className="flex items-baseline gap-3 mb-2">
                 <div className="text-4xl font-bold text-[#6f8a74]">₹{product.price}</div>
+                {product.compareAtPrice && product.compareAtPrice > product.price && (
+                  <span className="text-2xl text-[#9a938a] line-through">₹{product.compareAtPrice}</span>
+                )}
                 {product.weight && (
                   <span className="text-xl text-[#59615b]">({product.weight})</span>
                 )}
               </div>
+              {product.compareAtPrice && product.compareAtPrice > product.price && (
+                <div className="inline-block bg-[#b4472e]/10 text-[#b4472e] px-3 py-1 rounded-full text-sm font-semibold">
+                  Save ₹{product.compareAtPrice - product.price} ({Math.round((1 - product.price / product.compareAtPrice) * 100)}% off)
+                </div>
+              )}
             </div>
 
             {/* Key Aspects */}
