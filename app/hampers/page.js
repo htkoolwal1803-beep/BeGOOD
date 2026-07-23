@@ -66,7 +66,7 @@ export default function HampersPage() {
 
             <div className="relative aspect-square bg-[#f4ecdd] rounded-2xl overflow-hidden">
               <Image
-                src="/hampers/hero.jpg"
+                src="/hampers/hero.png"
                 alt="BeGood Rakhi Hamper"
                 fill
                 className="object-cover"
