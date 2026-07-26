@@ -59,14 +59,14 @@ export default function CheckoutPage() {
   
   // Payment method state
   const [paymentMethod, setPaymentMethod] = useState('online') // 'online' | 'cod'
-  const [deliveryMethod, setDeliveryMethod] = useState('within5') // pickup | within5 | r5to8 | beyond8
+  const [fulfilment, setFulfilment] = useState('deliver') // 'deliver' | 'pickup'
+  const [deliveryMethod, setDeliveryMethod] = useState('within5') // auto-detected band: within5 | r5to8 | beyond8
   const [deliveryEstimate, setDeliveryEstimate] = useState(null)
-  const [deliveryOverridden, setDeliveryOverridden] = useState(false)
   const [affiliateCode, setAffiliateCode] = useState(null)
 
   // Calculate shipping and order total with coupon discount and COD fee
-  const shippingFee = getDeliveryFee(deliveryMethod)
-  const isPickup = deliveryMethod === 'pickup'
+  const isPickup = fulfilment === 'pickup'
+  const shippingFee = isPickup ? 0 : getDeliveryFee(deliveryMethod)
   const couponDiscount = appliedCoupon?.discountAmount || 0
   const codFee = paymentMethod === 'cod' ? COD_CONFIG.FEE : 0
   const orderTotal = cartTotal + shippingFee - couponDiscount + codFee
@@ -85,7 +85,6 @@ export default function CheckoutPage() {
 
   // Auto-estimate delivery band from the customer's pincode (haversine from store)
   useEffect(() => {
-    if (deliveryOverridden) return
     const activePincode = (selectedAddressId && !useNewAddress)
       ? savedAddresses.find(a => a.id === selectedAddressId)?.pincode
       : formData.pincode
@@ -96,7 +95,7 @@ export default function CheckoutPage() {
     } else {
       setDeliveryEstimate(null)
     }
-  }, [formData.pincode, selectedAddressId, useNewAddress, savedAddresses, deliveryOverridden])
+  }, [formData.pincode, selectedAddressId, useNewAddress, savedAddresses])
 
   // Initialize EmailJS and track checkout
   useEffect(() => {
@@ -601,7 +600,7 @@ Please prepare this order for shipment.
         })),
         subtotal: cartTotal,
         shippingFee: shippingFee,
-        deliveryMethod: getDeliveryLabel(deliveryMethod),
+        deliveryMethod: isPickup ? 'Self Pickup' : getDeliveryLabel(deliveryMethod),
         codFee: COD_CONFIG.FEE,
         couponCode: appliedCoupon?.code || null,
         couponDiscount: couponDiscount,
@@ -705,7 +704,7 @@ Please prepare this order for shipment.
         })),
         subtotal: cartTotal,
         shippingFee: shippingFee,
-        deliveryMethod: getDeliveryLabel(deliveryMethod),
+        deliveryMethod: isPickup ? 'Self Pickup' : getDeliveryLabel(deliveryMethod),
         couponCode: appliedCoupon?.code || null,
         couponDiscount: couponDiscount,
         totalAmount: orderTotal,
@@ -1394,33 +1393,51 @@ Please prepare this order for shipment.
                   </div>
                 )}
 
-                {/* Delivery Method Selection */}
+                {/* Fulfilment: auto-detected home delivery vs self pickup */}
                 <div className="border-t border-[#d9cbb5] pt-3">
-                  <label className="block text-sm font-semibold mb-3">Delivery Method</label>
+                  <label className="block text-sm font-semibold mb-3">Delivery</label>
                   <div className="space-y-2">
-                    {DELIVERY_OPTIONS.map((opt) => (
-                      <label key={opt.id} className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-all ${deliveryMethod === opt.id ? 'border-[#6f8a74] bg-amber-50' : 'border-[#d9cbb5] hover:border-gray-400'}`}>
-                        <div className="flex items-center">
-                          <input
-                            type="radio"
-                            name="deliveryMethod"
-                            value={opt.id}
-                            checked={deliveryMethod === opt.id}
-                            onChange={(e) => { setDeliveryMethod(e.target.value); setDeliveryOverridden(true) }}
-                            className="w-4 h-4 text-[#6f8a74] focus:ring-[#6f8a74] mt-0.5"
-                          />
-                          <span className="ml-3 text-sm font-medium">{opt.label}</span>
-                        </div>
-                        <span className={`text-xs font-semibold ${opt.fee === 0 ? 'text-green-600' : 'text-[#6b736d]'}`}>{opt.fee === 0 ? 'FREE' : `+₹${opt.fee}`}</span>
-                      </label>
-                    ))}
+                    <label className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-all ${!isPickup ? 'border-[#6f8a74] bg-amber-50' : 'border-[#d9cbb5] hover:border-gray-400'}`}>
+                      <div className="flex items-center">
+                        <input
+                          type="radio"
+                          name="fulfilment"
+                          value="deliver"
+                          checked={!isPickup}
+                          onChange={() => setFulfilment('deliver')}
+                          className="w-4 h-4 text-[#6f8a74] focus:ring-[#6f8a74]"
+                        />
+                        <span className="ml-3 text-sm font-medium">Home Delivery</span>
+                      </div>
+                      {!isPickup && deliveryEstimate ? (
+                        <span className={`text-xs font-semibold ${shippingFee === 0 ? 'text-green-600' : 'text-[#6b736d]'}`}>{shippingFee === 0 ? 'FREE' : `+₹${shippingFee}`}</span>
+                      ) : (
+                        <span className="text-xs text-[#6b736d]">From pincode</span>
+                      )}
+                    </label>
+                    <label className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-all ${isPickup ? 'border-[#6f8a74] bg-amber-50' : 'border-[#d9cbb5] hover:border-gray-400'}`}>
+                      <div className="flex items-center">
+                        <input
+                          type="radio"
+                          name="fulfilment"
+                          value="pickup"
+                          checked={isPickup}
+                          onChange={() => setFulfilment('pickup')}
+                          className="w-4 h-4 text-[#6f8a74] focus:ring-[#6f8a74]"
+                        />
+                        <span className="ml-3 text-sm font-medium">Self Pickup</span>
+                      </div>
+                      <span className="text-xs font-semibold text-green-600">FREE</span>
+                    </label>
                   </div>
-                  <p className="text-xs text-[#6b736d] mt-2">Within 5 km free · 5–8 km ₹60 · beyond 8 km ₹120 · self-pickup free</p>
-                  {deliveryEstimate && deliveryEstimate.known && deliveryMethod !== 'pickup' && (
-                    <p className="text-xs text-[#6f8a74] mt-1">Auto-selected from your pincode (~{deliveryEstimate.distanceKm} km from our store). You can change it above.</p>
+                  {!isPickup && deliveryEstimate && deliveryEstimate.known && (
+                    <p className="text-xs text-[#6f8a74] mt-2">Delivery auto-calculated from your pincode: {getDeliveryLabel(deliveryMethod)} (~{deliveryEstimate.distanceKm} km from our store).</p>
                   )}
-                  {deliveryEstimate && !deliveryEstimate.known && deliveryMethod !== 'pickup' && (
-                    <p className="text-xs text-[#b4472e] mt-1">Pincode outside our local delivery zone — set to beyond 8 km. Choose Self Pickup if you prefer.</p>
+                  {!isPickup && deliveryEstimate && !deliveryEstimate.known && (
+                    <p className="text-xs text-[#b4472e] mt-2">Your pincode is outside our local delivery zone (charged as beyond 8 km). Choose Self Pickup if you prefer.</p>
+                  )}
+                  {!isPickup && !deliveryEstimate && (
+                    <p className="text-xs text-[#6b736d] mt-2">Delivery charge is calculated automatically from your pincode.</p>
                   )}
                 </div>
 
