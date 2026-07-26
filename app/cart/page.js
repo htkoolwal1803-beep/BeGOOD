@@ -119,24 +119,18 @@ export default function CartPage() {
                   <span className="font-semibold">₹{cartTotal}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[#59615b]">Shipping</span>
-                  {shippingFee === 0 ? (
-                    <span className="font-semibold text-green-600">FREE</span>
-                  ) : (
-                    <span className="font-semibold">₹{shippingFee}</span>
-                  )}
+                  <span className="text-[#59615b]">Delivery</span>
+                  <span className="font-semibold text-[#6b736d]">Calculated at checkout</span>
                 </div>
-                {amountToFreeShipping > 0 && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm">
-                    <p className="text-amber-800">
-                      <Truck className="w-4 h-4 inline mr-1" />
-                      Add ₹{amountToFreeShipping} more for <strong>FREE shipping!</strong>
-                    </p>
-                  </div>
-                )}
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm">
+                  <p className="text-amber-800">
+                    <Truck className="w-4 h-4 inline mr-1" />
+                    Free delivery within 5 km · Self-pickup available
+                  </p>
+                </div>
                 <div className="border-t border-[#d9cbb5] pt-3 flex justify-between">
                   <span className="font-bold text-lg">Total</span>
-                  <span className="font-bold text-2xl text-[#6f8a74]">₹{orderTotal}</span>
+                  <span className="font-bold text-2xl text-[#6f8a74]">₹{cartTotal}</span>
                 </div>
               </div>
 
@@ -160,8 +154,8 @@ export default function CartPage() {
                 </p>
                 <p className="flex items-center">
                   <Truck className="w-4 h-4 mr-2 text-green-600" />
-                  {shippingFee === 0 ? 'Free Shipping' : `Free Shipping above ₹${SHIPPING_CONFIG.FREE_SHIPPING_THRESHOLD}`}
-
+                  Delivery calculated at checkout
+                </p>
               </div>
             </div>
           </div>
