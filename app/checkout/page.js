@@ -9,7 +9,7 @@ import Image from 'next/image'
 import { Lock, Package, Truck, Phone, Shield, User, MapPin, Check, Loader2, Tag, X } from 'lucide-react'
 import Link from 'next/link'
 import emailjs from '@emailjs/browser'
-import { calculateShipping, calculateOrderTotal, SHIPPING_CONFIG, COD_CONFIG } from '@/lib/constants'
+import { calculateShipping, calculateOrderTotal, SHIPPING_CONFIG, COD_CONFIG, DELIVERY_OPTIONS, getDeliveryFee, getDeliveryLabel } from '@/lib/constants'
 
 export default function CheckoutPage() {
   const { cart, cartTotal, clearCart } = useCart()
@@ -58,10 +58,12 @@ export default function CheckoutPage() {
   
   // Payment method state
   const [paymentMethod, setPaymentMethod] = useState('online') // 'online' | 'cod'
+  const [deliveryMethod, setDeliveryMethod] = useState('within5') // pickup | within5 | r5to8 | beyond8
   const [affiliateCode, setAffiliateCode] = useState(null)
 
   // Calculate shipping and order total with coupon discount and COD fee
-  const shippingFee = calculateShipping(cartTotal)
+  const shippingFee = getDeliveryFee(deliveryMethod)
+  const isPickup = deliveryMethod === 'pickup'
   const couponDiscount = appliedCoupon?.discountAmount || 0
   const codFee = paymentMethod === 'cod' ? COD_CONFIG.FEE : 0
   const orderTotal = cartTotal + shippingFee - couponDiscount + codFee
@@ -568,7 +570,7 @@ Please prepare this order for shipment.
         customerName: profileData.name,
         email: profileData.email,
         phone: user?.phoneNumber || `+91${phone}`,
-        address: selectedAddress?.fullAddress || formData.address,
+        address: isPickup ? 'Self Pickup - Sanganer, Jaipur' : (selectedAddress?.fullAddress || formData.address),
         pincode: selectedAddress?.pincode || formData.pincode,
         city: selectedAddress?.city || formData.city,
         state: selectedAddress?.state || formData.state,
@@ -581,6 +583,7 @@ Please prepare this order for shipment.
         })),
         subtotal: cartTotal,
         shippingFee: shippingFee,
+        deliveryMethod: getDeliveryLabel(deliveryMethod),
         codFee: COD_CONFIG.FEE,
         couponCode: appliedCoupon?.code || null,
         couponDiscount: couponDiscount,
@@ -671,7 +674,7 @@ Please prepare this order for shipment.
         customerName: profileData.name,
         email: profileData.email,
         phone: user?.phoneNumber || `+91${phone}`,
-        address: selectedAddress?.fullAddress || formData.address,
+        address: isPickup ? 'Self Pickup - Sanganer, Jaipur' : (selectedAddress?.fullAddress || formData.address),
         pincode: selectedAddress?.pincode || formData.pincode,
         city: selectedAddress?.city || formData.city,
         state: selectedAddress?.state || formData.state,
@@ -684,6 +687,7 @@ Please prepare this order for shipment.
         })),
         subtotal: cartTotal,
         shippingFee: shippingFee,
+        deliveryMethod: getDeliveryLabel(deliveryMethod),
         couponCode: appliedCoupon?.code || null,
         couponDiscount: couponDiscount,
         totalAmount: orderTotal,
@@ -1067,10 +1071,22 @@ Please prepare this order for shipment.
                 <>
                   <div className="flex items-center space-x-2 mb-6">
                     <MapPin className="w-5 h-5 text-[#6f8a74]" />
-                    <h2 className="font-playfair text-2xl font-bold">Shipping Address</h2>
+                    <h2 className="font-playfair text-2xl font-bold">{isPickup ? 'Pickup Details' : 'Shipping Address'}</h2>
                   </div>
 
-                  {savedAddresses.length > 0 && !useNewAddress ? (
+                  {isPickup ? (
+                    <div className="space-y-4">
+                      <div className="p-4 border border-[#d9cbb5] rounded-lg bg-[#eef3ea]">
+                        <p className="font-semibold mb-1">Self Pickup — Free</p>
+                        <p className="text-sm text-[#59615b]">Collect your order from:</p>
+                        <p className="text-sm text-[#464c49] mt-1">BeGood, Ground Floor, Plot No. 8, Sanganer, Jaipur - 302 029, Rajasthan</p>
+                        <p className="text-sm text-[#59615b] mt-2">We&apos;ll call you on your registered number once it&apos;s ready for pickup.</p>
+                      </div>
+                      <Button onClick={() => setStep('payment')} size="lg" className="w-full">
+                        Continue to Payment
+                      </Button>
+                    </div>
+                  ) : savedAddresses.length > 0 && !useNewAddress ? (
                     <div className="space-y-4">
                       <div className="space-y-3">
                         {savedAddresses.map((addr) => (
@@ -1228,7 +1244,7 @@ Please prepare this order for shipment.
                       <div className="flex justify-between">
                         <span className="text-[#59615b]">Address:</span>
                         <span className="text-right max-w-[200px]">
-                          {savedAddresses.find(a => a.id === selectedAddressId)?.fullAddress || formData.address}
+                          {isPickup ? 'Self Pickup — Sanganer, Jaipur' : (savedAddresses.find(a => a.id === selectedAddressId)?.fullAddress || formData.address)}
                         </span>
                       </div>
                     </div>
@@ -1300,21 +1316,13 @@ Please prepare this order for shipment.
                   <span className="font-semibold">₹{cartTotal}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[#59615b]">Shipping</span>
+                  <span className="text-[#59615b]">Delivery</span>
                   {shippingFee === 0 ? (
                     <span className="font-semibold text-green-600">FREE</span>
                   ) : (
                     <span className="font-semibold">₹{shippingFee}</span>
                   )}
                 </div>
-                {amountToFreeShipping > 0 && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm">
-                    <p className="text-amber-800">
-                      <Truck className="w-4 h-4 inline mr-1" />
-                      Add ₹{amountToFreeShipping} more for <strong>FREE shipping!</strong>
-                    </p>
-                  </div>
-                )}
 
                 {/* Coupon Code Section */}
                 <div className="border-t border-[#d9cbb5] pt-3">
@@ -1367,6 +1375,30 @@ Please prepare this order for shipment.
                     <span className="font-semibold">-₹{couponDiscount}</span>
                   </div>
                 )}
+
+                {/* Delivery Method Selection */}
+                <div className="border-t border-[#d9cbb5] pt-3">
+                  <label className="block text-sm font-semibold mb-3">Delivery Method</label>
+                  <div className="space-y-2">
+                    {DELIVERY_OPTIONS.map((opt) => (
+                      <label key={opt.id} className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-all ${deliveryMethod === opt.id ? 'border-[#6f8a74] bg-amber-50' : 'border-[#d9cbb5] hover:border-gray-400'}`}>
+                        <div className="flex items-center">
+                          <input
+                            type="radio"
+                            name="deliveryMethod"
+                            value={opt.id}
+                            checked={deliveryMethod === opt.id}
+                            onChange={(e) => setDeliveryMethod(e.target.value)}
+                            className="w-4 h-4 text-[#6f8a74] focus:ring-[#6f8a74] mt-0.5"
+                          />
+                          <span className="ml-3 text-sm font-medium">{opt.label}</span>
+                        </div>
+                        <span className={`text-xs font-semibold ${opt.fee === 0 ? 'text-green-600' : 'text-[#6b736d]'}`}>{opt.fee === 0 ? 'FREE' : `+₹${opt.fee}`}</span>
+                      </label>
+                    ))}
+                  </div>
+                  <p className="text-xs text-[#6b736d] mt-2">Within 5 km free · 5–8 km ₹60 · beyond 8 km ₹120 · self-pickup free</p>
+                </div>
 
                 {/* Payment Method Selection */}
                 <div className="border-t border-[#d9cbb5] pt-3">
@@ -1433,7 +1465,7 @@ Please prepare this order for shipment.
                 </p>
                 <p className="flex items-center">
                   <Truck className="w-4 h-4 mr-2 text-green-600" />
-                  {shippingFee === 0 ? 'Free Shipping' : `Free Shipping on orders ₹${SHIPPING_CONFIG.FREE_SHIPPING_THRESHOLD} and above`}
+                  Free delivery within 5 km · Self-pickup available
                 </p>
               </div>
             </div>
