@@ -202,6 +202,7 @@ export default function ProductPage() {
           </section>
 
           {/* Key Ingredients */}
+          {product.ingredients && product.ingredients.length > 0 && (
           <section>
             <h2 className="font-playfair text-3xl font-bold mb-6">Key Ingredients</h2>
             <div className="grid md:grid-cols-2 gap-6">
@@ -225,6 +226,7 @@ export default function ProductPage() {
               ))}
             </div>
           </section>
+          )}
 
           {/* Full Ingredients List */}
           {product.ingredientsList && (
@@ -238,14 +240,17 @@ export default function ProductPage() {
           )}
 
           {/* How It Works */}
+          {product.howItWorks && (
           <section className="brand-card p-6 md:p-8">
             <h2 className="font-playfair text-3xl font-bold mb-6">How It Works</h2>
             <div className="text-[#464c49] text-lg leading-relaxed whitespace-pre-line">
               {product.howItWorks}
             </div>
           </section>
+          )}
 
           {/* When To Use */}
+          {product.occasions && product.occasions.length > 0 && (
           <section className="brand-card p-6 md:p-8">
             <h2 className="font-playfair text-3xl font-bold mb-6">When To Use</h2>
             <div className="grid md:grid-cols-2 gap-4">
@@ -257,12 +262,15 @@ export default function ProductPage() {
               ))}
             </div>
           </section>
+          )}
 
           {/* Usage */}
+          {product.usage && (
           <section className="bg-[#dce6d7]/70 border border-[#d9cbb5] p-8 rounded-2xl">
             <h2 className="font-playfair text-2xl font-bold mb-4">Usage Instructions</h2>
             <p className="text-[#464c49] text-lg">{product.usage}</p>
           </section>
+          )}
 
 
 
