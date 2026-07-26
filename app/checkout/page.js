@@ -10,6 +10,7 @@ import { Lock, Package, Truck, Phone, Shield, User, MapPin, Check, Loader2, Tag,
 import Link from 'next/link'
 import emailjs from '@emailjs/browser'
 import { calculateShipping, calculateOrderTotal, SHIPPING_CONFIG, COD_CONFIG, DELIVERY_OPTIONS, getDeliveryFee, getDeliveryLabel } from '@/lib/constants'
+import { estimateDeliveryByPincode } from '@/lib/deliveryDistance'
 
 export default function CheckoutPage() {
   const { cart, cartTotal, clearCart } = useCart()
@@ -59,6 +60,8 @@ export default function CheckoutPage() {
   // Payment method state
   const [paymentMethod, setPaymentMethod] = useState('online') // 'online' | 'cod'
   const [deliveryMethod, setDeliveryMethod] = useState('within5') // pickup | within5 | r5to8 | beyond8
+  const [deliveryEstimate, setDeliveryEstimate] = useState(null)
+  const [deliveryOverridden, setDeliveryOverridden] = useState(false)
   const [affiliateCode, setAffiliateCode] = useState(null)
 
   // Calculate shipping and order total with coupon discount and COD fee
@@ -79,6 +82,21 @@ export default function CheckoutPage() {
       }
     }
   }, [])
+
+  // Auto-estimate delivery band from the customer's pincode (haversine from store)
+  useEffect(() => {
+    if (deliveryOverridden) return
+    const activePincode = (selectedAddressId && !useNewAddress)
+      ? savedAddresses.find(a => a.id === selectedAddressId)?.pincode
+      : formData.pincode
+    const est = estimateDeliveryByPincode(activePincode)
+    if (est) {
+      setDeliveryEstimate(est)
+      setDeliveryMethod(est.methodId)
+    } else {
+      setDeliveryEstimate(null)
+    }
+  }, [formData.pincode, selectedAddressId, useNewAddress, savedAddresses, deliveryOverridden])
 
   // Initialize EmailJS and track checkout
   useEffect(() => {
@@ -570,7 +588,7 @@ Please prepare this order for shipment.
         customerName: profileData.name,
         email: profileData.email,
         phone: user?.phoneNumber || `+91${phone}`,
-        address: isPickup ? 'Self Pickup - Sanganer, Jaipur' : (selectedAddress?.fullAddress || formData.address),
+        address: isPickup ? 'Self Pickup - B39, Jagdamba Colony, Naya Khera, Ambabari, Jaipur - 302039' : (selectedAddress?.fullAddress || formData.address),
         pincode: selectedAddress?.pincode || formData.pincode,
         city: selectedAddress?.city || formData.city,
         state: selectedAddress?.state || formData.state,
@@ -674,7 +692,7 @@ Please prepare this order for shipment.
         customerName: profileData.name,
         email: profileData.email,
         phone: user?.phoneNumber || `+91${phone}`,
-        address: isPickup ? 'Self Pickup - Sanganer, Jaipur' : (selectedAddress?.fullAddress || formData.address),
+        address: isPickup ? 'Self Pickup - B39, Jagdamba Colony, Naya Khera, Ambabari, Jaipur - 302039' : (selectedAddress?.fullAddress || formData.address),
         pincode: selectedAddress?.pincode || formData.pincode,
         city: selectedAddress?.city || formData.city,
         state: selectedAddress?.state || formData.state,
@@ -1079,7 +1097,7 @@ Please prepare this order for shipment.
                       <div className="p-4 border border-[#d9cbb5] rounded-lg bg-[#eef3ea]">
                         <p className="font-semibold mb-1">Self Pickup — Free</p>
                         <p className="text-sm text-[#59615b]">Collect your order from:</p>
-                        <p className="text-sm text-[#464c49] mt-1">BeGood, Ground Floor, Plot No. 8, Sanganer, Jaipur - 302 029, Rajasthan</p>
+                        <p className="text-sm text-[#464c49] mt-1">BeGood, B39, Jagdamba Colony, Naya Khera, Ambabari, Jaipur - 302039, Rajasthan</p>
                         <p className="text-sm text-[#59615b] mt-2">We&apos;ll call you on your registered number once it&apos;s ready for pickup.</p>
                       </div>
                       <Button onClick={() => setStep('payment')} size="lg" className="w-full">
@@ -1244,7 +1262,7 @@ Please prepare this order for shipment.
                       <div className="flex justify-between">
                         <span className="text-[#59615b]">Address:</span>
                         <span className="text-right max-w-[200px]">
-                          {isPickup ? 'Self Pickup — Sanganer, Jaipur' : (savedAddresses.find(a => a.id === selectedAddressId)?.fullAddress || formData.address)}
+                          {isPickup ? 'Self Pickup — Ambabari, Jaipur (302039)' : (savedAddresses.find(a => a.id === selectedAddressId)?.fullAddress || formData.address)}
                         </span>
                       </div>
                     </div>
@@ -1388,7 +1406,7 @@ Please prepare this order for shipment.
                             name="deliveryMethod"
                             value={opt.id}
                             checked={deliveryMethod === opt.id}
-                            onChange={(e) => setDeliveryMethod(e.target.value)}
+                            onChange={(e) => { setDeliveryMethod(e.target.value); setDeliveryOverridden(true) }}
                             className="w-4 h-4 text-[#6f8a74] focus:ring-[#6f8a74] mt-0.5"
                           />
                           <span className="ml-3 text-sm font-medium">{opt.label}</span>
@@ -1398,6 +1416,12 @@ Please prepare this order for shipment.
                     ))}
                   </div>
                   <p className="text-xs text-[#6b736d] mt-2">Within 5 km free · 5–8 km ₹60 · beyond 8 km ₹120 · self-pickup free</p>
+                  {deliveryEstimate && deliveryEstimate.known && deliveryMethod !== 'pickup' && (
+                    <p className="text-xs text-[#6f8a74] mt-1">Auto-selected from your pincode (~{deliveryEstimate.distanceKm} km from our store). You can change it above.</p>
+                  )}
+                  {deliveryEstimate && !deliveryEstimate.known && deliveryMethod !== 'pickup' && (
+                    <p className="text-xs text-[#b4472e] mt-1">Pincode outside our local delivery zone — set to beyond 8 km. Choose Self Pickup if you prefer.</p>
+                  )}
                 </div>
 
                 {/* Payment Method Selection */}
