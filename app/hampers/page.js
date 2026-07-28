@@ -24,9 +24,9 @@ export default function HampersPage() {
   ]
 
   const gallery = [
-    { src: '/hampers/gallery-1.jpg', alt: 'BeGood Rakhi Hamper - open basket view' },
-    { src: '/hampers/gallery-2.jpg', alt: 'BeGood Rakhi Hamper - net wrapped' },
-    { src: '/hampers/gallery-3.jpg', alt: 'BeGood Rakhi Hamper - contents close up' }
+    { src: '/hampers/gallery-1.png', alt: 'BeGood Rakhi Hamper - open basket view' },
+    { src: '/hampers/gallery-2.png', alt: 'BeGood Rakhi Hamper - net wrapped' },
+    { src: '/hampers/gallery-3.png', alt: 'BeGood Rakhi Hamper - contents close up' }
   ]
 
   return (
