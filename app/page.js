@@ -167,7 +167,7 @@ export default function Home() {
                   </h1>
                   <p className="max-w-xl text-lg leading-relaxed text-[#464c49]">
                     A premium functional chocolate that reduces Stress,Nervousness and brings calm focus when it matters most.
-                    100% natural ingredients. No pills. No powders. Just delicious, science-backed wellness.
+                    100% natural ingredients. pills. No powders. Just delicious, science-backed wellness.
                   </p>
                 </div>
 
@@ -227,7 +227,7 @@ export default function Home() {
               <h2 className="font-playfair text-4xl font-bold leading-tight md:text-5xl">Nature's Best for Your Wellbeing</h2>
               <p className="text-[#dce6d7]">
                 We create science-backed functional foods that help you manage your emotions naturally.
-                No therapy sessions, no complicated routines just convenient and delicious products made with walnuts, pumpkin seeds, cocoa butter, and L-Theanine.
+                Just convenient and delicious products made with walnuts, pumpkin seeds, cocoa butter, and L-Theanine.
               </p>
               <div className="grid gap-3 sm:grid-cols-2">
                 {benefits.map((benefit) => (
