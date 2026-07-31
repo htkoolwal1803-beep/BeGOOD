@@ -598,11 +598,11 @@ export default function HowItWorksSection() {
         // Update label
         let labelText
         if (freq > 4) {
-          labelText = 'HÎ² ' + Math.round(freq * 4) + 'Hz'
+          labelText = 'Wired'
         } else if (freq > 2.5) {
-          labelText = 'LÎ² ' + Math.round(freq * 4) + 'Hz'
+          labelText = 'Settling'
         } else {
-          labelText = 'Î± ' + Math.round(freq * 4) + 'Hz'
+          labelText = 'Calm focus'
         }
         if (eegLabel) {
           eegLabel.textContent = labelText
@@ -1096,7 +1096,7 @@ export default function HowItWorksSection() {
                   <circle cx="12" cy="12" r="9" />
                   <path d="M12 7v5l3 2" />
                 </svg>
-                <span className="text-sm font-medium text-stone-700">Fast Acting (15-20 min)</span>
+                <span className="text-sm font-medium text-stone-700">Fast Acting (30-45 min)</span>
               </div>
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#fbf7ed] border border-stone-200 shadow-sm">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F4A261" strokeWidth="2">
@@ -1114,40 +1114,39 @@ export default function HowItWorksSection() {
             <div className="w-full lg:w-[57%]">
               <div className="relative bg-[#fbf7ed]/80 backdrop-blur-xl rounded-[2.5rem] border border-stone-100 shadow-[0_30px_80px_-30px_rgba(92,58,33,0.3)] p-6 md:p-8 lg:sticky lg:top-8">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-[17px] font-semibold tracking-wide" style={{ color: '#5C3A21' }}>
-                    HOW IT WORKS IN YOUR BODY
-                  </h2>
+                  <div>
+                    <h2 className="text-[17px] font-semibold tracking-wide" style={{ color: '#5C3A21' }}>
+                      HOW IT WORKS IN YOUR BODY
+                    </h2>
+                    <p className="text-[11px] text-stone-400 mt-1">Illustrative animation — how the experience is designed to feel, not measured data.</p>
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between gap-2 md:gap-4 body-layout relative">
                   <div className="hormone-panel" id="hormone-panel">
                     <div className="hormone-gauge" id="hg-cortisol">
-                      <div className="h-label"><span style={{ color: '#ef4444' }}>Cortisol</span><span className="h-arrow" style={{ color: '#ef4444' }}>â†“</span></div>
+                      <div className="h-label"><span style={{ color: '#ef4444' }}>Stress</span><span className="h-arrow" style={{ color: '#ef4444' }}>↓</span></div>
                       <div className="h-bar-bg">
                         <div className="h-bar-fill" id="hbar-cortisol" style={{ width: '100%', background: '#ef4444' }}></div>
                       </div>
-                      <div className="h-val" id="hval-cortisol" style={{ color: '#ef4444' }}>100%</div>
                     </div>
                     <div className="hormone-gauge" id="hg-glutamate">
-                      <div className="h-label"><span style={{ color: '#f97316' }}>Glutamate</span><span className="h-arrow" style={{ color: '#f97316' }}>â†“</span></div>
+                      <div className="h-label"><span style={{ color: '#f97316' }}>Mental chatter</span><span className="h-arrow" style={{ color: '#f97316' }}>↓</span></div>
                       <div className="h-bar-bg">
                         <div className="h-bar-fill" id="hbar-glutamate" style={{ width: '100%', background: '#f97316' }}></div>
                       </div>
-                      <div className="h-val" id="hval-glutamate" style={{ color: '#f97316' }}>100%</div>
                     </div>
                     <div className="hormone-gauge" id="hg-gaba">
-                      <div className="h-label"><span style={{ color: '#22c55e' }}>GABA</span><span className="h-arrow" style={{ color: '#22c55e' }}>â†‘</span></div>
+                      <div className="h-label"><span style={{ color: '#22c55e' }}>Calm</span><span className="h-arrow" style={{ color: '#22c55e' }}>↑</span></div>
                       <div className="h-bar-bg">
                         <div className="h-bar-fill" id="hbar-gaba" style={{ width: '30%', background: '#22c55e' }}></div>
                       </div>
-                      <div className="h-val" id="hval-gaba" style={{ color: '#22c55e' }}>30%</div>
                     </div>
                     <div className="hormone-gauge" id="hg-serotonin">
-                      <div className="h-label"><span style={{ color: '#14b8a6' }}>Serotonin</span><span className="h-arrow" style={{ color: '#14b8a6' }}>â†‘</span></div>
+                      <div className="h-label"><span style={{ color: '#14b8a6' }}>Focus</span><span className="h-arrow" style={{ color: '#14b8a6' }}>↑</span></div>
                       <div className="h-bar-bg">
                         <div className="h-bar-fill" id="hbar-serotonin" style={{ width: '40%', background: '#14b8a6' }}></div>
                       </div>
-                      <div className="h-val" id="hval-serotonin" style={{ color: '#14b8a6' }}>40%</div>
                     </div>
                   </div>
 
@@ -1279,8 +1278,8 @@ export default function HowItWorksSection() {
 
                       <g id="vagus-lbl">
                         <rect x="72" y="268" width="54" height="26" rx="7" fill="#81B29A" opacity=".93" />
-                        <text x="99" y="278" fontSize="7.5" fontFamily="Inter,sans-serif" fill="white" fontWeight="700" textAnchor="middle">Vagus</text>
-                        <text x="99" y="289" fontSize="7.5" fontFamily="Inter,sans-serif" fill="white" fontWeight="600" textAnchor="middle">Nerve â†‘</text>
+                        <text x="99" y="278" fontSize="7.5" fontFamily="Inter,sans-serif" fill="white" fontWeight="700" textAnchor="middle">Body</text>
+                        <text x="99" y="289" fontSize="7.5" fontFamily="Inter,sans-serif" fill="white" fontWeight="600" textAnchor="middle">settles ↑</text>
                       </g>
 
                       <g id="choc-bar">
@@ -1300,39 +1299,39 @@ export default function HowItWorksSection() {
 
                       <g id="svgbadge-cortisol" className="svgbadge">
                         <rect x="252" y="160" width="82" height="22" rx="11" fill="#ef4444" opacity=".95" />
-                        <text x="293" y="174.5" fontSize="9" fontFamily="Inter,sans-serif" fill="white" fontWeight="800" textAnchor="middle">â†“ Cortisol</text>
+                        <text x="293" y="174.5" fontSize="9" fontFamily="Inter,sans-serif" fill="white" fontWeight="800" textAnchor="middle">↓ Stress</text>
                       </g>
 
                       <g id="svgbadge-gaba" className="svgbadge">
                         <rect x="252" y="187" width="82" height="22" rx="11" fill="#22c55e" opacity=".95" />
-                        <text x="293" y="201.5" fontSize="9" fontFamily="Inter,sans-serif" fill="white" fontWeight="800" textAnchor="middle">â†‘ GABA</text>
+                        <text x="293" y="201.5" fontSize="9" fontFamily="Inter,sans-serif" fill="white" fontWeight="800" textAnchor="middle">↑ Calm</text>
                       </g>
 
                       <g id="svgbadge-glutamate" className="svgbadge">
                         <rect x="252" y="214" width="82" height="22" rx="11" fill="#f97316" opacity=".95" />
-                        <text x="293" y="228.5" fontSize="9" fontFamily="Inter,sans-serif" fill="white" fontWeight="800" textAnchor="middle">â†“ Glutamate</text>
+                        <text x="293" y="228.5" fontSize="9" fontFamily="Inter,sans-serif" fill="white" fontWeight="800" textAnchor="middle">↓ Racing mind</text>
                       </g>
 
                       <g id="svgbadge-serotonin" className="svgbadge">
                         <rect x="252" y="241" width="82" height="22" rx="11" fill="#14b8a6" opacity=".95" />
-                        <text x="293" y="255.5" fontSize="9" fontFamily="Inter,sans-serif" fill="white" fontWeight="800" textAnchor="middle">â†‘ Serotonin</text>
+                        <text x="293" y="255.5" fontSize="9" fontFamily="Inter,sans-serif" fill="white" fontWeight="800" textAnchor="middle">↑ Steady mood</text>
                       </g>
 
                       <g id="svgbadge-alertness" className="svgbadge">
                         <rect x="252" y="268" width="82" height="22" rx="11" fill="#E76F51" opacity=".95" />
-                        <text x="293" y="282.5" fontSize="9" fontFamily="Inter,sans-serif" fill="white" fontWeight="800" textAnchor="middle">â†‘ Alertness</text>
+                        <text x="293" y="282.5" fontSize="9" fontFamily="Inter,sans-serif" fill="white" fontWeight="800" textAnchor="middle">↑ Alertness</text>
                       </g>
 
                       <g id="svgbadge-membrane" className="svgbadge">
                         <rect x="252" y="295" width="82" height="22" rx="11" fill="#F4A261" opacity=".95" />
-                        <text x="293" y="309.5" fontSize="9" fontFamily="Inter,sans-serif" fill="white" fontWeight="800" textAnchor="middle">â†‘ Membrane</text>
+                        <text x="293" y="309.5" fontSize="9" fontFamily="Inter,sans-serif" fill="white" fontWeight="800" textAnchor="middle">↑ Nourished</text>
                       </g>
                     </svg>
 
                     <div className="eeg-wrap" id="eeg-wrap">
                       <div className="eeg-header">
                         <span className="eeg-title">EEG</span>
-                        <span className="eeg-freq" id="eeg-freq-label" style={{ background: '#ef444420', color: '#ef4444' }}>HÎ² 22Hz</span>
+                        <span className="eeg-freq" id="eeg-freq-label" style={{ background: '#ef444420', color: '#ef4444' }}>Wired</span>
                       </div>
                       <canvas id="eeg-canvas" width="120" height="60"></canvas>
                     </div>
@@ -1405,7 +1404,7 @@ export default function HowItWorksSection() {
                   <div className="flex gap-4">
                     <div className="shrink-0">
                       <div className="w-14 h-14 rounded-2xl flex flex-col items-center justify-center text-white font-bold leading-none shadow-lg shadow-[#E76F51]/20" style={{ background: '#E76F51' }}>
-                        <span className="text-[13px]">15-20</span>
+                        <span className="text-[13px]">30-45</span>
                         <span className="text-[10px] font-medium">min</span>
                       </div>
                     </div>
@@ -1428,7 +1427,7 @@ export default function HowItWorksSection() {
                   <div className="flex gap-4">
                     <div className="shrink-0">
                       <div className="w-14 h-14 rounded-2xl flex flex-col items-center justify-center text-white font-bold leading-none shadow-lg shadow-[#2A9D8F]/20" style={{ background: '#2A9D8F' }}>
-                        <span className="text-[13px]">30-40</span>
+                        <span className="text-[13px]">45-60</span>
                         <span className="text-[10px] font-medium">min</span>
                       </div>
                     </div>
@@ -1437,7 +1436,7 @@ export default function HowItWorksSection() {
                         <h4 className="text-lg font-bold" style={{ color: '#2A9D8F' }}>Brain Shift</h4>
                         <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold text-white" style={{ background: '#2A9D8F' }}>Alert Relaxation</span>
                       </div>
-                      <p className="text-[14.5px] leading-snug text-slate-600">L-Theanine crosses the blood-brain barrier and quiets overactive cortical neurons â€” the &quot;stress firing.&quot; The brain shifts from <strong>High Beta</strong> (panic/anxiety) to <strong>Alpha waves (8â€“14 Hz)</strong>: the rhythm of <em>Alert Relaxation</em> â€” like meditation, while fully awake. (Hidese et al., 2019)</p>
+                      <p className="text-[14.5px] leading-snug text-slate-600">L-Theanine crosses the blood-brain barrier. In EEG studies, L-Theanine has been associated with increased <strong>alpha-band activity (8–14 Hz)</strong> — the pattern linked to <em>relaxed alertness</em>: calm, but fully awake. (Nobre et al., 2008)</p>
                       <div className="flex flex-wrap gap-1.5 mt-3">
                         <span className="source-chip" style={{ background: '#2A9D8F18', color: '#1a6b62', border: '1px solid #2A9D8F40' }}>Cocoa Butter + L-Theanine</span>
                       </div>
@@ -1477,12 +1476,8 @@ export default function HowItWorksSection() {
                       </div>
                     </div>
                     <div className="min-w-0">
-                      <h4 className="text-lg font-bold mb-1" style={{ color: '#5a8f7a' }}>Gut Support</h4>
+                      <h4 className="text-lg font-bold mb-1" style={{ color: '#5a8f7a' }}>Steady Nourishment</h4>
                       <p className="text-[14.5px] leading-snug text-slate-600">A-Bar keeps the routine simple: walnuts and pumpkin seeds for plant-based nourishment, cocoa butter for texture, and L-Theanine for calm focus support.</p>
-                      <div className="stat-callout mt-3" style={{ background: '#81B29A12', border: '1px solid #81B29A45' }}>
-                        <span className="text-2xl font-extrabold shrink-0 leading-none" style={{ color: '#81B29A' }}>+18%</span>
-                        <span className="text-[12px] leading-snug text-slate-600"><strong>Ingredient Synergy:</strong> walnuts, pumpkin seeds, cocoa butter, and L-Theanine create a simple functional chocolate for calm focus.</span>
-                      </div>
                       <div className="flex flex-wrap gap-1.5 mt-3">
                         <span className="source-chip" style={{ background: '#81B29A18', color: '#3d7a60', border: '1px solid #81B29A40' }}>Cocoa Butter</span>
                       </div>
@@ -1500,7 +1495,7 @@ export default function HowItWorksSection() {
                       <circle cx="12" cy="9" r="2.5" />
                     </svg>
                   </div>
-                  <p className="text-[13px] leading-relaxed text-stone-600">Formulated for ages 20-45 who want clear calm without the crash. No jitters, just steady focus you can feel.</p>
+                  <p className="text-[13px] leading-relaxed text-stone-600">Made for anyone who wants clear calm without the crash. No jitters, just steady focus you can feel.</p>
                 </div>
               </div>
             </div>
@@ -1514,17 +1509,17 @@ export default function HowItWorksSection() {
               Scientific References
             </h4>
             <ol className="space-y-2 text-[11px] leading-snug text-stone-500 list-decimal list-inside">
-              <li>Hidese S et al. Effects of L-Theanine Administration on Stress-Related Symptoms and Cognitive Functions in Healthy Adults. <em>Nutrients.</em> 2019;11(10):2362.
-                <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6836118/" target="_blank" rel="noopener" className="ml-1 underline hover:text-stone-700 transition">â†— Read study</a>
+              <li>Nobre AC, Rao A, Owen GN. L-theanine, a natural constituent in tea, and its effect on mental state. <em>Asia Pac J Clin Nutr.</em> 2008;17(S1):167-168.
+                <a href="https://pubmed.ncbi.nlm.nih.gov/18296328/" target="_blank" rel="noopener" className="ml-1 underline hover:text-stone-700 transition">↗ Read study</a>
               </li>
-              <li>Giesbrecht T et al. The combination of L-theanine and caffeine improves cognitive performance. <em>Nutr Neurosci.</em> 2010;13(6):283-290.
-                <a href="https://pubmed.ncbi.nlm.nih.gov/21040626/" target="_blank" rel="noopener" className="ml-1 underline hover:text-stone-700 transition">â†— Read study</a>
+              <li>Hidese S et al. Effects of L-Theanine Administration on Stress-Related Symptoms and Cognitive Functions in Healthy Adults: A Randomized Controlled Trial. <em>Nutrients.</em> 2019;11(10):2362.
+                <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6836118/" target="_blank" rel="noopener" className="ml-1 underline hover:text-stone-700 transition">↗ Read study</a>
               </li>
-              <li>Deehan EC & Walter J. The Fiber Gap and the Gut-Brain Axis. <em>Trends Endocrinol Metab.</em> 2016.
-                <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5808284/" target="_blank" rel="noopener" className="ml-1 underline hover:text-stone-700 transition">â†— Read study</a>
+              <li>Scheid L et al. Kinetics of L-theanine uptake and metabolism in healthy participants. <em>J Nutr.</em> 2012;142(12):2091-2096.
+                <a href="https://pubmed.ncbi.nlm.nih.gov/23096008/" target="_blank" rel="noopener" className="ml-1 underline hover:text-stone-700 transition">↗ Read study</a>
               </li>
             </ol>
-            <p className="mt-4 text-[11px] text-stone-400">Educational information only. A-Bar is a food, not a medicine. Effects vary person to person. Consult a professional for health concerns.</p>
+            <p className="mt-4 text-[11px] text-stone-400">Educational information only. These studies concern L-Theanine as an ingredient and were not conducted on A-Bar. A-Bar is a food, not a medicine. Effects vary person to person. Consult a professional for health concerns.</p>
             <div className="mt-6 flex items-center gap-2">
               <span className="text-sm font-semibold" style={{ color: '#5C3A21' }}>be good</span>
               <span className="text-stone-300">â€¢</span>
