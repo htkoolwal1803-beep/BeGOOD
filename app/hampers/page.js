@@ -54,7 +54,7 @@ export default function HampersPage() {
                 </p>
                 <div className="flex items-end gap-3">
                   <span className="font-playfair text-4xl md:text-5xl font-bold text-[#1f2229]">
-                    ₹758
+                    ₹797
                   </span>
                   <span className="text-lg text-[#59615b] line-through mb-1">₹999</span>
                 </div>
