@@ -15,9 +15,9 @@ export default function HampersPage() {
     { name: 'Basket with net wrap', detail: 'Premium reusable gifting basket' },
     { name: '2 × A-Bars', detail: 'Functional stress-easing chocolate bars' },
     { name: 'Coconut Water', detail: '1 bottle of 100% natural RAW coconut water' },
-    { name: 'Almonds', detail: '100g of premium almonds' },
-    { name: 'Cashews', detail: '100g of premium cashews' },
-    { name: 'Phool Makhana', detail: '40g of roasted fox nuts' },
+    { name: 'Almonds', detail: '150g of premium almonds' },
+    { name: 'Cashews', detail: '150g of premium cashews' },
+    { name: 'Phool Makhana', detail: '50g of roasted fox nuts' },
     { name: 'Plant Pot', detail: 'A little pot to grow something together' },
     { name: 'Plantable Greeting Card', detail: 'Plant it, water it, watch kindness bloom' },
     { name: 'Customizable Polaroid', detail: 'Personalise it with your own moment' }
