@@ -136,7 +136,7 @@ export default function AboutPage() {
           <div className="max-w-4xl mx-auto">
             <h2 className="font-playfair text-4xl md:text-5xl font-bold mb-8 text-center">The Science Behind BeGood</h2>
             <p className="text-xl text-[#59615b] mb-12 text-center">
-              Our formula combines traditional adaptogens with modern nutritional science
+              Our formula combines whole-food ingredients with L-Theanine, an amino acid found naturally in tea
             </p>
 
               <div className="grid gap-6 md:grid-cols-2">
@@ -161,7 +161,7 @@ export default function AboutPage() {
         <div className="container mx-auto px-4 text-center">
           <h2 className="font-playfair text-4xl md:text-5xl font-bold mb-6">Experience the Difference</h2>
           <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90">
-            Join thousands who trust BeGood for their most important moments
+            Made for the moments that matter most
           </p>
           <Link href="/shop">
             <Button variant="secondary" size="lg">
