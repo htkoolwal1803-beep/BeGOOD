@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { MongoClient } from 'mongodb'
 import { v4 as uuidv4 } from 'uuid'
 import crypto from 'crypto'
+import { cartHasHamper } from '@/lib/products'
 
 // Razorpay webhook signature verification
 function verifyRazorpaySignature(body, signature, secret) {
@@ -645,6 +646,15 @@ export async function POST(request) {
         }
       }
       
+      // Hampers are prepaid only. The UI hides COD for them, but a crafted
+      // request could still reach here, so reject it server-side too.
+      if (body.paymentMethod === 'cod' && cartHasHamper(body.products)) {
+        return NextResponse.json(
+          { success: false, error: 'Cash on Delivery is not available for hamper orders. Please pay online.' },
+          { status: 400 }
+        )
+      }
+
       const order = {
         orderId: uuidv4(),
         customerName: body.customerName,
