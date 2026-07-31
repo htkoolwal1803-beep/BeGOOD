@@ -195,7 +195,7 @@ export default function HampersPage() {
             This Rakhi, Gift a Healthy Hamper
           </h2>
           <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90">
-            Made for moments that matter. Order now at the pre-Rakhi price of ₹758.
+            Made for moments that matter. Order now at the pre-Rakhi price of ₹797.
           </p>
           <HamperCTA variant="footer" />
         </div>
