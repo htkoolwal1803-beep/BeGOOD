@@ -83,7 +83,7 @@ export default function Home() {
 
   const quickRelief = [
     { title: 'Science-Backed', desc: 'Research-based formulations', icon: Brain },
-    { title: 'Fast Acting', desc: 'Works in 15-20 minutes', icon: Clock3 },
+    { title: 'Fast Acting', desc: 'Works in about 30-45 minutes', icon: Clock3 },
     { title: 'Delicious', desc: 'Tastes like premium chocolate', icon: PackageCheck }
   ]
 
@@ -99,17 +99,17 @@ export default function Home() {
     'No Added Sugar',
     'No Added Preservatives',
     'Science-Backed Formula',
-    'Quick Acting (15-20 min)',
+    'Quick Acting (30-45 min)',
     'Delicious & Convenient'
   ]
 
   const benefits = [
-    'Reduces stress and nervousness',
-    'Enhances mental clarity and focus',
+    'Helps ease stress and nervousness',
+    'Supports mental clarity and focus',
     'Promotes calm without drowsiness',
-    'Improves performance under pressure',
-    'Shifts brain from panic to alpha-wave calm',
-    'Balances cortisol and stress hormones'
+    'Helps you stay composed in high-stakes moments',
+    'L-Theanine supports relaxed alertness',
+    'Whole-food ingredients, no pills or powders'
   ]
 
   const ingredientTiles = [
@@ -363,7 +363,7 @@ export default function Home() {
         <div className="brand-container text-center">
           <h2 className="font-playfair text-4xl font-bold md:text-5xl">Ready To Feel Your Best?</h2>
           <p className="mx-auto mb-8 mt-4 max-w-2xl text-lg text-[#59615b]">
-            Join thousands who trust BeGood for their most important moments
+            Made for the moments that matter most
           </p>
           <Link href="/shop">
             <Button size="lg">
