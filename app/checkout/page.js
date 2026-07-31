@@ -11,6 +11,7 @@ import Link from 'next/link'
 import emailjs from '@emailjs/browser'
 import { calculateShipping, calculateOrderTotal, SHIPPING_CONFIG, COD_CONFIG, DELIVERY_OPTIONS, getDeliveryFee, getDeliveryLabel } from '@/lib/constants'
 import { estimateDeliveryByPincode } from '@/lib/deliveryDistance'
+import { cartHasHamper } from '@/lib/products'
 
 export default function CheckoutPage() {
   const { cart, cartTotal, clearCart } = useCart()
@@ -64,13 +65,21 @@ export default function CheckoutPage() {
   const [deliveryEstimate, setDeliveryEstimate] = useState(null)
   const [affiliateCode, setAffiliateCode] = useState(null)
 
+  // Hampers are prepaid only - see isHamperProduct in lib/products.js
+  const hasHamper = cartHasHamper(cart)
+
   // Calculate shipping and order total with coupon discount and COD fee
   const isPickup = fulfilment === 'pickup'
   const shippingFee = isPickup ? 0 : getDeliveryFee(deliveryMethod)
   const couponDiscount = appliedCoupon?.discountAmount || 0
-  const codFee = paymentMethod === 'cod' ? COD_CONFIG.FEE : 0
+  const codFee = paymentMethod === 'cod' && !hasHamper ? COD_CONFIG.FEE : 0
   const orderTotal = cartTotal + shippingFee - couponDiscount + codFee
   const amountToFreeShipping = SHIPPING_CONFIG.FREE_SHIPPING_THRESHOLD - cartTotal
+
+  // A hamper can be added after COD was already selected - snap back to online
+  useEffect(() => {
+    if (hasHamper && paymentMethod === 'cod') setPaymentMethod('online')
+  }, [hasHamper, paymentMethod])
 
   // Load affiliate code from localStorage (captured site-wide in layout.js)
   useEffect(() => {
@@ -578,6 +587,11 @@ Please prepare this order for shipment.
   }
 
   const handleCODOrder = async () => {
+    if (hasHamper) {
+      setPaymentMethod('online')
+      alert('Hampers are prepaid only. Please pay online to place this order.')
+      return
+    }
     setLoading(true)
 
     try {
@@ -1274,7 +1288,7 @@ Please prepare this order for shipment.
                   </div>
 
                   <Button
-                    onClick={paymentMethod === 'cod' ? handleCODOrder : handleRazorpayPayment}
+                    onClick={paymentMethod === 'cod' && !hasHamper ? handleCODOrder : handleRazorpayPayment}
                     size="lg"
                     className="w-full"
                     disabled={loading}
@@ -1284,11 +1298,11 @@ Please prepare this order for shipment.
                         <Loader2 className="w-5 h-5 animate-spin mr-2" />
                         Processing...
                       </span>
-                    ) : paymentMethod === 'cod' ? `Place COD Order (₹${orderTotal})` : `Pay ₹${orderTotal} with Razorpay`}
+                    ) : paymentMethod === 'cod' && !hasHamper ? `Place COD Order (₹${orderTotal})` : `Pay ₹${orderTotal} with Razorpay`}
                   </Button>
 
                   <p className="text-xs text-[#6b736d] text-center mt-3">
-                    {paymentMethod === 'cod' 
+                    {paymentMethod === 'cod' && !hasHamper
                       ? 'Pay ₹' + orderTotal + ' when your order is delivered. By placing this order, you agree to our Terms & Conditions and No Return Policy.'
                       : 'Secure payment powered by Razorpay. By placing this order, you agree to our Terms & Conditions and No Return Policy.'}
                   </p>
@@ -1459,25 +1473,46 @@ Please prepare this order for shipment.
                       </div>
                       <Lock className="w-4 h-4 text-green-600" />
                     </label>
-                    <label className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-all ${paymentMethod === 'cod' ? 'border-[#6f8a74] bg-amber-50' : 'border-[#d9cbb5] hover:border-gray-400'}`}>
-                      <div className="flex items-center">
-                        <input
-                          type="radio"
-                          name="paymentMethod"
-                          value="cod"
-                          checked={paymentMethod === 'cod'}
-                          onChange={(e) => setPaymentMethod(e.target.value)}
-                          className="w-4 h-4 text-[#6f8a74] focus:ring-[#6f8a74]"
-                        />
-                        <span className="ml-3 text-sm font-medium">Cash on Delivery</span>
+                    {hasHamper ? (
+                      <div className="flex items-center justify-between p-3 border border-[#d9cbb5] rounded-lg bg-stone-50 opacity-70 cursor-not-allowed">
+                        <div className="flex items-center">
+                          <input
+                            type="radio"
+                            name="paymentMethod"
+                            value="cod"
+                            checked={false}
+                            disabled
+                            readOnly
+                            className="w-4 h-4"
+                          />
+                          <span className="ml-3 text-sm font-medium text-[#6b736d] line-through">Cash on Delivery</span>
+                        </div>
+                        <span className="text-xs text-[#6b736d]">Not available</span>
                       </div>
-                      <span className="text-xs text-[#6b736d]">+₹{COD_CONFIG.FEE}</span>
-                    </label>
+                    ) : (
+                      <label className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-all ${paymentMethod === 'cod' ? 'border-[#6f8a74] bg-amber-50' : 'border-[#d9cbb5] hover:border-gray-400'}`}>
+                        <div className="flex items-center">
+                          <input
+                            type="radio"
+                            name="paymentMethod"
+                            value="cod"
+                            checked={paymentMethod === 'cod'}
+                            onChange={(e) => setPaymentMethod(e.target.value)}
+                            className="w-4 h-4 text-[#6f8a74] focus:ring-[#6f8a74]"
+                          />
+                          <span className="ml-3 text-sm font-medium">Cash on Delivery</span>
+                        </div>
+                        <span className="text-xs text-[#6b736d]">+₹{COD_CONFIG.FEE}</span>
+                      </label>
+                    )}
+                    {hasHamper && (
+                      <p className="text-xs text-[#6b736d] mt-1">Hampers are prepaid only. Please pay online to place this order.</p>
+                    )}
                   </div>
                 </div>
 
                 {/* COD Fee if selected */}
-                {paymentMethod === 'cod' && (
+                {paymentMethod === 'cod' && !hasHamper && (
                   <div className="flex justify-between text-[#59615b]">
                     <span>COD Charges</span>
                     <span className="font-semibold">₹{COD_CONFIG.FEE}</span>
