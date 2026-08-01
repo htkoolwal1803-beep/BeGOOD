@@ -949,7 +949,7 @@ Please prepare this order for shipment.
         <div className="grid lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
           {/* Left Column - Forms */}
           <div>
-            <div className="brand-panel p-8">
+            <div className="brand-panel p-5 sm:p-8">
               
               {/* Step: Phone Number */}
               {step === 'auth' && (
@@ -1313,7 +1313,7 @@ Please prepare this order for shipment.
 
           {/* Right Column - Order Summary */}
           <div>
-            <div className="brand-panel p-8 sticky top-24">
+            <div className="brand-panel p-5 sm:p-8 sticky top-24">
               <h2 className="font-playfair text-2xl font-bold mb-6">Order Summary</h2>
 
               {/* Order Items */}
