@@ -58,7 +58,7 @@ function PendingOrderContent() {
   if (retrySuccess) {
     return (
       <div className="brand-page min-h-screen flex items-center justify-center p-4">
-        <div className="brand-panel p-8 max-w-md w-full text-center">
+        <div className="brand-panel p-5 sm:p-8 max-w-md w-full text-center">
           <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
           <h1 className="font-playfair text-2xl font-bold mb-2">Order Created Successfully!</h1>
           <p className="text-[#59615b]">Redirecting to your order...</p>
@@ -69,7 +69,7 @@ function PendingOrderContent() {
 
   return (
     <div className="brand-page min-h-screen flex items-center justify-center p-4">
-      <div className="brand-panel p-8 max-w-lg w-full">
+      <div className="brand-panel p-5 sm:p-8 max-w-lg w-full">
         <div className="text-center mb-6">
           <AlertCircle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
           <h1 className="font-playfair text-2xl font-bold mb-2">Payment Received</h1>
