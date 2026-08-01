@@ -95,7 +95,7 @@ export default function AboutPage() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            <div className="brand-card p-8 text-center">
+            <div className="brand-card p-5 sm:p-8 text-center">
               <div className="w-16 h-16 bg-[#6f8a74]/10 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Target className="w-8 h-8 text-[#6f8a74]" />
               </div>
@@ -106,7 +106,7 @@ export default function AboutPage() {
               </p>
             </div>
 
-            <div className="brand-card p-8 text-center">
+            <div className="brand-card p-5 sm:p-8 text-center">
               <div className="w-16 h-16 bg-[#6f8a74]/10 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Heart className="w-8 h-8 text-[#6f8a74]" />
               </div>
@@ -117,7 +117,7 @@ export default function AboutPage() {
               </p>
             </div>
 
-            <div className="brand-card p-8 text-center">
+            <div className="brand-card p-5 sm:p-8 text-center">
               <div className="w-16 h-16 bg-[#6f8a74]/10 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Award className="w-8 h-8 text-[#6f8a74]" />
               </div>
