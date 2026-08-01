@@ -145,39 +145,54 @@ export default function Home() {
       <section className="brand-section pt-10 md:pt-16">
         <div className="brand-container">
           <div className="brand-panel overflow-hidden">
-            <div className="grid items-center gap-10 px-6 py-10 md:grid-cols-2 md:px-12 md:py-16">
-              <div className="relative order-2 md:order-1">
-                <div className="relative mx-auto aspect-[4/3] max-w-xl">
+            <div className="grid items-center gap-6 px-5 py-8 md:grid-cols-2 md:gap-10 md:px-12 md:py-16">
+              {/* Image is first on mobile so the product is the first thing
+                  seen on a phone, and stays on the left on desktop. */}
+              <div className="relative order-1">
+                <div className="relative mx-auto aspect-square max-w-[280px] sm:max-w-sm md:aspect-[4/3] md:max-w-xl">
                   <Image
                     src="/a-bar-packaging.png"
                     alt="BeGood A-Bar"
                     fill
+                    sizes="(max-width: 768px) 280px, 576px"
                     className="object-contain drop-shadow-2xl"
                     priority
                   />
                 </div>
               </div>
 
-              <div className="order-1 space-y-7 md:order-2">
+              <div className="order-2 space-y-5 text-center md:space-y-7 md:text-left">
                 <span className="brand-pill">Introducing BeGood</span>
-                <div className="space-y-4">
-                  <h1 className="font-playfair text-5xl font-bold leading-tight text-[#15171d] md:text-6xl lg:text-7xl">
+                <div className="space-y-3 md:space-y-4">
+                  <h1 className="font-playfair text-4xl font-bold leading-[1.1] text-[#15171d] sm:text-5xl md:text-6xl lg:text-7xl">
                     Calm Your Mind.
                     <span className="block text-[#536a58]">Own The Moment.</span>
                   </h1>
-                  <p className="max-w-xl text-lg leading-relaxed text-[#464c49]">
-                    A premium functional chocolate that reduces Stress,Nervousness and brings calm focus when it matters most.
-                    100% natural ingredients. pills. No powders. Just delicious, science-backed wellness.
+
+                  {/* Short on phones, full story on larger screens. */}
+                  <p className="text-base leading-relaxed text-[#464c49] md:hidden">
+                    Functional chocolate that helps ease stress and nervousness &mdash; calm focus in about 30&ndash;45 minutes.
+                  </p>
+                  <p className="hidden max-w-xl text-lg leading-relaxed text-[#464c49] md:block">
+                    A premium functional chocolate that helps ease stress and nervousness and brings calm focus when it matters most.
+                    100% natural ingredients. No pills. No powders. Just delicious, science-backed wellness.
                   </p>
                 </div>
 
-                <div className="flex flex-col gap-3 sm:flex-row">
-                  <Link href="/shop">
+                {/* Compact proof row - scannable on a phone instead of a paragraph. */}
+                <div className="flex flex-wrap justify-center gap-2 md:justify-start">
+                  <span className="rounded-full bg-[#dce6d7]/70 px-3 py-1 text-xs font-semibold text-[#3f5a46]">100% Natural</span>
+                  <span className="rounded-full bg-[#dce6d7]/70 px-3 py-1 text-xs font-semibold text-[#3f5a46]">No Added Sugar</span>
+                  <span className="rounded-full bg-[#dce6d7]/70 px-3 py-1 text-xs font-semibold text-[#3f5a46]">Works in 30&ndash;45 min</span>
+                </div>
+
+                <div className="flex flex-col gap-3 sm:flex-row sm:justify-center md:justify-start">
+                  <Link href="/shop" className="w-full sm:w-auto">
                     <Button size="lg" className="w-full sm:w-auto">
                       Shop Now <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
                   </Link>
-                  <Link href="/about">
+                  <Link href="/about" className="w-full sm:w-auto">
                     <Button variant="outline" size="lg" className="w-full sm:w-auto">
                       Learn More
                     </Button>
