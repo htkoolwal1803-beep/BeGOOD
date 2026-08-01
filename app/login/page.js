@@ -177,7 +177,7 @@ function LoginContent() {
     <div className="brand-page min-h-screen py-12 md:py-20">
       <div className="container mx-auto px-4">
         <div className="max-w-md mx-auto">
-          <div className="brand-panel p-8">
+          <div className="brand-panel p-5 sm:p-8">
             {/* Back Button */}
             {step !== 'phone' && (
               <button
