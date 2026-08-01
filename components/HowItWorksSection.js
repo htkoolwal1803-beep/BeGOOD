@@ -1054,6 +1054,7 @@ export default function HowItWorksSection() {
 
           .hormone-panel {
             flex-direction: row;
+            flex-wrap: wrap;
             width: 100%;
             justify-content: center;
             margin-bottom: 8px;
@@ -1068,6 +1069,30 @@ export default function HowItWorksSection() {
             width: 52px;
             right: 10px;
             top: 15px;
+          }
+        }
+
+        /* Small phones (iPhone SE, older Android at 320-400px CSS width).
+           Four gauges in one row need 4x75px plus gaps, which is wider than
+           the content area at 320px, so the first and last were being clipped.
+           A 2x2 grid fits any phone and gives the longer labels room to sit
+           on one line. */
+        @media (max-width:400px) {
+          .hormone-panel {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            width: 100%;
+          }
+
+          .hormone-gauge {
+            min-width: 0;
+            padding: 7px 9px;
+          }
+
+          .hormone-gauge .h-label {
+            font-size: 9px;
+            gap: 4px;
           }
         }
       `}</style>
