@@ -85,7 +85,7 @@ export default function FAQPage() {
             ))}
           </div>
 
-          <div className="mt-12 brand-panel p-8 text-center">
+          <div className="mt-12 brand-panel p-5 sm:p-8 text-center">
             <h2 className="font-playfair text-2xl font-bold mb-4">Still have questions?</h2>
             <p className="text-[#464c49] mb-6">
               We're here to help! Reach out to our customer support team.
