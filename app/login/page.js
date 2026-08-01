@@ -148,12 +148,9 @@ function LoginContent() {
     setLoading(true)
     
     try {
-      // Reset recaptcha
-      if (typeof window !== 'undefined' && window.recaptchaVerifier) {
-        window.recaptchaVerifier.clear()
-        window.recaptchaVerifier = null
-      }
-      
+      // sendOTP tears the previous widget down itself, so no manual cleanup
+      // here. The old version nulled the reference without removing the
+      // injected DOM, which is what broke the retry.
       const result = await sendOTP(phone)
       
       if (result.success) {
