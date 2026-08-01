@@ -160,7 +160,7 @@ export default function SubscribePage() {
 
           <div className="grid md:grid-cols-2 gap-8">
             {/* Left - Plan Selection */}
-            <div className="brand-panel p-8">
+            <div className="brand-panel p-5 sm:p-8">
               <h2 className="font-playfair text-2xl font-bold mb-6">Choose Your Plan</h2>
 
               {/* Product Image */}
@@ -249,7 +249,7 @@ export default function SubscribePage() {
             </div>
 
             {/* Right - Checkout Form */}
-            <div className="brand-panel p-8">
+            <div className="brand-panel p-5 sm:p-8">
               <h2 className="font-playfair text-2xl font-bold mb-6">Delivery Details</h2>
 
               {!user ? (
