@@ -975,7 +975,7 @@ Please prepare this order for shipment.
                           value={phone}
                           onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                           placeholder="Enter 10-digit number"
-                          className="flex-1 px-4 py-3 border border-[#d9cbb5] rounded-r-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
+                          className="flex-1 min-w-0 px-4 py-3 border border-[#d9cbb5] rounded-r-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
                           required
                         />
                       </div>
@@ -1388,12 +1388,12 @@ Please prepare this order for shipment.
                         value={couponCode}
                         onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                         placeholder="Enter code"
-                        className="flex-1 px-3 py-2 border border-[#d9cbb5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74] text-sm"
+                        className="flex-1 min-w-0 px-3 py-2 border border-[#d9cbb5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74] text-sm"
                       />
                       <button
                         onClick={handleApplyCoupon}
                         disabled={couponLoading || !couponCode.trim()}
-                        className="px-4 py-2 bg-[#6f8a74] text-white rounded-lg hover:bg-[#536a58] disabled:opacity-50 text-sm font-medium"
+                        className="shrink-0 px-4 py-2 bg-[#6f8a74] text-white rounded-lg hover:bg-[#536a58] disabled:opacity-50 text-sm font-medium"
                       >
                         {couponLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Apply'}
                       </button>
