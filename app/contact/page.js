@@ -155,7 +155,7 @@ export default function ContactPage() {
             </div>
 
             {/* Contact Form */}
-            <div className="brand-panel p-8">
+            <div className="brand-panel p-5 sm:p-8">
               <h2 className="font-playfair text-2xl font-bold mb-6">Send Us a Message</h2>
               
               {success && (
