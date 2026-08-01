@@ -54,9 +54,9 @@ export default function HampersPage() {
                 </p>
                 <div className="flex items-end gap-3">
                   <span className="font-playfair text-4xl md:text-5xl font-bold text-[#1f2229]">
-                    ₹797
+                    ₹858
                   </span>
-                  <span className="text-lg text-[#59615b] line-through mb-1">₹999</span>
+                  <span className="text-lg text-[#59615b] line-through mb-1">₹1199</span>
                 </div>
                 <p className="text-sm text-[#59615b] mt-1">Limited pre-Rakhi offer</p>
               </div>
@@ -195,7 +195,7 @@ export default function HampersPage() {
             This Rakhi, Gift a Healthy Hamper
           </h2>
           <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90">
-            Made for moments that matter. Order now at the pre-Rakhi price of ₹797.
+            Made for moments that matter. Order now at the pre-Rakhi price of ₹858.
           </p>
           <HamperCTA variant="footer" />
         </div>
