@@ -47,7 +47,7 @@ export default function AffiliateLoginPage() {
 
   return (
     <div className="brand-page min-h-screen flex items-center justify-center p-4">
-      <div className="brand-panel p-8 max-w-md w-full">
+      <div className="brand-panel p-5 sm:p-8 max-w-md w-full">
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-[#6f8a74] rounded-full flex items-center justify-center mx-auto mb-4">
             <Users className="w-8 h-8 text-white" />
