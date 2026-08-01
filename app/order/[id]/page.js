@@ -75,7 +75,7 @@ export default function OrderConfirmationPage() {
           </div>
 
           {/* Order Details */}
-          <div className="brand-panel p-8 mb-6">
+          <div className="brand-panel p-5 sm:p-8 mb-6">
             <h2 className="font-playfair text-2xl font-bold mb-6 flex items-center">
               <Package className="w-6 h-6 mr-2 text-[#6f8a74]" />
               Order Details
@@ -114,7 +114,7 @@ export default function OrderConfirmationPage() {
           </div>
 
           {/* Shipping Information */}
-          <div className="brand-card p-8 mb-6">
+          <div className="brand-card p-5 sm:p-8 mb-6">
             <h2 className="font-playfair text-2xl font-bold mb-6">Shipping Information</h2>
             <div className="space-y-3">
               <div className="flex items-start">
