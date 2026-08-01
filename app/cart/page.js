@@ -51,9 +51,9 @@ export default function CartPage() {
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4">
             {cart.map((item, index) => (
-              <div key={index} className="brand-card p-6 flex gap-6">
+              <div key={index} className="brand-card p-4 flex gap-3 sm:p-6 sm:gap-6">
                 {/* Product Image */}
-                <div className="relative w-24 h-24 bg-[#f4ecdd] rounded-2xl overflow-hidden flex-shrink-0">
+                <div className="relative w-20 h-20 sm:w-24 sm:h-24 bg-[#f4ecdd] rounded-2xl overflow-hidden flex-shrink-0">
                   <Image
                     src={item.image}
                     alt={item.name}
@@ -63,15 +63,18 @@ export default function CartPage() {
                 </div>
 
                 {/* Product Details */}
-                <div className="flex-1">
-                  <h3 className="font-semibold text-lg mb-1">{item.name}</h3>
-                  <p className="text-[#59615b] text-sm mb-3">
+                {/* min-w-0 is required: a flex child defaults to min-width:auto,
+                    so without it this column refuses to shrink below its
+                    content and pushes the whole row past the screen edge. */}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-base sm:text-lg mb-1 break-words">{item.name}</h3>
+                  <p className="text-[#59615b] text-xs sm:text-sm mb-3 break-words">
                     {item.variant.size} {item.variant.flavor && `- ${item.variant.flavor}`}
                   </p>
 
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
                     {/* Quantity Controls */}
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-2 sm:space-x-3">
                       <button
                         onClick={() => updateQuantity(index, item.quantity - 1)}
                         className="w-8 h-8 rounded-lg border-2 border-[#d9cbb5] hover:border-[#6f8a74] transition-colors flex items-center justify-center"
@@ -88,8 +91,8 @@ export default function CartPage() {
                     </div>
 
                     {/* Price */}
-                    <div className="text-right">
-                      <p className="text-xl font-bold text-[#6f8a74]">
+                    <div className="text-right whitespace-nowrap">
+                      <p className="text-lg sm:text-xl font-bold text-[#6f8a74]">
                         ₹{item.variant.price * item.quantity}
                       </p>
                       <p className="text-xs text-[#6b736d]">₹{item.variant.price} each</p>
@@ -100,7 +103,8 @@ export default function CartPage() {
                 {/* Remove Button */}
                 <button
                   onClick={() => removeFromCart(index)}
-                  className="text-[#8b938b] hover:text-red-500 transition-colors"
+                  aria-label={`Remove ${item.name} from cart`}
+                  className="text-[#8b938b] hover:text-red-500 transition-colors self-start shrink-0 p-2 -m-2"
                 >
                   <Trash2 className="w-5 h-5" />
                 </button>
