@@ -221,7 +221,7 @@ function LoginContent() {
                         value={phone}
                         onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                         placeholder="Enter 10-digit number"
-                        className="flex-1 px-4 py-3 border border-[#d9cbb5] rounded-r-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
+                        className="flex-1 min-w-0 px-4 py-3 border border-[#d9cbb5] rounded-r-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
                         required
                       />
                     </div>
