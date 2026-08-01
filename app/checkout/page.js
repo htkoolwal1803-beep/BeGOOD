@@ -946,9 +946,12 @@ Please prepare this order for shipment.
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
+        {/* min-w-0 on the grid children: a grid item defaults to
+            min-width:auto, so without it the column refuses to shrink below
+            its content and overflows the track on narrow phones. */}
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 max-w-6xl mx-auto">
           {/* Left Column - Forms */}
-          <div>
+          <div className="min-w-0">
             <div className="brand-panel p-5 sm:p-8">
               
               {/* Step: Phone Number */}
@@ -1312,14 +1315,14 @@ Please prepare this order for shipment.
           </div>
 
           {/* Right Column - Order Summary */}
-          <div>
+          <div className="min-w-0">
             <div className="brand-panel p-5 sm:p-8 sticky top-24">
               <h2 className="font-playfair text-2xl font-bold mb-6">Order Summary</h2>
 
               {/* Order Items */}
               <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
                 {cart.map((item, index) => (
-                  <div key={index} className="flex gap-4">
+                  <div key={index} className="flex gap-3 sm:gap-4">
                     <div className="relative w-16 h-16 bg-[#f4ecdd] rounded-xl overflow-hidden flex-shrink-0">
                       <Image
                         src={item.image}
@@ -1328,12 +1331,12 @@ Please prepare this order for shipment.
                         className="object-cover"
                       />
                     </div>
-                    <div className="flex-1">
-                      <p className="font-semibold text-sm">{item.name}</p>
-                      <p className="text-xs text-[#59615b]">{item.variant.size}</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm break-words">{item.name}</p>
+                      <p className="text-xs text-[#59615b] break-words">{item.variant.size}</p>
                       <p className="text-xs text-[#59615b]">Qty: {item.quantity}</p>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right shrink-0 whitespace-nowrap">
                       <p className="font-semibold">₹{item.variant.price * item.quantity}</p>
                     </div>
                   </div>
