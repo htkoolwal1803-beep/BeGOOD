@@ -6,6 +6,7 @@ import Button from './Button'
 import { ShoppingCart, Bell } from 'lucide-react'
 import { useCart } from '@/lib/CartContext'
 import { useState } from 'react'
+import { RatingSummary } from '@/components/ProductReviews'
 
 export default function ProductCard({ product }) {
   const { addToCart } = useCart()
@@ -60,6 +61,9 @@ export default function ProductCard({ product }) {
               <span className="text-sm text-[#6b736d]">{product.weight}</span>
             </div>
           )}
+
+          {/* Rating - visible before the click, not just on the product page. */}
+          {!product.comingSoon && <RatingSummary product={product} className="mb-3" />}
 
           {/* Price & Action */}
           {product.comingSoon ? (
