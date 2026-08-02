@@ -30,6 +30,7 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 px-3 pt-3">
+      <meta name="google-site-verification" content="H0iZwFX5FeTVI0TST6S9N6Ef-rUefSS9biYBMVhIwto" />
       <div className="container mx-auto rounded-[1.35rem] border border-[#d9cbb5]/80 bg-[#fbf7ed]/92 px-4 shadow-[0_18px_45px_-32px_rgba(31,34,41,0.65)] backdrop-blur-md">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
