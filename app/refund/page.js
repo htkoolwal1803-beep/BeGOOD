@@ -56,9 +56,24 @@ export default function RefundPage() {
               We may consider exceptions <strong>only</strong> in the following cases:
             </p>
             <ul className="list-disc pl-6 space-y-2 text-[#464c49]">
-              <li><strong>Damaged Product:</strong> If product is damaged during shipping (must be reported within 24 hours of delivery with photos)</li>
-              <li><strong>Wrong Product:</strong> If you receive a different product than what you ordered (must be reported within 24 hours of delivery)</li>
+              <li><strong>Transit Damage:</strong> If the packaging is torn, crushed or opened in transit (must be reported within 24 hours of delivery with photos)</li>
+              <li><strong>Wrong or Missing Product:</strong> If you receive a different product than what you ordered, or an item is missing (must be reported within 24 hours of delivery)</li>
             </ul>
+            <div className="mt-6 p-4 rounded-lg bg-[#dce6d7]/50 border border-[#c3d5c0]">
+              <p className="font-semibold text-[#3f5a46] mb-1">What is not a defect</p>
+              <p className="text-[#4a5a4d] leading-relaxed">
+                A-Bar is real chocolate made without stabilisers or preservatives. In warm
+                weather the cocoa butter can separate and rise to the surface, leaving pale
+                streaks or a marbled, dusty appearance. This is called fat bloom. It is a
+                natural characteristic of the ingredients, the bar is perfectly safe to eat,
+                and it is not classed as a damaged product. Softening or partial melting in
+                transit during summer is likewise expected and not covered.
+              </p>
+              <p className="text-[#4a5a4d] leading-relaxed mt-2">
+                If you would like to firm the bar up again, rest it in a cool place for a
+                few minutes before eating.
+              </p>
+            </div>
             <p className="text-[#464c49] leading-relaxed mt-4">
               In such exceptional cases, we will review the situation and may offer a replacement at our discretion. 
               <strong> Refunds are not guaranteed even in exceptional cases.</strong>
@@ -68,7 +83,7 @@ export default function RefundPage() {
           <section className="mb-8">
             <h2 className="font-playfair text-3xl font-bold mb-4">5. How to Report Issues</h2>
             <p className="text-[#464c49] leading-relaxed mb-4">
-              If you receive a damaged or wrong product:
+              If your order arrives incorrect, incomplete or damaged in transit:
             </p>
             <ol className="list-decimal pl-6 space-y-2 text-[#464c49]">
               <li>Contact us <strong>within 24 hours</strong> of delivery</li>
