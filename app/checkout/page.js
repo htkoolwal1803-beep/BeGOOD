@@ -1563,8 +1563,10 @@ Please prepare this order for shipment.
                 <p className="text-sm text-[#3f5a46] flex items-start">
                   <Shield className="w-4 h-4 mr-2 mt-0.5 shrink-0" />
                   <span>
-                    <strong>Our quality promise:</strong> damaged, melted or incorrect
-                    items are replaced or refunded &mdash; just message us within 24 hours.
+                    <strong>Our quality promise:</strong> incorrect, incomplete or
+                    transit-damaged orders are replaced or refunded &mdash; just message
+                    us within 24 hours. Cocoa butter separation is natural in real
+                    chocolate and is not a fault.
                   </span>
                 </p>
               </div>
