@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Button from '@/components/Button'
 import { Lock, Loader2, ArrowLeft, TrendingUp, Users, RefreshCw, IndianRupee } from 'lucide-react'
+import { adminFetch, setAdminKey } from '@/lib/adminAuth'
 
 /** One headline number with context underneath. */
 function Kpi({ label, value, sub, target, good }) {
@@ -37,7 +38,7 @@ export default function AdminKpisPage() {
         body: JSON.stringify({ password })
       })
       const data = await res.json()
-      if (data.success) setAuthenticated(true)
+      if (data.success) { setAdminKey(password); setAuthenticated(true) }
       else setAuthError('Incorrect password')
     } catch {
       setAuthError('Could not sign in. Please try again.')
@@ -48,7 +49,7 @@ export default function AdminKpisPage() {
   useEffect(() => {
     if (!authenticated) return
     setLoading(true)
-    fetch('/api/admin/kpis')
+    adminFetch('/api/admin/kpis')
       .then((r) => r.json())
       .then((d) => { if (d.success) setKpis(d.kpis) })
       .catch(() => {})
