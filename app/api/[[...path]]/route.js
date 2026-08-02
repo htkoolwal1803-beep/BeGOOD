@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid'
 import crypto from 'crypto'
 import { cartHasHamper } from '@/lib/products'
 import { sendEmail, layout } from '@/lib/email'
+import { TEMPLATE_KEYS, DEFAULT_TEMPLATES, mergeTemplate, fillTemplate, bodyToHtml } from '@/lib/emailTemplates'
 
 /**
  * Admin API guard.
@@ -290,6 +291,21 @@ export async function GET(request) {
       const reviews = await db.collection('reviews').find({}).sort({ date: -1 }).limit(200).toArray()
       
       return NextResponse.json({ success: true, reviews })
+    }
+
+    // GET /api/admin/email-templates - current wording, defaults merged with edits
+    if (segments[0] === 'admin' && segments[1] === 'email-templates') {
+      const { db } = await connectToDatabase()
+      const saved = await db.collection('email_templates').find({}).toArray()
+      const byKey = Object.fromEntries(saved.map((t) => [t.key, t]))
+
+      return NextResponse.json({
+        success: true,
+        templates: TEMPLATE_KEYS.map((k) => ({
+          ...mergeTemplate(k, byKey[k]),
+          isEdited: !!byKey[k]
+        }))
+      })
     }
 
     // GET /api/admin/notifications - Get all notification signups
@@ -921,47 +937,24 @@ export async function POST(request) {
           return NextResponse.json({ success: false, error: 'That does not look like a valid email address' }, { status: 400 })
         }
 
-        const samples = [
-          {
-            key: 'usage',
-            subject: 'Getting the most out of your A-Bar',
+        const savedT = await db.collection('email_templates').find({}).toArray()
+        const byKeyT = Object.fromEntries(savedT.map((t) => [t.key, t]))
+        const testVars = { name: 'there', site }
+
+        const samples = TEMPLATE_KEYS.map((key) => {
+          const t = mergeTemplate(key, byKeyT[key])
+          return {
+            key,
+            subject: fillTemplate(t.subject, testVars),
             html: layout({
-              heading: 'One thing worth knowing',
-              body: `<p>Hi there,</p>
-                     <p>A-Bar works best when you give it a head start. Eat it <strong>30–45 minutes before</strong> the moment that matters — not during it.</p>
-                     <p>That's when L-Theanine has reached your system, so you feel settled going in rather than halfway through.</p>
-                     <p>No pills, no powder. Just eat it like chocolate, a little earlier than you'd think.</p>`,
-              ctaLabel: 'Read how it works',
-              ctaUrl: `${site}/how-it-works`
-            })
-          },
-          {
-            key: 'reviewRequest',
-            subject: 'How did it go? (₹20 off for telling us)',
-            html: layout({
-              heading: 'Did it help?',
-              body: `<p>Hi there,</p>
-                     <p>You ordered from us about a week ago. We'd like to know how it actually went — good or bad, we want the honest version.</p>
-                     <p>It takes about thirty seconds, and we'll send you <strong>₹20 off your next order</strong> either way.</p>`,
-              ctaLabel: 'Leave a review',
-              ctaUrl: `${site}/review/sample-preview-link`,
-              footnote: 'The ₹20 is for writing a review, not for a good one. Please say what you actually thought.'
-            })
-          },
-          {
-            key: 'replenishment',
-            subject: 'Running low?',
-            html: layout({
-              heading: 'Running low?',
-              body: `<p>Hi there,</p>
-                     <p>You picked up A-Bar about a month ago. If it did its job, there's probably something coming up that deserves one — an exam, an interview, a day you'd rather walk into calmly.</p>
-                     <p>Reordering takes one tap.</p>`,
-              ctaLabel: 'Reorder',
-              ctaUrl: `${site}/shop`,
-              footnote: 'Free delivery on orders over ₹600.'
+              heading: fillTemplate(t.heading, testVars),
+              body: bodyToHtml(t.body, testVars),
+              ctaLabel: t.ctaLabel,
+              ctaUrl: `${site}${t.ctaPath || '/shop'}`,
+              footnote: fillTemplate(t.footnote, testVars)
             })
           }
-        ]
+        })
 
         const sent = []
         for (const sample of samples) {
@@ -975,6 +968,23 @@ export async function POST(request) {
         }
 
         return NextResponse.json({ success: true, testEmail, sent })
+      }
+
+      // Saved wording wins over the coded defaults.
+      const savedTemplates = await db.collection('email_templates').find({}).toArray()
+      const savedByKey = Object.fromEntries(savedTemplates.map((t) => [t.key, t]))
+      const render = (key, vars, ctaUrl) => {
+        const t = mergeTemplate(key, savedByKey[key])
+        return {
+          subject: fillTemplate(t.subject, vars),
+          html: layout({
+            heading: fillTemplate(t.heading, vars),
+            body: bodyToHtml(t.body, vars),
+            ctaLabel: t.ctaLabel,
+            ctaUrl: ctaUrl || `${vars.site}${t.ctaPath || ''}`,
+            footnote: fillTemplate(t.footnote, vars)
+          })
+        }
       }
 
       const summary = { dryRun, reviewMaxAge, usage: 0, reviewRequests: 0, replenishment: 0, skipped: 0 }
@@ -1000,19 +1010,12 @@ export async function POST(request) {
       }).limit(50).toArray()
 
       for (const o of usageOrders) {
+        const msg = render('usage', { name: o.customerName || 'there', site })
         const r = await deliver('usage', o, {
           to: o.email,
           toName: o.customerName,
-          subject: 'Getting the most out of your A-Bar',
-          html: layout({
-            heading: 'One thing worth knowing',
-            body: `<p>Hi ${o.customerName || 'there'},</p>
-                   <p>A-Bar works best when you give it a head start. Eat it <strong>30–45 minutes before</strong> the moment that matters — not during it.</p>
-                   <p>That's when L-Theanine has reached your system, so you feel settled going in rather than halfway through.</p>
-                   <p>No pills, no powder. Just eat it like chocolate, a little earlier than you'd think.</p>`,
-            ctaLabel: 'Read how it works',
-            ctaUrl: `${site}/how-it-works`
-          })
+          subject: msg.subject,
+          html: msg.html
         })
         if (r.ok) {
           await db.collection('orders').updateOne({ orderId: o.orderId }, { $set: { usageEmailSentAt: new Date().toISOString() } })
@@ -1050,19 +1053,12 @@ export async function POST(request) {
           status: 'sent'
         })
 
+        const msg = render('reviewRequest', { name: o.customerName || 'there', site }, `${site}/review/${token}`)
         const r = await sendEmail({
           to: o.email,
           toName: o.customerName,
-          subject: 'How did it go? (₹20 off for telling us)',
-          html: layout({
-            heading: 'Did it help?',
-            body: `<p>Hi ${o.customerName || 'there'},</p>
-                   <p>You ordered from us about a week ago. We'd like to know how it actually went — good or bad, we want the honest version.</p>
-                   <p>It takes about thirty seconds, and we'll send you <strong>₹20 off your next order</strong> either way.</p>`,
-            ctaLabel: 'Leave a review',
-            ctaUrl: `${site}/review/${token}`,
-            footnote: 'The ₹20 is for writing a review, not for a good one. Please say what you actually thought.'
-          })
+          subject: msg.subject,
+          html: msg.html
         })
         if (r.ok) summary.reviewRequests++
       }
@@ -1091,19 +1087,12 @@ export async function POST(request) {
           continue
         }
 
+        const msg = render('replenishment', { name: o.customerName || 'there', site })
         const r = await deliver('replenishment', o, {
           to: o.email,
           toName: o.customerName,
-          subject: 'Running low?',
-          html: layout({
-            heading: 'Running low?',
-            body: `<p>Hi ${o.customerName || 'there'},</p>
-                   <p>You picked up A-Bar about a month ago. If it did its job, there's probably something coming up that deserves one — an exam, an interview, a day you'd rather walk into calmly.</p>
-                   <p>Reordering takes one tap.</p>`,
-            ctaLabel: 'Reorder',
-            ctaUrl: `${site}/shop`,
-            footnote: 'Free delivery on orders over ₹600.'
-          })
+          subject: msg.subject,
+          html: msg.html
         })
         if (r.ok) {
           await db.collection('orders').updateOne({ orderId: o.orderId }, { $set: { reminderSentAt: new Date().toISOString() } })
@@ -1323,6 +1312,40 @@ export async function POST(request) {
       }
       
       return NextResponse.json({ success: false, message: 'Invalid password' }, { status: 401 })
+    }
+
+    // POST /api/admin/email-templates - save or reset one template
+    if (segments[0] === 'admin' && segments[1] === 'email-templates') {
+      const body = await request.json()
+      const { db } = await connectToDatabase()
+      const key = body.key
+
+      if (!TEMPLATE_KEYS.includes(key)) {
+        return NextResponse.json({ success: false, message: 'Unknown template' }, { status: 400 })
+      }
+
+      // Reset simply drops the row so the coded default applies again.
+      if (body.reset) {
+        await db.collection('email_templates').deleteOne({ key })
+        return NextResponse.json({ success: true, template: { ...DEFAULT_TEMPLATES[key], isEdited: false } })
+      }
+
+      const doc = {
+        key,
+        subject: String(body.subject || '').slice(0, 200),
+        heading: String(body.heading || '').slice(0, 200),
+        body: String(body.body || '').slice(0, 4000),
+        ctaLabel: String(body.ctaLabel || '').slice(0, 60),
+        footnote: String(body.footnote || '').slice(0, 400),
+        updatedAt: new Date().toISOString()
+      }
+
+      if (!doc.subject || !doc.heading || !doc.body) {
+        return NextResponse.json({ success: false, message: 'Subject, heading and body are all required' }, { status: 400 })
+      }
+
+      await db.collection('email_templates').updateOne({ key }, { $set: doc }, { upsert: true })
+      return NextResponse.json({ success: true, template: { ...mergeTemplate(key, doc), isEdited: true } })
     }
 
     // POST /api/admin/reviews - Add review (admin only)
