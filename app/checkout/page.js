@@ -957,11 +957,19 @@ Please prepare this order for shipment.
               {/* Step: Phone Number */}
               {step === 'auth' && (
                 <>
-                  <div className="flex items-center space-x-2 mb-6">
+                  <div className="flex items-center space-x-2 mb-3">
                     <Phone className="w-5 h-5 text-[#6f8a74]" />
-                    <h2 className="font-playfair text-2xl font-bold">Login to Continue</h2>
+                    <h2 className="font-playfair text-2xl font-bold">Where should we send your order?</h2>
                   </div>
-                  <p className="text-[#59615b] mb-6">Enter your phone number to verify and proceed with the order</p>
+                  {/* Justified friction is tolerated friction. Saying why we
+                      need the number converts better than "Login to Continue",
+                      which reads as a wall in front of the product. */}
+                  <p className="text-[#59615b] mb-2">
+                    We use your number to confirm the order and send delivery updates. It takes a few seconds.
+                  </p>
+                  <p className="text-xs text-[#6b736d] mb-6">
+                    No password, no account to remember &middot; we never share your number
+                  </p>
 
                   <form onSubmit={handleSendOTP} className="space-y-4">
                     <div>
@@ -1528,11 +1536,15 @@ Please prepare this order for shipment.
                 </div>
               </div>
 
-              {/* No Return Policy Notice */}
-              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-700 flex items-center">
-                  <Shield className="w-4 h-4 mr-2" />
-                  <strong>No Return Policy:</strong>&nbsp;All sales are final. Please review your order carefully.
+              {/* Quality promise - same policy, reassurance rather than a red
+                  warning at the moment of maximum hesitation. */}
+              <div className="mt-4 p-3 bg-[#dce6d7]/50 border border-[#c3d5c0] rounded-lg">
+                <p className="text-sm text-[#3f5a46] flex items-start">
+                  <Shield className="w-4 h-4 mr-2 mt-0.5 shrink-0" />
+                  <span>
+                    <strong>Our quality promise:</strong> damaged, melted or incorrect
+                    items are replaced or refunded &mdash; just message us within 24 hours.
+                  </span>
                 </p>
               </div>
 
