@@ -9,7 +9,7 @@ import Image from 'next/image'
 import { Lock, Package, Truck, Phone, Shield, User, MapPin, Check, Loader2, Tag, X } from 'lucide-react'
 import Link from 'next/link'
 import emailjs from '@emailjs/browser'
-import { calculateShipping, calculateOrderTotal, SHIPPING_CONFIG, COD_CONFIG, DELIVERY_OPTIONS, getDeliveryFee, getDeliveryLabel } from '@/lib/constants'
+import { calculateShipping, calculateOrderTotal, SHIPPING_CONFIG, COD_CONFIG, DELIVERY_OPTIONS, getDeliveryFee, getDeliveryLabel, resolveDeliveryFee, freeShippingThreshold } from '@/lib/constants'
 import { estimateDeliveryByPincode } from '@/lib/deliveryDistance'
 import { cartHasHamper } from '@/lib/products'
 
@@ -68,13 +68,31 @@ export default function CheckoutPage() {
   // Hampers are prepaid only - see isHamperProduct in lib/products.js
   const hasHamper = cartHasHamper(cart)
 
+  // First-order status decides the free-delivery threshold (₹249 vs ₹600).
+  // Verified on the server once we know the phone number.
+  const [isFirstOrder, setIsFirstOrder] = useState(false)
+
   // Calculate shipping and order total with coupon discount and COD fee
   const isPickup = fulfilment === 'pickup'
-  const shippingFee = isPickup ? 0 : getDeliveryFee(deliveryMethod)
+  const shippingFee = resolveDeliveryFee({ cartTotal, methodId: deliveryMethod, isPickup, isFirstOrder })
   const couponDiscount = appliedCoupon?.discountAmount || 0
   const codFee = paymentMethod === 'cod' && !hasHamper ? COD_CONFIG.FEE : 0
   const orderTotal = cartTotal + shippingFee - couponDiscount + codFee
   const amountToFreeShipping = SHIPPING_CONFIG.FREE_SHIPPING_THRESHOLD - cartTotal
+
+  // Ask the server whether this number has ordered before, so the delivery
+  // threshold is right before the customer reaches the payment step.
+  useEffect(() => {
+    const digits = (user?.phoneNumber || phone || '').replace(/\D/g, '').slice(-10)
+    if (digits.length !== 10) return
+
+    let cancelled = false
+    fetch(`/api/customers/${digits}/first-order`)
+      .then((r) => r.json())
+      .then((d) => { if (!cancelled && d?.success) setIsFirstOrder(!!d.isFirstOrder) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [user, phone])
 
   // A hamper can be added after COD was already selected - snap back to online
   useEffect(() => {
