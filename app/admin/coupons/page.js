@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Button from '@/components/Button'
 import { ArrowLeft, Plus, Edit2, Trash2, Users, Tag, Percent, DollarSign, Calendar, Loader2, ChevronDown, ChevronUp, Eye } from 'lucide-react'
 import Link from 'next/link'
+import { adminFetch, setAdminKey } from '@/lib/adminAuth'
 
 export default function AdminCouponsPage() {
   const router = useRouter()
@@ -43,6 +44,7 @@ export default function AdminCouponsPage() {
       const data = await response.json()
 
       if (data.success) {
+        setAdminKey(password)
         setAuthenticated(true)
         fetchCoupons()
       } else {
@@ -57,7 +59,7 @@ export default function AdminCouponsPage() {
 
   const fetchCoupons = async () => {
     try {
-      const response = await fetch('/api/admin/coupons')
+      const response = await adminFetch('/api/admin/coupons')
       const data = await response.json()
       if (data.success) {
         setCoupons(data.coupons)
@@ -69,7 +71,7 @@ export default function AdminCouponsPage() {
 
   const fetchCouponUsage = async (couponId) => {
     try {
-      const response = await fetch(`/api/admin/coupons/${couponId}/usage`)
+      const response = await adminFetch(`/api/admin/coupons/${couponId}/usage`)
       const data = await response.json()
       if (data.success) {
         setCouponUsage(prev => ({ ...prev, [couponId]: data.usage }))
@@ -109,7 +111,7 @@ export default function AdminCouponsPage() {
     setFormLoading(true)
 
     try {
-      const response = await fetch('/api/admin/coupons', {
+      const response = await adminFetch('/api/admin/coupons', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -136,7 +138,7 @@ export default function AdminCouponsPage() {
     setFormLoading(true)
 
     try {
-      const response = await fetch(`/api/admin/coupons/${editingCoupon.id}`, {
+      const response = await adminFetch(`/api/admin/coupons/${editingCoupon.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -169,7 +171,7 @@ export default function AdminCouponsPage() {
     }
 
     try {
-      const response = await fetch(`/api/admin/coupons/${couponId}`, {
+      const response = await adminFetch(`/api/admin/coupons/${couponId}`, {
         method: 'DELETE'
       })
 
@@ -187,7 +189,7 @@ export default function AdminCouponsPage() {
 
   const handleToggleActive = async (coupon) => {
     try {
-      const response = await fetch(`/api/admin/coupons/${coupon.id}`, {
+      const response = await adminFetch(`/api/admin/coupons/${coupon.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isActive: !coupon.isActive })
