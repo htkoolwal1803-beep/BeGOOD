@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Lock, Package, Phone, Calendar, ArrowLeft, Bell, Truck, X } from 'lucide-react'
 import Button from '@/components/Button'
 import Link from 'next/link'
+import { adminFetch, setAdminKey } from '@/lib/adminAuth'
 
 export default function AdminSubscriptionsPage() {
   const [authenticated, setAuthenticated] = useState(false)
@@ -29,6 +30,7 @@ export default function AdminSubscriptionsPage() {
       const data = await response.json()
 
       if (data.success) {
+        setAdminKey(password)
         setAuthenticated(true)
         fetchSubscriptions()
       } else {
@@ -43,7 +45,7 @@ export default function AdminSubscriptionsPage() {
 
   const fetchSubscriptions = async () => {
     try {
-      const response = await fetch('/api/admin/subscriptions')
+      const response = await adminFetch('/api/admin/subscriptions')
       const data = await response.json()
       if (data.success) {
         setSubscriptions(data.subscriptions)
