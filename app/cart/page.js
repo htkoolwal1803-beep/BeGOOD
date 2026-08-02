@@ -126,6 +126,33 @@ export default function CartPage() {
                   <span className="text-[#59615b]">Delivery</span>
                   <span className="font-semibold text-[#6b736d]">Calculated at checkout</span>
                 </div>
+                {/* Progress toward free delivery. Unexpected delivery cost is
+                    the biggest single cause of cart abandonment, so show the
+                    gap explicitly and give people a reason to close it. */}
+                {amountToFreeShipping > 0 ? (
+                  <div className="bg-[#dce6d7]/60 border border-[#c3d5c0] rounded-lg p-3 text-sm">
+                    <p className="text-[#3f5a46] mb-2">
+                      <Truck className="w-4 h-4 inline mr-1" />
+                      Add <strong>₹{amountToFreeShipping}</strong> more for free delivery
+                    </p>
+                    <div className="h-2 w-full rounded-full bg-[#e6ddcd] overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-[#6f8a74] transition-all duration-500"
+                        style={{
+                          width: `${Math.min(100, Math.round((cartTotal / SHIPPING_CONFIG.FREE_SHIPPING_THRESHOLD) * 100))}%`
+                        }}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-[#dce6d7]/60 border border-[#c3d5c0] rounded-lg p-3 text-sm">
+                    <p className="font-semibold text-[#3f5a46]">
+                      <Truck className="w-4 h-4 inline mr-1" />
+                      You have free delivery on this order
+                    </p>
+                  </div>
+                )}
+
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm">
                   <p className="text-amber-800">
                     <Truck className="w-4 h-4 inline mr-1" />
