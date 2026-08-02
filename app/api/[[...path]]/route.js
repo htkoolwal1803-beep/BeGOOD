@@ -5,6 +5,25 @@ import crypto from 'crypto'
 import { cartHasHamper } from '@/lib/products'
 import { sendEmail, layout } from '@/lib/email'
 
+/**
+ * Admin API guard.
+ *
+ * The admin pages ask for a password, but until now that check lived only in
+ * the browser - every /api/admin/* route answered anyone who asked, exposing
+ * the full customer list (names, phones, emails, addresses) to the open
+ * internet. The password is now required on the server as well.
+ */
+function requireAdmin(request) {
+  const expected = process.env.ADMIN_PASSWORD
+  if (!expected) return false
+  const provided = request.headers.get('x-admin-key') || ''
+  return provided === expected
+}
+
+function adminDenied() {
+  return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
+}
+
 // Razorpay webhook signature verification
 function verifyRazorpaySignature(body, signature, secret) {
   const expectedSignature = crypto
@@ -72,6 +91,11 @@ function getPathSegments(pathname) {
 export async function GET(request) {
   const pathname = request.nextUrl.pathname
   const segments = getPathSegments(pathname)
+
+    // Every admin route requires the admin password, except the login check.
+    if (segments[0] === 'admin' && segments[1] !== 'auth' && !requireAdmin(request)) {
+      return adminDenied()
+    }
 
   try {
     // GET /api/products
@@ -676,6 +700,11 @@ export async function POST(request) {
   const pathname = request.nextUrl.pathname
   const segments = getPathSegments(pathname)
 
+    // Every admin route requires the admin password, except the login check.
+    if (segments[0] === 'admin' && segments[1] !== 'auth' && !requireAdmin(request)) {
+      return adminDenied()
+    }
+
   try {
     // POST /api/razorpay/webhook - Razorpay webhook for payment events
     if (segments[0] === 'razorpay' && segments[1] === 'webhook') {
@@ -868,7 +897,26 @@ export async function POST(request) {
       const site = process.env.NEXT_PUBLIC_SITE_URL || 'https://begoodshop.in'
       const now = Date.now()
       const daysAgo = (n) => new Date(now - n * 86400000)
-      const summary = { usage: 0, reviewRequests: 0, replenishment: 0, skipped: 0 }
+
+      // ?dryRun=1  - report exactly who would be emailed, send nothing.
+      // ?reviewMaxAge=200 - widen the review window so customers who ordered
+      //   before this system existed can still be asked. Without it the window
+      //   is 7-21 days and every older customer is silently skipped forever.
+      const url = new URL(request.url)
+      const dryRun = url.searchParams.get('dryRun') === '1'
+      const reviewMaxAge = Math.min(400, parseInt(url.searchParams.get('reviewMaxAge') || '21', 10) || 21)
+
+      const summary = { dryRun, reviewMaxAge, usage: 0, reviewRequests: 0, replenishment: 0, skipped: 0 }
+      const wouldSend = { usage: [], reviewRequests: [], replenishment: [] }
+
+      // In a dry run nothing is sent and nothing is written.
+      const deliver = async (kind, order, payload) => {
+        if (dryRun) {
+          wouldSend[kind].push({ orderId: order.orderId, email: order.email })
+          return { ok: false, dry: true }
+        }
+        return sendEmail(payload)
+      }
 
       // --- Day 3: how to actually use it -------------------------------------
       // The most under-rated message here. A-Bar is usage-dependent: eaten five
@@ -881,7 +929,7 @@ export async function POST(request) {
       }).limit(50).toArray()
 
       for (const o of usageOrders) {
-        const r = await sendEmail({
+        const r = await deliver('usage', o, {
           to: o.email,
           toName: o.customerName,
           subject: 'Getting the most out of your A-Bar',
@@ -903,7 +951,7 @@ export async function POST(request) {
 
       // --- Day 7: review request + ₹20 ---------------------------------------
       const reviewOrders = await db.collection('orders').find({
-        createdAt: { $lte: daysAgo(7).toISOString(), $gte: daysAgo(21).toISOString() },
+        createdAt: { $lte: daysAgo(7).toISOString(), $gte: daysAgo(reviewMaxAge).toISOString() },
         email: { $exists: true, $ne: null, $ne: '' }
       }).limit(50).toArray()
 
@@ -913,6 +961,11 @@ export async function POST(request) {
 
         const token = uuidv4().replace(/-/g, '')
         const productIds = (o.products || []).map((p) => p.productId).filter(Boolean)
+
+        if (dryRun) {
+          wouldSend.reviewRequests.push({ orderId: o.orderId, email: o.email })
+          continue
+        }
 
         await db.collection('review_requests').insertOne({
           id: uuidv4(),
@@ -967,7 +1020,7 @@ export async function POST(request) {
           continue
         }
 
-        const r = await sendEmail({
+        const r = await deliver('replenishment', o, {
           to: o.email,
           toName: o.customerName,
           subject: 'Running low?',
@@ -987,7 +1040,7 @@ export async function POST(request) {
         }
       }
 
-      return NextResponse.json({ success: true, summary })
+      return NextResponse.json({ success: true, summary, wouldSend: dryRun ? wouldSend : undefined })
     }
 
     // POST /api/pending-payment - Store pending payment data before initiating Razorpay
@@ -1896,6 +1949,11 @@ export async function PUT(request) {
   const pathname = request.nextUrl.pathname
   const segments = getPathSegments(pathname)
 
+    // Every admin route requires the admin password, except the login check.
+    if (segments[0] === 'admin' && segments[1] !== 'auth' && !requireAdmin(request)) {
+      return adminDenied()
+    }
+
   try {
     // PUT /api/admin/orders/:id - Update order status
     if (segments[0] === 'admin' && segments[1] === 'orders' && segments.length === 3) {
@@ -2033,6 +2091,11 @@ export async function PUT(request) {
 export async function DELETE(request) {
   const pathname = request.nextUrl.pathname
   const segments = getPathSegments(pathname)
+
+    // Every admin route requires the admin password, except the login check.
+    if (segments[0] === 'admin' && segments[1] !== 'auth' && !requireAdmin(request)) {
+      return adminDenied()
+    }
 
   try {
     // DELETE /api/admin/products/:id - Delete product (admin only)
