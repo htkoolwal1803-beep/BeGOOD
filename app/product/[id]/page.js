@@ -9,6 +9,8 @@ import Button from '@/components/Button'
 import { Star, Check, Package, Shield, Truck } from 'lucide-react'
 import Link from 'next/link'
 import ProductFeedbackSection from '@/components/ProductFeedbackSection'
+import ProductReviews, { RatingSummary } from '@/components/ProductReviews'
+import { SHIPPING_CONFIG } from '@/lib/constants'
 
 export default function ProductPage() {
   const params = useParams()
@@ -111,6 +113,24 @@ export default function ProductPage() {
                   Save ₹{product.compareAtPrice - product.price} ({Math.round((1 - product.price / product.compareAtPrice) * 100)}% off)
                 </div>
               )}
+
+              {/* Rating sits at the point of decision, not buried below. */}
+              <RatingSummary product={product} className="mt-3" />
+
+              {/* Delivery cost stated before checkout - unexpected extra costs
+                  are the single biggest cause of cart abandonment. */}
+              <p className="mt-3 text-sm text-[#59615b]">
+                {product.price >= SHIPPING_CONFIG.FREE_SHIPPING_THRESHOLD ? (
+                  <>Free delivery on this item.</>
+                ) : (
+                  <>
+                    Delivery ₹{SHIPPING_CONFIG.SHIPPING_FEE} &middot;{' '}
+                    <span className="font-semibold text-[#3f5a46]">
+                      free on orders over ₹{SHIPPING_CONFIG.FREE_SHIPPING_THRESHOLD}
+                    </span>
+                  </>
+                )}
+              </p>
             </div>
 
             {/* Key Aspects */}
@@ -183,11 +203,18 @@ export default function ProductPage() {
               </div>
             </div>
 
-            {/* No Return Policy Notice */}
-            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-xs text-red-700 text-center">
-                <strong>No Return Policy:</strong> All sales are final. Please review before purchase. 
-                <a href="/terms" className="underline ml-1">Learn more</a>
+            {/* Quality promise. Same policy as before - food cannot be resold
+                once it has shipped - but framed as reassurance rather than a
+                red warning next to the buy button. */}
+            <div className="mt-4 p-4 bg-[#dce6d7]/50 border border-[#c3d5c0] rounded-lg">
+              <p className="text-sm font-semibold text-[#3f5a46] mb-1">
+                Our quality promise
+              </p>
+              <p className="text-xs leading-relaxed text-[#4a5a4d]">
+                If your order arrives damaged, melted or incorrect, message us within
+                24 hours with a photo and we will replace it or refund you. As a food
+                product, A-Bar cannot be returned once opened.{' '}
+                <a href="/refund" className="underline">Full policy</a>
               </p>
             </div>
           </div>
@@ -273,6 +300,9 @@ export default function ProductPage() {
           )}
 
 
+
+          {/* Customer reviews */}
+          <ProductReviews product={product} />
 
           {/* Customer Feedback (admin-defined questionnaire answers) */}
           <ProductFeedbackSection productId={product.id} productName={product.name} />
