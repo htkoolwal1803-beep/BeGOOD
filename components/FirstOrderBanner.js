@@ -4,8 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Truck } from 'lucide-react'
 import { SHIPPING_CONFIG } from '@/lib/constants'
-
-const SEEN_KEY = 'begood_returning_visitor'
+import { looksLikeFirstOrder } from '@/lib/firstOrder'
 
 /**
  * First-order delivery offer, shown only to people who look new.
@@ -19,11 +18,7 @@ export default function FirstOrderBanner({ className = '' }) {
   const [show, setShow] = useState(false)
 
   useEffect(() => {
-    try {
-      if (!localStorage.getItem(SEEN_KEY)) setShow(true)
-    } catch {
-      // private mode / storage blocked - just don't show it
-    }
+    setShow(looksLikeFirstOrder())
   }, [])
 
   if (!show) return null
