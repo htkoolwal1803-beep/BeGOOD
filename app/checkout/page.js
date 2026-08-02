@@ -12,6 +12,7 @@ import emailjs from '@emailjs/browser'
 import { calculateShipping, calculateOrderTotal, SHIPPING_CONFIG, COD_CONFIG, DELIVERY_OPTIONS, getDeliveryFee, getDeliveryLabel, resolveDeliveryFee, freeShippingThreshold } from '@/lib/constants'
 import { estimateDeliveryByPincode } from '@/lib/deliveryDistance'
 import { cartHasHamper } from '@/lib/products'
+import { markReturningVisitor } from '@/lib/firstOrder'
 
 export default function CheckoutPage() {
   const { cart, cartTotal, clearCart } = useCart()
@@ -652,6 +653,7 @@ Please prepare this order for shipment.
       const orderResult = await orderResponse.json()
 
       if (orderResult.success) {
+        markReturningVisitor()
         // Record coupon usage if coupon was applied
         if (appliedCoupon) {
           try {
@@ -805,6 +807,7 @@ Please prepare this order for shipment.
                 const orderResult = await orderResponse.json()
 
                 if (orderResult.success) {
+        markReturningVisitor()
                   // Order created successfully - remove from pending
                   localStorage.removeItem(`pending_order_${paymentId}`)
                   return { success: true, order: orderResult.order }
