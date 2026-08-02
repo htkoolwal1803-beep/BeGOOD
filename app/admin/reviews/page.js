@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Lock, Star, Plus, Trash2, Bell } from 'lucide-react'
 import Button from '@/components/Button'
+import { adminFetch, setAdminKey } from '@/lib/adminAuth'
 
 export default function AdminReviewsPage() {
   const router = useRouter()
@@ -39,6 +40,7 @@ export default function AdminReviewsPage() {
       const data = await response.json()
 
       if (data.success) {
+        setAdminKey(password)
         setAuthenticated(true)
         fetchData()
       } else {
@@ -54,8 +56,8 @@ export default function AdminReviewsPage() {
   const fetchData = async () => {
     try {
       const [reviewsRes, notificationsRes] = await Promise.all([
-        fetch('/api/admin/reviews'),
-        fetch('/api/admin/notifications')
+        adminFetch('/api/admin/reviews'),
+        adminFetch('/api/admin/notifications')
       ])
 
       const reviewsData = await reviewsRes.json()
@@ -72,7 +74,7 @@ export default function AdminReviewsPage() {
     e.preventDefault()
     
     try {
-      const response = await fetch('/api/admin/reviews', {
+      const response = await adminFetch('/api/admin/reviews', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(reviewForm)
