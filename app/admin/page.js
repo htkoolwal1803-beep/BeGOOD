@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Lock, TrendingUp, ShoppingCart, Users, MapPin, Smartphone, Monitor, Star, ChevronDown, ChevronUp, Phone, Package, Tag, Link2, MessageSquare } from 'lucide-react'
 import Button from '@/components/Button'
 import Link from 'next/link'
+import { adminFetch, setAdminKey } from '@/lib/adminAuth'
 
 export default function AdminDashboard() {
   const [authenticated, setAuthenticated] = useState(false)
@@ -33,6 +34,7 @@ export default function AdminDashboard() {
       const data = await response.json()
 
       if (data.success) {
+        setAdminKey(password)
         setAuthenticated(true)
         fetchDashboardData()
       } else {
@@ -48,8 +50,8 @@ export default function AdminDashboard() {
   const fetchDashboardData = async () => {
     try {
       const [ordersRes, analyticsRes] = await Promise.all([
-        fetch('/api/admin/orders'),
-        fetch('/api/admin/analytics')
+        adminFetch('/api/admin/orders'),
+        adminFetch('/api/admin/analytics')
       ])
 
       const ordersData = await ordersRes.json()
@@ -64,7 +66,7 @@ export default function AdminDashboard() {
 
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
-      const response = await fetch(`/api/admin/orders/${orderId}`, {
+      const response = await adminFetch(`/api/admin/orders/${orderId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
