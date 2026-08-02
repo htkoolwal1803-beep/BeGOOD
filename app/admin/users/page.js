@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Lock, Users, Phone, Mail, MapPin, Calendar, ArrowLeft } from 'lucide-react'
 import Button from '@/components/Button'
 import Link from 'next/link'
+import { adminFetch, setAdminKey } from '@/lib/adminAuth'
 
 export default function AdminUsersPage() {
   const [authenticated, setAuthenticated] = useState(false)
@@ -28,6 +29,7 @@ export default function AdminUsersPage() {
       const data = await response.json()
 
       if (data.success) {
+        setAdminKey(password)
         setAuthenticated(true)
         fetchUsers()
       } else {
@@ -42,7 +44,7 @@ export default function AdminUsersPage() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('/api/admin/users')
+      const response = await adminFetch('/api/admin/users')
       const data = await response.json()
       if (data.success) {
         setUsers(data.users)
