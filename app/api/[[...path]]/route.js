@@ -912,6 +912,71 @@ export async function POST(request) {
       const dryRun = url.searchParams.get('dryRun') === '1'
       const reviewMaxAge = Math.min(400, parseInt(url.searchParams.get('reviewMaxAge') || '21', 10) || 21)
 
+      // ?testEmail=you@example.com - send one sample of each email to a single
+      // address so the exact wording, layout and deliverability can be checked
+      // before a single real customer is contacted. Touches no customer data.
+      const testEmail = (url.searchParams.get('testEmail') || '').trim()
+      if (testEmail) {
+        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(testEmail)) {
+          return NextResponse.json({ success: false, error: 'That does not look like a valid email address' }, { status: 400 })
+        }
+
+        const samples = [
+          {
+            key: 'usage',
+            subject: 'Getting the most out of your A-Bar',
+            html: layout({
+              heading: 'One thing worth knowing',
+              body: `<p>Hi there,</p>
+                     <p>A-Bar works best when you give it a head start. Eat it <strong>30–45 minutes before</strong> the moment that matters — not during it.</p>
+                     <p>That's when L-Theanine has reached your system, so you feel settled going in rather than halfway through.</p>
+                     <p>No pills, no powder. Just eat it like chocolate, a little earlier than you'd think.</p>`,
+              ctaLabel: 'Read how it works',
+              ctaUrl: `${site}/how-it-works`
+            })
+          },
+          {
+            key: 'reviewRequest',
+            subject: 'How did it go? (₹20 off for telling us)',
+            html: layout({
+              heading: 'Did it help?',
+              body: `<p>Hi there,</p>
+                     <p>You ordered from us about a week ago. We'd like to know how it actually went — good or bad, we want the honest version.</p>
+                     <p>It takes about thirty seconds, and we'll send you <strong>₹20 off your next order</strong> either way.</p>`,
+              ctaLabel: 'Leave a review',
+              ctaUrl: `${site}/review/sample-preview-link`,
+              footnote: 'The ₹20 is for writing a review, not for a good one. Please say what you actually thought.'
+            })
+          },
+          {
+            key: 'replenishment',
+            subject: 'Running low?',
+            html: layout({
+              heading: 'Running low?',
+              body: `<p>Hi there,</p>
+                     <p>You picked up A-Bar about a month ago. If it did its job, there's probably something coming up that deserves one — an exam, an interview, a day you'd rather walk into calmly.</p>
+                     <p>Reordering takes one tap.</p>`,
+              ctaLabel: 'Reorder',
+              ctaUrl: `${site}/shop`,
+              footnote: 'Free delivery on orders over ₹600.'
+            })
+          }
+        ]
+
+        const sent = []
+        for (const sample of samples) {
+          const r = await sendEmail({
+            to: testEmail,
+            toName: 'BeGood test',
+            subject: `[TEST] ${sample.subject}`,
+            html: sample.html
+          })
+          sent.push({ key: sample.key, subject: sample.subject, ok: r.ok, reason: r.reason || null })
+        }
+
+        return NextResponse.json({ success: true, testEmail, sent })
+      }
+
       const summary = { dryRun, reviewMaxAge, usage: 0, reviewRequests: 0, replenishment: 0, skipped: 0 }
       const wouldSend = { usage: [], reviewRequests: [], replenishment: [] }
 
