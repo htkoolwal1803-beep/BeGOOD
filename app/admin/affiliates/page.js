@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Lock, Users, Plus, Eye, EyeOff, ToggleLeft, ToggleRight, Copy, ExternalLink, ArrowLeft, Loader2, Link2 } from 'lucide-react'
 import Button from '@/components/Button'
 import Link from 'next/link'
+import { adminFetch, setAdminKey } from '@/lib/adminAuth'
 
 export default function AdminAffiliatesPage() {
   const [authenticated, setAuthenticated] = useState(false)
@@ -39,6 +40,7 @@ export default function AdminAffiliatesPage() {
       const data = await response.json()
 
       if (data.success) {
+        setAdminKey(password)
         setAuthenticated(true)
         fetchAffiliates()
       } else {
@@ -53,7 +55,7 @@ export default function AdminAffiliatesPage() {
 
   const fetchAffiliates = async () => {
     try {
-      const response = await fetch('/api/admin/affiliates')
+      const response = await adminFetch('/api/admin/affiliates')
       const data = await response.json()
       if (data.success) {
         setAffiliates(data.affiliates)
@@ -69,7 +71,7 @@ export default function AdminAffiliatesPage() {
     setError('')
 
     try {
-      const response = await fetch('/api/admin/affiliates', {
+      const response = await adminFetch('/api/admin/affiliates', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newAffiliate)
@@ -93,7 +95,7 @@ export default function AdminAffiliatesPage() {
 
   const toggleAffiliateStatus = async (code) => {
     try {
-      const response = await fetch(`/api/admin/affiliates/${code}/toggle`, {
+      const response = await adminFetch(`/api/admin/affiliates/${code}/toggle`, {
         method: 'POST'
       })
 
@@ -116,7 +118,7 @@ export default function AdminAffiliatesPage() {
 
   const viewAffiliateDetails = async (code) => {
     try {
-      const response = await fetch(`/api/admin/affiliates/${code}`)
+      const response = await adminFetch(`/api/admin/affiliates/${code}`)
       const data = await response.json()
       if (data.success) {
         setSelectedAffiliate(data)
