@@ -59,6 +59,11 @@ export default function HampersPage() {
                   <span className="text-lg text-[#59615b] line-through mb-1">₹1199</span>
                 </div>
                 <p className="text-sm text-[#59615b] mt-1">Limited pre-Rakhi offer</p>
+                {/* Real deadline, not manufactured scarcity: Raksha Bandhan is
+                    28 Aug 2026 and delivery takes 5-7 working days. */}
+                <p className="mt-2 text-sm font-semibold text-[#b4472e]">
+                  Order by 20 August for delivery before Rakhi
+                </p>
               </div>
 
               <HamperCTA variant="hero" />
