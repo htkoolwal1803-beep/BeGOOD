@@ -132,10 +132,10 @@ export default function AdminDashboard() {
                   Users
                 </Button>
               </Link>
-              <Link href="/admin/subscriptions">
+              <Link href="/admin/kpis">
                 <Button variant="outline">
                   <Package className="w-4 h-4 mr-2" />
-                  Subscriptions
+                  KPIs
                 </Button>
               </Link>
               <Link href="/admin/reviews">
