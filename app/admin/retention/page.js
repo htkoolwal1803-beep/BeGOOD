@@ -4,53 +4,8 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Button from '@/components/Button'
 import { adminFetch, setAdminKey } from '@/lib/adminAuth'
-import { Lock, Loader2, ArrowLeft, Mail, Eye, Send, AlertTriangle } from 'lucide-react'
-
-/**
- * Plain-language copy of the three emails, mirroring what the API sends.
- * Shown so nothing is ever sent that has not been read first.
- */
-const EMAIL_PREVIEWS = [
-  {
-    key: 'usage',
-    when: 'Day 3',
-    subject: 'Getting the most out of your A-Bar',
-    heading: 'One thing worth knowing',
-    body: [
-      'Hi [name],',
-      'A-Bar works best when you give it a head start. Eat it 30–45 minutes before the moment that matters — not during it.',
-      "That's when L-Theanine has reached your system, so you feel settled going in rather than halfway through.",
-      "No pills, no powder. Just eat it like chocolate, a little earlier than you'd think."
-    ],
-    cta: 'Read how it works'
-  },
-  {
-    key: 'review',
-    when: 'Day 7',
-    subject: 'How did it go? (₹20 off for telling us)',
-    heading: 'Did it help?',
-    body: [
-      'Hi [name],',
-      "You ordered from us about a week ago. We'd like to know how it actually went — good or bad, we want the honest version.",
-      "It takes about thirty seconds, and we'll send you ₹20 off your next order either way."
-    ],
-    cta: 'Leave a review',
-    footnote: 'The ₹20 is for writing a review, not for a good one. Please say what you actually thought.'
-  },
-  {
-    key: 'replenishment',
-    when: 'Day 25',
-    subject: 'Running low?',
-    heading: 'Running low?',
-    body: [
-      'Hi [name],',
-      "You picked up A-Bar about a month ago. If it did its job, there's probably something coming up that deserves one — an exam, an interview, a day you'd rather walk into calmly.",
-      'Reordering takes one tap.'
-    ],
-    cta: 'Reorder',
-    footnote: 'Free delivery on orders over ₹600.'
-  }
-]
+import { useEffect } from 'react'
+import { Lock, Loader2, ArrowLeft, Mail, Eye, Send, AlertTriangle, Pencil, RotateCcw, Check } from 'lucide-react'
 
 export default function AdminRetentionPage() {
   const [authenticated, setAuthenticated] = useState(false)
@@ -64,6 +19,51 @@ export default function AdminRetentionPage() {
   const [error, setError] = useState('')
   const [testTo, setTestTo] = useState('')
   const [testResult, setTestResult] = useState(null)
+
+  // Editable email wording, loaded from the server once signed in.
+  const [templates, setTemplates] = useState([])
+  const [openKey, setOpenKey] = useState(null)
+  const [draft, setDraft] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [savedKey, setSavedKey] = useState('')
+
+  useEffect(() => {
+    if (!authenticated) return
+    adminFetch('/api/admin/email-templates')
+      .then((r) => r.json())
+      .then((d) => { if (d.success) setTemplates(d.templates) })
+      .catch(() => {})
+  }, [authenticated])
+
+  const startEdit = (t) => {
+    setOpenKey(t.key)
+    setDraft({ ...t })
+    setSavedKey('')
+  }
+
+  const saveTemplate = async (reset = false) => {
+    if (!draft) return
+    setSaving(true)
+    setError('')
+    try {
+      const res = await adminFetch('/api/admin/email-templates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reset ? { key: draft.key, reset: true } : draft)
+      })
+      const d = await res.json()
+      if (d.success) {
+        setTemplates((prev) => prev.map((t) => (t.key === d.template.key ? d.template : t)))
+        setDraft(d.template)
+        setSavedKey(d.template.key)
+      } else {
+        setError(d.message || 'Could not save')
+      }
+    } catch {
+      setError('Could not save. Please try again.')
+    }
+    setSaving(false)
+  }
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -181,30 +181,112 @@ export default function AdminRetentionPage() {
         </div>
 
         <div className="max-w-3xl space-y-6">
-          {/* Exactly what gets sent, so nothing goes out unseen. */}
+          {/* Edit exactly what gets sent. Saved wording is used by the daily
+              cron and by the test send, so what you read here is what goes out. */}
           <div className="brand-card p-5 sm:p-6">
             <h2 className="font-semibold text-lg mb-2 flex items-center gap-2">
-              <Eye className="w-5 h-5 text-[#6f8a74]" />
-              What gets sent
+              <Pencil className="w-5 h-5 text-[#6f8a74]" />
+              The emails
             </h2>
             <p className="text-sm text-[#59615b] mb-5">
-              Three emails, each triggered once per order. Read them here, or send
-              yourself the real thing below.
+              Edit any of these and the change applies to every future send. Use{' '}
+              <code className="px-1 rounded bg-[#e6ddcd] text-[#4a5a4d]">{'{{name}}'}</code>{' '}
+              for the customer&apos;s name.
             </p>
 
-            <div className="space-y-4">
-              {EMAIL_PREVIEWS.map((e) => (
-                <details key={e.key} className="rounded-xl border border-[#e6ddcd] bg-[#fbf7ed]/60 p-4">
-                  <summary className="cursor-pointer text-sm font-semibold">
-                    {e.when} &mdash; &ldquo;{e.subject}&rdquo;
-                  </summary>
-                  <div className="mt-3 text-sm leading-relaxed text-[#464c49] space-y-2">
-                    <p className="font-semibold">{e.heading}</p>
-                    {e.body.map((line, i) => <p key={i}>{line}</p>)}
-                    <p className="text-xs text-[#6b736d]">Button: {e.cta}</p>
-                    {e.footnote && <p className="text-xs text-[#8b938b]">{e.footnote}</p>}
-                  </div>
-                </details>
+            <div className="space-y-3">
+              {templates.length === 0 && (
+                <p className="text-sm text-[#59615b]">Loading...</p>
+              )}
+              {templates.map((t) => (
+                <div key={t.key} className="rounded-xl border border-[#e6ddcd] bg-[#fbf7ed]/60">
+                  <button
+                    type="button"
+                    onClick={() => (openKey === t.key ? setOpenKey(null) : startEdit(t))}
+                    className="w-full text-left p-4"
+                  >
+                    <span className="text-sm font-semibold block">
+                      {t.label}
+                      {t.isEdited && <span className="ml-2 text-xs font-normal text-[#6f8a74]">edited</span>}
+                    </span>
+                    <span className="text-xs text-[#6b736d] block mt-1">&ldquo;{t.subject}&rdquo;</span>
+                  </button>
+
+                  {openKey === t.key && draft && (
+                    <div className="px-4 pb-4 space-y-3 border-t border-[#e6ddcd] pt-4">
+                      <p className="text-xs text-[#8b938b]">{t.description}</p>
+
+                      <div>
+                        <label className="block text-xs font-semibold mb-1">Subject line</label>
+                        <input
+                          value={draft.subject}
+                          onChange={(e) => setDraft({ ...draft, subject: e.target.value })}
+                          className="w-full min-w-0 px-3 py-2 border border-[#d9cbb5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold mb-1">Heading</label>
+                        <input
+                          value={draft.heading}
+                          onChange={(e) => setDraft({ ...draft, heading: e.target.value })}
+                          className="w-full min-w-0 px-3 py-2 border border-[#d9cbb5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold mb-1">
+                          Body <span className="font-normal text-[#8b938b]">(one paragraph per line)</span>
+                        </label>
+                        <textarea
+                          rows={7}
+                          value={draft.body}
+                          onChange={(e) => setDraft({ ...draft, body: e.target.value })}
+                          className="w-full min-w-0 px-3 py-2 border border-[#d9cbb5] rounded-lg text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
+                        />
+                      </div>
+
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div>
+                          <label className="block text-xs font-semibold mb-1">Button text</label>
+                          <input
+                            value={draft.ctaLabel}
+                            onChange={(e) => setDraft({ ...draft, ctaLabel: e.target.value })}
+                            className="w-full min-w-0 px-3 py-2 border border-[#d9cbb5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold mb-1">Small print</label>
+                          <input
+                            value={draft.footnote}
+                            onChange={(e) => setDraft({ ...draft, footnote: e.target.value })}
+                            className="w-full min-w-0 px-3 py-2 border border-[#d9cbb5] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-3 pt-1">
+                        <Button onClick={() => saveTemplate(false)} disabled={saving}>
+                          {saving ? 'Saving...' : 'Save'}
+                        </Button>
+                        <button
+                          type="button"
+                          onClick={() => saveTemplate(true)}
+                          disabled={saving}
+                          className="text-sm text-[#6b736d] underline flex items-center gap-1"
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                          Reset to original
+                        </button>
+                        {savedKey === draft.key && (
+                          <span className="text-sm text-[#3f5a46] flex items-center gap-1">
+                            <Check className="w-4 h-4" /> Saved
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
 
