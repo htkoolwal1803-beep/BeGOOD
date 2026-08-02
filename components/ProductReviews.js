@@ -1,7 +1,41 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { Star } from 'lucide-react'
 import { getAverageRating, getReviewCount, getSortedReviews } from '@/lib/products'
+
+/**
+ * Reviews written by customers through the post-purchase email land in the
+ * database, so the product page merges those with the seed reviews held in
+ * lib/products.js. New reviews then appear without a code change.
+ */
+function useCustomerReviews(productId) {
+  const [extra, setExtra] = useState([])
+
+  useEffect(() => {
+    if (!productId) return
+    let cancelled = false
+    fetch(`/api/products/${productId}/reviews`)
+      .then((r) => r.json())
+      .then((d) => { if (!cancelled && d?.success) setExtra(d.reviews || []) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [productId])
+
+  return extra
+}
+
+function combine(product, extra) {
+  const seed = getSortedReviews(product)
+  const all = [...extra, ...seed]
+  return all.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
+}
+
+function averageOf(list) {
+  if (!list.length) return null
+  const total = list.reduce((sum, r) => sum + (Number(r.rating) || 0), 0)
+  return Math.round((total / list.length) * 10) / 10
+}
 
 /** Row of 5 stars with the filled count driven by `rating`. */
 export function Stars({ rating = 0, className = 'w-4 h-4' }) {
@@ -27,8 +61,10 @@ export function Stars({ rating = 0, className = 'w-4 h-4' }) {
  * is worse than no label at all.
  */
 export function RatingSummary({ product, className = '' }) {
-  const avg = getAverageRating(product)
-  const count = getReviewCount(product)
+  const extra = useCustomerReviews(product?.bundleOf || product?.id)
+  const merged = combine(product, extra)
+  const avg = merged.length ? averageOf(merged) : getAverageRating(product)
+  const count = merged.length || getReviewCount(product)
   if (!avg) return null
 
   return (
@@ -51,8 +87,9 @@ function formatDate(value) {
 
 /** Full reviews block for the product page. */
 export default function ProductReviews({ product }) {
-  const reviews = getSortedReviews(product)
-  const avg = getAverageRating(product)
+  const extra = useCustomerReviews(product?.bundleOf || product?.id)
+  const reviews = combine(product, extra)
+  const avg = averageOf(reviews)
   const count = reviews.length
 
   if (!count) {
@@ -93,6 +130,13 @@ export default function ProductReviews({ product }) {
             <p className="text-xs text-[#6b736d]">
               {[r.role, formatDate(r.date)].filter(Boolean).join(' · ')}
             </p>
+            {r.incentivised && (
+              /* Disclosed rather than hidden: the reward was for writing a
+                 review, not for a positive one. */
+              <p className="text-[11px] text-[#8b938b] mt-1">
+                Received a discount code for reviewing
+              </p>
+            )}
           </div>
         ))}
       </div>
