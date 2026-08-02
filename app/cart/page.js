@@ -5,8 +5,9 @@ import Image from 'next/image'
 import Link from 'next/link'
 import Button from '@/components/Button'
 import { Trash2, Plus, Minus, ShoppingBag, Truck } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { calculateShipping, calculateOrderTotal, SHIPPING_CONFIG } from '@/lib/constants'
+import { looksLikeFirstOrder, displayFreeShippingThreshold } from '@/lib/firstOrder'
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, cartTotal, cartCount } = useCart()
@@ -14,7 +15,14 @@ export default function CartPage() {
   // Calculate shipping and order total
   const shippingFee = calculateShipping(cartTotal)
   const orderTotal = calculateOrderTotal(cartTotal)
-  const amountToFreeShipping = SHIPPING_CONFIG.FREE_SHIPPING_THRESHOLD - cartTotal
+  // Show the threshold that will actually apply to this shopper. Without this
+  // a first-time buyer with the ₹250 Duo in their cart was told to "add ₹350
+  // more" when they already qualified for free delivery at ₹249.
+  const [isFirstOrder, setIsFirstOrder] = useState(false)
+  useEffect(() => { setIsFirstOrder(looksLikeFirstOrder()) }, [])
+
+  const freeShippingAt = displayFreeShippingThreshold(isFirstOrder)
+  const amountToFreeShipping = freeShippingAt - cartTotal
 
   useEffect(() => {
     // Track page view
@@ -134,15 +142,17 @@ export default function CartPage() {
                     <p className="text-[#3f5a46] mb-2">
                       <Truck className="w-4 h-4 inline mr-1" />
                       Add <strong>₹{amountToFreeShipping}</strong> more for free delivery
-                      <span className="block text-xs mt-1 text-[#4a5a4d]">
-                        First order? Free delivery starts at ₹{SHIPPING_CONFIG.FIRST_ORDER_FREE_SHIPPING_THRESHOLD}.
-                      </span>
+                      {!isFirstOrder && (
+                        <span className="block text-xs mt-1 text-[#4a5a4d]">
+                          First order? Free delivery starts at ₹{SHIPPING_CONFIG.FIRST_ORDER_FREE_SHIPPING_THRESHOLD}.
+                        </span>
+                      )}
                     </p>
                     <div className="h-2 w-full rounded-full bg-[#e6ddcd] overflow-hidden">
                       <div
                         className="h-full rounded-full bg-[#6f8a74] transition-all duration-500"
                         style={{
-                          width: `${Math.min(100, Math.round((cartTotal / SHIPPING_CONFIG.FREE_SHIPPING_THRESHOLD) * 100))}%`
+                          width: `${Math.min(100, Math.round((cartTotal / freeShippingAt) * 100))}%`
                         }}
                       />
                     </div>
