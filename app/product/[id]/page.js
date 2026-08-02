@@ -203,17 +203,25 @@ export default function ProductPage() {
               </div>
             </div>
 
-            {/* Quality promise. Same policy as before - food cannot be resold
-                once it has shipped - but framed as reassurance rather than a
-                red warning next to the buy button. */}
+            {/* Quality promise. Covers wrong items and genuine transit damage.
+                Melting and cocoa butter separation are excluded because both are
+                inherent to real chocolate rather than faults - explained here so
+                a customer seeing bloom does not think the bar has spoiled. */}
             <div className="mt-4 p-4 bg-[#dce6d7]/50 border border-[#c3d5c0] rounded-lg">
               <p className="text-sm font-semibold text-[#3f5a46] mb-1">
                 Our quality promise
               </p>
               <p className="text-xs leading-relaxed text-[#4a5a4d]">
-                If your order arrives damaged, melted or incorrect, message us within
-                24 hours with a photo and we will replace it or refund you. As a food
-                product, A-Bar cannot be returned once opened.{' '}
+                If your order arrives incorrect, incomplete, or the packaging is torn or
+                crushed in transit, message us within 24 hours with a photo and we will
+                replace it or refund you. As a food product, A-Bar cannot be returned
+                once opened.
+              </p>
+              <p className="text-xs leading-relaxed text-[#4a5a4d] mt-2">
+                <strong>A note on how it looks:</strong> cocoa butter can separate and
+                leave a pale, marbled surface, especially in warm weather. That is
+                natural in real chocolate made without stabilisers &mdash; it is
+                perfectly safe to eat and not a damaged product.{' '}
                 <a href="/refund" className="underline">Full policy</a>
               </p>
             </div>
