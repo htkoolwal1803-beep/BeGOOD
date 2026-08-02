@@ -1,9 +1,9 @@
 'use client'
 
 import ProductCard from '@/components/ProductCard'
-import SubscriptionCard from '@/components/SubscriptionCard'
 import { products } from '@/lib/products'
 import { useEffect } from 'react'
+import FirstOrderBanner from '@/components/FirstOrderBanner'
 
 export default function ShopPage() {
   useEffect(() => {
@@ -33,6 +33,8 @@ export default function ShopPage() {
   return (
     <div className="brand-page min-h-screen py-16 md:py-20">
       <div className="container mx-auto px-4">
+        <FirstOrderBanner className="mb-8 max-w-3xl mx-auto" />
+
         {/* Header */}
         <div className="text-center mb-16 animate-fade-in">
           <span className="brand-pill mb-5">Functional wellness, perfectly crafted</span>
@@ -48,8 +50,6 @@ export default function ShopPage() {
             <ProductCard key={product.id} product={product} />
           ))}
           
-          {/* Subscription Card */}
-          <SubscriptionCard />
         </div>
 
         {/* Info Section */}
