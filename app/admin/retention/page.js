@@ -6,6 +6,52 @@ import Button from '@/components/Button'
 import { adminFetch, setAdminKey } from '@/lib/adminAuth'
 import { Lock, Loader2, ArrowLeft, Mail, Eye, Send, AlertTriangle } from 'lucide-react'
 
+/**
+ * Plain-language copy of the three emails, mirroring what the API sends.
+ * Shown so nothing is ever sent that has not been read first.
+ */
+const EMAIL_PREVIEWS = [
+  {
+    key: 'usage',
+    when: 'Day 3',
+    subject: 'Getting the most out of your A-Bar',
+    heading: 'One thing worth knowing',
+    body: [
+      'Hi [name],',
+      'A-Bar works best when you give it a head start. Eat it 30–45 minutes before the moment that matters — not during it.',
+      "That's when L-Theanine has reached your system, so you feel settled going in rather than halfway through.",
+      "No pills, no powder. Just eat it like chocolate, a little earlier than you'd think."
+    ],
+    cta: 'Read how it works'
+  },
+  {
+    key: 'review',
+    when: 'Day 7',
+    subject: 'How did it go? (₹20 off for telling us)',
+    heading: 'Did it help?',
+    body: [
+      'Hi [name],',
+      "You ordered from us about a week ago. We'd like to know how it actually went — good or bad, we want the honest version.",
+      "It takes about thirty seconds, and we'll send you ₹20 off your next order either way."
+    ],
+    cta: 'Leave a review',
+    footnote: 'The ₹20 is for writing a review, not for a good one. Please say what you actually thought.'
+  },
+  {
+    key: 'replenishment',
+    when: 'Day 25',
+    subject: 'Running low?',
+    heading: 'Running low?',
+    body: [
+      'Hi [name],',
+      "You picked up A-Bar about a month ago. If it did its job, there's probably something coming up that deserves one — an exam, an interview, a day you'd rather walk into calmly.",
+      'Reordering takes one tap.'
+    ],
+    cta: 'Reorder',
+    footnote: 'Free delivery on orders over ₹600.'
+  }
+]
+
 export default function AdminRetentionPage() {
   const [authenticated, setAuthenticated] = useState(false)
   const [password, setPassword] = useState('')
@@ -16,6 +62,8 @@ export default function AdminRetentionPage() {
   const [running, setRunning] = useState('')
   const [result, setResult] = useState(null)
   const [error, setError] = useState('')
+  const [testTo, setTestTo] = useState('')
+  const [testResult, setTestResult] = useState(null)
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -62,6 +110,22 @@ export default function AdminRetentionPage() {
       if (data.success) setResult(data)
       else setError(data.error || 'Something went wrong')
     } catch (e) {
+      setError('Request failed. Please try again.')
+    }
+    setRunning('')
+  }
+
+  const sendTest = async () => {
+    if (!testTo.trim()) return setError('Enter an email address first')
+    setRunning('test')
+    setError('')
+    setTestResult(null)
+    try {
+      const res = await adminFetch(`/api/cron/retention?testEmail=${encodeURIComponent(testTo.trim())}`, { method: 'POST' })
+      const data = await res.json()
+      if (data.success) setTestResult(data)
+      else setError(data.error || 'Could not send the test')
+    } catch {
       setError('Request failed. Please try again.')
     }
     setRunning('')
@@ -117,6 +181,80 @@ export default function AdminRetentionPage() {
         </div>
 
         <div className="max-w-3xl space-y-6">
+          {/* Exactly what gets sent, so nothing goes out unseen. */}
+          <div className="brand-card p-5 sm:p-6">
+            <h2 className="font-semibold text-lg mb-2 flex items-center gap-2">
+              <Eye className="w-5 h-5 text-[#6f8a74]" />
+              What gets sent
+            </h2>
+            <p className="text-sm text-[#59615b] mb-5">
+              Three emails, each triggered once per order. Read them here, or send
+              yourself the real thing below.
+            </p>
+
+            <div className="space-y-4">
+              {EMAIL_PREVIEWS.map((e) => (
+                <details key={e.key} className="rounded-xl border border-[#e6ddcd] bg-[#fbf7ed]/60 p-4">
+                  <summary className="cursor-pointer text-sm font-semibold">
+                    {e.when} &mdash; &ldquo;{e.subject}&rdquo;
+                  </summary>
+                  <div className="mt-3 text-sm leading-relaxed text-[#464c49] space-y-2">
+                    <p className="font-semibold">{e.heading}</p>
+                    {e.body.map((line, i) => <p key={i}>{line}</p>)}
+                    <p className="text-xs text-[#6b736d]">Button: {e.cta}</p>
+                    {e.footnote && <p className="text-xs text-[#8b938b]">{e.footnote}</p>}
+                  </div>
+                </details>
+              ))}
+            </div>
+
+            <div className="mt-6 pt-5 border-t border-[#e6ddcd]">
+              <label className="block text-sm font-semibold mb-2">
+                Send all three to yourself first
+              </label>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input
+                  type="email"
+                  value={testTo}
+                  onChange={(e) => setTestTo(e.target.value)}
+                  placeholder="you@example.com"
+                  className="flex-1 min-w-0 px-4 py-3 border border-[#d9cbb5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
+                />
+                <Button onClick={sendTest} variant="outline" size="lg" disabled={!!running} className="w-full sm:w-auto shrink-0">
+                  {running === 'test' ? (
+                    <span className="flex items-center justify-center"><Loader2 className="w-5 h-5 animate-spin mr-2" />Sending...</span>
+                  ) : 'Send test emails'}
+                </Button>
+              </div>
+              <p className="text-xs text-[#8b938b] mt-2">
+                Goes only to this address, subject prefixed [TEST]. No customer is contacted
+                and nothing is recorded.
+              </p>
+
+              {testResult && (
+                <div className="mt-4 rounded-xl border border-[#c3d5c0] bg-[#dce6d7]/50 p-4">
+                  <p className="text-sm font-semibold text-[#3f5a46] mb-2">
+                    Sent to {testResult.testEmail}
+                  </p>
+                  <ul className="text-xs text-[#4a5a4d] space-y-1">
+                    {testResult.sent.map((x) => (
+                      <li key={x.key}>
+                        {x.ok ? '✓' : '✗'} {x.subject}
+                        {!x.ok && x.reason ? ` (${x.reason})` : ''}
+                      </li>
+                    ))}
+                  </ul>
+                  {testResult.sent.some((x) => !x.ok) && (
+                    <p className="text-xs text-[#b4472e] mt-2">
+                      Something failed. If it says not_configured, the Brevo keys are missing
+                      in Vercel. Check your spam folder too.
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="brand-card p-5 sm:p-6">
             <h2 className="font-semibold text-lg mb-2 flex items-center gap-2">
               <Mail className="w-5 h-5 text-[#6f8a74]" />
