@@ -134,6 +134,9 @@ export default function CartPage() {
                     <p className="text-[#3f5a46] mb-2">
                       <Truck className="w-4 h-4 inline mr-1" />
                       Add <strong>₹{amountToFreeShipping}</strong> more for free delivery
+                      <span className="block text-xs mt-1 text-[#4a5a4d]">
+                        First order? Free delivery starts at ₹{SHIPPING_CONFIG.FIRST_ORDER_FREE_SHIPPING_THRESHOLD}.
+                      </span>
                     </p>
                     <div className="h-2 w-full rounded-full bg-[#e6ddcd] overflow-hidden">
                       <div
