@@ -103,6 +103,105 @@ export async function GET(request) {
       return NextResponse.json({ success: true, orders })
     }
 
+    // GET /api/admin/kpis - the numbers that actually decide whether the
+    // business works: conversion, repeat purchase, AOV and the second-purchase
+    // window. Deliberately cohort-aware so a festival spike cannot hide a
+    // falling repeat rate.
+    if (segments[0] === 'admin' && segments[1] === 'kpis') {
+      const { db } = await connectToDatabase()
+
+      const orders = await db.collection('orders').find({}).sort({ createdAt: 1 }).toArray()
+      const events = await db.collection('analytics').find({}).sort({ timestamp: -1 }).limit(20000).toArray()
+
+      const paidOrders = orders.filter((o) => o.status !== 'Cancelled')
+      const totalOrders = paidOrders.length
+      const totalRevenue = paidOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0)
+      const aov = totalOrders ? Math.round(totalRevenue / totalOrders) : 0
+
+      // Group orders by customer (last 10 digits of the phone).
+      const byCustomer = {}
+      for (const o of paidOrders) {
+        const key = String(o.phone || '').replace(/\D/g, '').slice(-10)
+        if (!key) continue
+        ;(byCustomer[key] = byCustomer[key] || []).push(o)
+      }
+      const customers = Object.values(byCustomer)
+      const totalCustomers = customers.length
+      const repeatCustomers = customers.filter((list) => list.length > 1).length
+      const repeatPurchaseRate = totalCustomers
+        ? Math.round((repeatCustomers / totalCustomers) * 1000) / 10
+        : 0
+
+      // Days between first and second order, for customers who came back.
+      const gaps = customers
+        .filter((list) => list.length > 1)
+        .map((list) => {
+          const sorted = [...list].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+          return (new Date(sorted[1].createdAt) - new Date(sorted[0].createdAt)) / 86400000
+        })
+        .filter((d) => Number.isFinite(d) && d >= 0)
+      const medianSecondPurchaseDays = gaps.length
+        ? Math.round(gaps.sort((a, b) => a - b)[Math.floor(gaps.length / 2)])
+        : null
+      const repeatWithin90 = gaps.filter((d) => d <= 90).length
+      const repeatWithin90Pct = gaps.length
+        ? Math.round((repeatWithin90 / gaps.length) * 1000) / 10
+        : 0
+
+      // Funnel. Unique visitors is approximated from analytics events; treat it
+      // as a trend line rather than an exact count.
+      const pageViews = events.filter((e) => e.event === 'page_view').length
+      const addToCart = events.filter((e) => e.event === 'add_to_cart').length
+      const uniqueVisitors = new Set(events.map((e) => e.userAgent)).size
+      const conversionRate = uniqueVisitors
+        ? Math.round((totalOrders / uniqueVisitors) * 1000) / 10
+        : 0
+      const cartAbandonment = addToCart
+        ? Math.round((1 - totalOrders / addToCart) * 1000) / 10
+        : 0
+
+      // Delivery threshold performance - are bundles doing their job?
+      const ordersAbove600 = paidOrders.filter((o) => (o.subtotal || 0) >= 600).length
+      const ordersAbove249 = paidOrders.filter((o) => (o.subtotal || 0) >= 249).length
+
+      // Monthly cohorts: first-time buyers per month and how many returned.
+      const cohorts = {}
+      for (const list of customers) {
+        const sorted = [...list].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+        const first = new Date(sorted[0].createdAt)
+        if (Number.isNaN(first.getTime())) continue
+        const key = `${first.getFullYear()}-${String(first.getMonth() + 1).padStart(2, '0')}`
+        cohorts[key] = cohorts[key] || { month: key, newCustomers: 0, returned: 0, revenue: 0 }
+        cohorts[key].newCustomers += 1
+        if (sorted.length > 1) cohorts[key].returned += 1
+        cohorts[key].revenue += sorted.reduce((sum, o) => sum + (o.totalAmount || 0), 0)
+      }
+      const cohortList = Object.values(cohorts)
+        .sort((a, b) => a.month.localeCompare(b.month))
+        .map((c) => ({
+          ...c,
+          revenue: Math.round(c.revenue),
+          repeatRate: c.newCustomers ? Math.round((c.returned / c.newCustomers) * 1000) / 10 : 0
+        }))
+
+      // Reviews collected through the site.
+      const reviewCount = await db.collection('reviews').countDocuments({}).catch(() => 0)
+      const feedbackCount = await db.collection('feedback_submissions').countDocuments({}).catch(() => 0)
+
+      return NextResponse.json({
+        success: true,
+        kpis: {
+          revenue: { total: Math.round(totalRevenue), aov },
+          orders: { total: totalOrders, above249: ordersAbove249, above600: ordersAbove600 },
+          customers: { total: totalCustomers, repeat: repeatCustomers, repeatPurchaseRate },
+          retention: { medianSecondPurchaseDays, repeatWithin90Pct },
+          funnel: { uniqueVisitors, pageViews, addToCart, orders: totalOrders, conversionRate, cartAbandonment },
+          reviews: { collected: reviewCount + feedbackCount },
+          cohorts: cohortList
+        }
+      })
+    }
+
     // GET /api/admin/analytics
     if (segments[0] === 'admin' && segments[1] === 'analytics') {
       const { db } = await connectToDatabase()
@@ -332,6 +431,26 @@ export async function GET(request) {
       }
       
       return NextResponse.json({ success: true, user })
+    }
+
+    // GET /api/customers/:phone/first-order - has this number ordered before?
+    // Used to decide the free-delivery threshold. Checked on the server so the
+    // discount cannot be claimed by editing localStorage.
+    if (segments[0] === 'customers' && segments.length === 3 && segments[2] === 'first-order') {
+      const { db } = await connectToDatabase()
+      const raw = decodeURIComponent(segments[1] || '')
+      const digits = raw.replace(/\D/g, '').slice(-10)
+
+      if (digits.length !== 10) {
+        return NextResponse.json({ success: false, isFirstOrder: false, error: 'Invalid phone' }, { status: 400 })
+      }
+
+      // Numbers are stored in a few shapes (+91XXXXXXXXXX, 91XXXXXXXXXX, bare).
+      const priorOrder = await db.collection('orders').findOne({
+        phone: { $regex: digits + '$' }
+      })
+
+      return NextResponse.json({ success: true, isFirstOrder: !priorOrder })
     }
 
     // GET /api/users/:phone/orders - Get user's order history
