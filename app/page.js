@@ -4,10 +4,10 @@ import Image from 'next/image'
 import Link from 'next/link'
 import Button from '@/components/Button'
 import ProductCard from '@/components/ProductCard'
-import SubscriptionCard from '@/components/SubscriptionCard'
 import { getFeaturedProducts, getUpcomingProducts } from '@/lib/products'
 import { ArrowRight, Bell, Brain, CheckCircle, Clock3, Focus, Heart, Leaf, PackageCheck, ShieldCheck, Star, Zap } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import FirstOrderBanner from '@/components/FirstOrderBanner'
 
 export default function Home() {
   const [notifyEmail, setNotifyEmail] = useState('')
@@ -144,6 +144,7 @@ export default function Home() {
     <div className="brand-page animate-fade-in">
       <section className="brand-section pt-10 md:pt-16">
         <div className="brand-container">
+          <FirstOrderBanner className="mb-5" />
           <div className="brand-panel overflow-hidden">
             <div className="grid items-center gap-6 px-5 py-8 md:grid-cols-2 md:gap-10 md:px-12 md:py-16">
               {/* Image is first on mobile so the product is the first thing
@@ -308,7 +309,6 @@ export default function Home() {
             {featuredProducts.map(product => (
               <ProductCard key={product.id} product={product} />
             ))}
-            <SubscriptionCard />
           </div>
         </div>
       </section>
