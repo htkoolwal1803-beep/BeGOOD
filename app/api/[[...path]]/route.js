@@ -885,11 +885,17 @@ export async function POST(request) {
     }
 
     // POST /api/cron/retention - the whole post-purchase sequence in one job.
-    // Protected by CRON_SECRET; Vercel Cron sends it as a Bearer token.
+    //
+    // Two ways in:
+    //   1. Vercel Cron, which sends Authorization: Bearer $CRON_SECRET
+    //   2. A signed-in admin from the Retention page, via x-admin-key
+    // The second exists so running this by hand does not require a terminal.
     if (segments[0] === 'cron' && segments[1] === 'retention') {
       const secret = process.env.CRON_SECRET
       const auth = request.headers.get('authorization') || ''
-      if (!secret || auth !== `Bearer ${secret}`) {
+      const viaCron = !!secret && auth === `Bearer ${secret}`
+      const viaAdmin = requireAdmin(request)
+      if (!viaCron && !viaAdmin) {
         return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
       }
 
