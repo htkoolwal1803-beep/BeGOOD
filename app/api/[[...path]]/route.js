@@ -3,6 +3,7 @@ import { MongoClient } from 'mongodb'
 import { v4 as uuidv4 } from 'uuid'
 import crypto from 'crypto'
 import { cartHasHamper } from '@/lib/products'
+import { sendEmail, layout } from '@/lib/email'
 
 // Razorpay webhook signature verification
 function verifyRazorpaySignature(body, signature, secret) {
@@ -433,6 +434,51 @@ export async function GET(request) {
       return NextResponse.json({ success: true, user })
     }
 
+    // GET /api/review/:token - load a review request for the public form.
+    // The token is the auth: no login, because forcing one here would gut the
+    // response rate the same way it hurts checkout.
+    if (segments[0] === 'review' && segments.length === 2) {
+      const { db } = await connectToDatabase()
+      const rr = await db.collection('review_requests').findOne({ token: segments[1] })
+
+      if (!rr) {
+        return NextResponse.json({ success: false, error: 'not_found' }, { status: 404 })
+      }
+
+      return NextResponse.json({
+        success: true,
+        request: {
+          productIds: rr.productIds || [],
+          customerName: rr.customerName || '',
+          submitted: !!rr.submittedAt,
+          couponCode: rr.couponCode || null
+        }
+      })
+    }
+
+    // GET /api/products/:id/reviews - approved reviews written by customers
+    if (segments[0] === 'products' && segments.length === 3 && segments[2] === 'reviews') {
+      const { db } = await connectToDatabase()
+      const reviews = await db
+        .collection('reviews')
+        .find({ productId: segments[1], approved: { $ne: false } })
+        .sort({ date: -1 })
+        .limit(100)
+        .toArray()
+
+      return NextResponse.json({
+        success: true,
+        reviews: reviews.map((r) => ({
+          name: r.name,
+          role: r.role || 'Verified buyer',
+          rating: r.rating,
+          comment: r.comment,
+          date: r.date,
+          incentivised: !!r.incentivised
+        }))
+      })
+    }
+
     // GET /api/customers/:phone/first-order - has this number ordered before?
     // Used to decide the free-delivery threshold. Checked on the server so the
     // discount cannot be claimed by editing localStorage.
@@ -727,6 +773,221 @@ export async function POST(request) {
       }
 
       return NextResponse.json({ success: true, message: 'Event received' })
+    }
+
+    // POST /api/review/:token - submit a review and issue the thank-you coupon.
+    //
+    // The ₹20 is paid for WRITING a review, never for a positive one. Rating is
+    // stored exactly as given. Incentivised reviews are labelled on the site so
+    // the discount is disclosed rather than hidden.
+    if (segments[0] === 'review' && segments.length === 2) {
+      const body = await request.json()
+      const { db } = await connectToDatabase()
+
+      const rr = await db.collection('review_requests').findOne({ token: segments[1] })
+      if (!rr) {
+        return NextResponse.json({ success: false, error: 'Invalid or expired link' }, { status: 404 })
+      }
+      if (rr.submittedAt) {
+        return NextResponse.json({ success: true, alreadySubmitted: true, couponCode: rr.couponCode })
+      }
+
+      const rating = Math.max(1, Math.min(5, parseInt(body.rating, 10) || 0))
+      if (!rating) {
+        return NextResponse.json({ success: false, error: 'Please choose a rating' }, { status: 400 })
+      }
+
+      const now = new Date()
+      const productId = (rr.productIds && rr.productIds[0]) || 'begood-abar-001'
+
+      await db.collection('reviews').insertOne({
+        id: uuidv4(),
+        productId,
+        orderId: rr.orderId,
+        name: (body.name || rr.customerName || 'BeGood customer').toString().slice(0, 60),
+        role: 'Verified buyer',
+        rating,
+        comment: (body.comment || '').toString().slice(0, 800),
+        date: now.toISOString(),
+        approved: true,
+        incentivised: true,
+        source: 'review_request'
+      })
+
+      // Unique single-use coupon, valid 90 days.
+      const code = 'REV' + Math.random().toString(36).slice(2, 8).toUpperCase()
+      const expiry = new Date(now.getTime() + 90 * 86400000)
+      await db.collection('coupons').insertOne({
+        id: uuidv4(),
+        code,
+        discountType: 'fixed',
+        discountValue: 20,
+        maxUses: 1,
+        usedCount: 0,
+        expiryDate: expiry.toISOString(),
+        isActive: true,
+        createdAt: now.toISOString(),
+        note: `Review reward for order ${rr.orderId}`
+      })
+
+      await db.collection('review_requests').updateOne(
+        { token: segments[1] },
+        { $set: { submittedAt: now.toISOString(), rating, comment: body.comment || '', couponCode: code, status: 'submitted' } }
+      )
+
+      if (rr.email) {
+        await sendEmail({
+          to: rr.email,
+          toName: rr.customerName,
+          subject: `Thank you — here's ₹20 off your next order`,
+          html: layout({
+            heading: 'Thank you for the honest review',
+            body: `<p>It genuinely helps other people decide whether A-Bar is for them.</p>
+                   <p>Here's ₹20 off your next order, as promised:</p>
+                   <p style="font-size:22px;font-weight:700;letter-spacing:2px;color:#3f5a46;background:#dce6d7;padding:12px 16px;border-radius:10px;display:inline-block;">${code}</p>`,
+            ctaLabel: 'Use it now',
+            ctaUrl: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://begoodshop.in'}/shop`,
+            footnote: `Valid for 90 days, one use.`
+          })
+        })
+      }
+
+      return NextResponse.json({ success: true, couponCode: code })
+    }
+
+    // POST /api/cron/retention - the whole post-purchase sequence in one job.
+    // Protected by CRON_SECRET; Vercel Cron sends it as a Bearer token.
+    if (segments[0] === 'cron' && segments[1] === 'retention') {
+      const secret = process.env.CRON_SECRET
+      const auth = request.headers.get('authorization') || ''
+      if (!secret || auth !== `Bearer ${secret}`) {
+        return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+      }
+
+      const { db } = await connectToDatabase()
+      const site = process.env.NEXT_PUBLIC_SITE_URL || 'https://begoodshop.in'
+      const now = Date.now()
+      const daysAgo = (n) => new Date(now - n * 86400000)
+      const summary = { usage: 0, reviewRequests: 0, replenishment: 0, skipped: 0 }
+
+      // --- Day 3: how to actually use it -------------------------------------
+      // The most under-rated message here. A-Bar is usage-dependent: eaten five
+      // minutes before an exam it will seem not to work, and that customer is
+      // gone without ever telling us why.
+      const usageOrders = await db.collection('orders').find({
+        createdAt: { $lte: daysAgo(3).toISOString(), $gte: daysAgo(6).toISOString() },
+        usageEmailSentAt: { $exists: false },
+        email: { $exists: true, $ne: null, $ne: '' }
+      }).limit(50).toArray()
+
+      for (const o of usageOrders) {
+        const r = await sendEmail({
+          to: o.email,
+          toName: o.customerName,
+          subject: 'Getting the most out of your A-Bar',
+          html: layout({
+            heading: 'One thing worth knowing',
+            body: `<p>Hi ${o.customerName || 'there'},</p>
+                   <p>A-Bar works best when you give it a head start. Eat it <strong>30–45 minutes before</strong> the moment that matters — not during it.</p>
+                   <p>That's when L-Theanine has reached your system, so you feel settled going in rather than halfway through.</p>
+                   <p>No pills, no powder. Just eat it like chocolate, a little earlier than you'd think.</p>`,
+            ctaLabel: 'Read how it works',
+            ctaUrl: `${site}/how-it-works`
+          })
+        })
+        if (r.ok) {
+          await db.collection('orders').updateOne({ orderId: o.orderId }, { $set: { usageEmailSentAt: new Date().toISOString() } })
+          summary.usage++
+        }
+      }
+
+      // --- Day 7: review request + ₹20 ---------------------------------------
+      const reviewOrders = await db.collection('orders').find({
+        createdAt: { $lte: daysAgo(7).toISOString(), $gte: daysAgo(21).toISOString() },
+        email: { $exists: true, $ne: null, $ne: '' }
+      }).limit(50).toArray()
+
+      for (const o of reviewOrders) {
+        const existing = await db.collection('review_requests').findOne({ orderId: o.orderId })
+        if (existing) { summary.skipped++; continue }
+
+        const token = uuidv4().replace(/-/g, '')
+        const productIds = (o.products || []).map((p) => p.productId).filter(Boolean)
+
+        await db.collection('review_requests').insertOne({
+          id: uuidv4(),
+          orderId: o.orderId,
+          phone: o.phone,
+          email: o.email,
+          customerName: o.customerName || '',
+          productIds,
+          token,
+          sentAt: new Date().toISOString(),
+          status: 'sent'
+        })
+
+        const r = await sendEmail({
+          to: o.email,
+          toName: o.customerName,
+          subject: 'How did it go? (₹20 off for telling us)',
+          html: layout({
+            heading: 'Did it help?',
+            body: `<p>Hi ${o.customerName || 'there'},</p>
+                   <p>You ordered from us about a week ago. We'd like to know how it actually went — good or bad, we want the honest version.</p>
+                   <p>It takes about thirty seconds, and we'll send you <strong>₹20 off your next order</strong> either way.</p>`,
+            ctaLabel: 'Leave a review',
+            ctaUrl: `${site}/review/${token}`,
+            footnote: 'The ₹20 is for writing a review, not for a good one. Please say what you actually thought.'
+          })
+        })
+        if (r.ok) summary.reviewRequests++
+      }
+
+      // --- Day 25: replenishment --------------------------------------------
+      const replenOrders = await db.collection('orders').find({
+        createdAt: { $lte: daysAgo(25).toISOString(), $gte: daysAgo(40).toISOString() },
+        reminderSentAt: { $exists: false },
+        email: { $exists: true, $ne: null, $ne: '' }
+      }).limit(50).toArray()
+
+      for (const o of replenOrders) {
+        const ids = (o.products || []).map((p) => p.productId || '')
+        const hamperOnly = ids.length > 0 && ids.every((id) => String(id).includes('hamper'))
+        if (hamperOnly) { summary.skipped++; continue }
+
+        // Never nag someone who already came back.
+        const digits = String(o.phone || '').replace(/\D/g, '').slice(-10)
+        const later = digits ? await db.collection('orders').findOne({
+          phone: { $regex: digits + '$' },
+          createdAt: { $gt: o.createdAt }
+        }) : null
+        if (later) {
+          await db.collection('orders').updateOne({ orderId: o.orderId }, { $set: { reminderSentAt: 'skipped_reordered' } })
+          summary.skipped++
+          continue
+        }
+
+        const r = await sendEmail({
+          to: o.email,
+          toName: o.customerName,
+          subject: 'Running low?',
+          html: layout({
+            heading: 'Running low?',
+            body: `<p>Hi ${o.customerName || 'there'},</p>
+                   <p>You picked up A-Bar about a month ago. If it did its job, there's probably something coming up that deserves one — an exam, an interview, a day you'd rather walk into calmly.</p>
+                   <p>Reordering takes one tap.</p>`,
+            ctaLabel: 'Reorder',
+            ctaUrl: `${site}/shop`,
+            footnote: 'Free delivery on orders over ₹600.'
+          })
+        })
+        if (r.ok) {
+          await db.collection('orders').updateOne({ orderId: o.orderId }, { $set: { reminderSentAt: new Date().toISOString() } })
+          summary.replenishment++
+        }
+      }
+
+      return NextResponse.json({ success: true, summary })
     }
 
     // POST /api/pending-payment - Store pending payment data before initiating Razorpay
