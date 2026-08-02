@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Button from '@/components/Button'
 import FeedbackQuestionRenderer, { formatAnswer } from '@/components/FeedbackQuestionRenderer'
 import { products } from '@/lib/products'
+import { adminFetch, setAdminKey } from '@/lib/adminAuth'
 import {
   ArrowLeft, Plus, Trash2, ArrowUp, ArrowDown, Loader2,
   MessageSquare, ListChecks, Save, Eye, Check
@@ -75,6 +76,7 @@ export default function AdminFeedbackPage() {
       })
       const data = await res.json()
       if (data.success) {
+        setAdminKey(password)
         setAuthenticated(true)
         loadConfiguredMap()
       } else {
@@ -89,7 +91,7 @@ export default function AdminFeedbackPage() {
 
   const loadConfiguredMap = async () => {
     try {
-      const res = await fetch('/api/admin/feedback/questions/all')
+      const res = await adminFetch('/api/admin/feedback/questions/all')
       const data = await res.json()
       if (data.success) {
         const map = {}
@@ -129,7 +131,7 @@ export default function AdminFeedbackPage() {
   const loadSubmissions = async () => {
     setSubmissionsLoading(true)
     try {
-      const res = await fetch('/api/admin/feedback')
+      const res = await adminFetch('/api/admin/feedback')
       const data = await res.json()
       if (data.success) setSubmissions(data.feedbacks || [])
     } catch (err) {
@@ -222,7 +224,7 @@ export default function AdminFeedbackPage() {
         }
       }
       const selectedProduct = products.find((p) => p.id === selectedProductId)
-      const res = await fetch('/api/admin/feedback/questions', {
+      const res = await adminFetch('/api/admin/feedback/questions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
