@@ -3,7 +3,7 @@ import { MongoClient } from 'mongodb'
 import { v4 as uuidv4 } from 'uuid'
 import crypto from 'crypto'
 import { cartHasHamper } from '@/lib/products'
-import { sendEmail, layout } from '@/lib/email'
+import { sendEmail, layout, siteUrl, siteLink } from '@/lib/email'
 import { TEMPLATE_KEYS, DEFAULT_TEMPLATES, mergeTemplate, fillTemplate, bodyToHtml } from '@/lib/emailTemplates'
 import { feedbackToReview, hasAdverseReport } from '@/lib/feedbackToReview'
 
@@ -934,7 +934,7 @@ export async function POST(request) {
                    <p>Here's ₹20 off your next order, as promised:</p>
                    <p style="font-size:22px;font-weight:700;letter-spacing:2px;color:#3f5a46;background:#dce6d7;padding:12px 16px;border-radius:10px;display:inline-block;">${code}</p>`,
             ctaLabel: 'Use it now',
-            ctaUrl: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://begoodshop.in'}/shop`,
+            ctaUrl: siteLink('shop'),
             footnote: `Valid for 90 days, one use.`
           })
         })
@@ -959,7 +959,7 @@ export async function POST(request) {
       }
 
       const { db } = await connectToDatabase()
-      const site = process.env.NEXT_PUBLIC_SITE_URL || 'https://begoodshop.in'
+      const site = siteUrl()
       const now = Date.now()
       const daysAgo = (n) => new Date(now - n * 86400000)
 
@@ -993,7 +993,7 @@ export async function POST(request) {
               heading: fillTemplate(t.heading, testVars),
               body: bodyToHtml(t.body, testVars),
               ctaLabel: t.ctaLabel,
-              ctaUrl: `${site}${t.ctaPath || '/shop'}`,
+              ctaUrl: siteLink(t.ctaPath || 'shop'),
               footnote: fillTemplate(t.footnote, testVars)
             })
           }
@@ -1024,7 +1024,7 @@ export async function POST(request) {
             heading: fillTemplate(t.heading, vars),
             body: bodyToHtml(t.body, vars),
             ctaLabel: t.ctaLabel,
-            ctaUrl: ctaUrl || `${vars.site}${t.ctaPath || ''}`,
+            ctaUrl: ctaUrl || siteLink(t.ctaPath),
             footnote: fillTemplate(t.footnote, vars)
           })
         }
@@ -1096,7 +1096,7 @@ export async function POST(request) {
           status: 'sent'
         })
 
-        const msg = render('reviewRequest', { name: o.customerName || 'there', site }, `${site}/review/${token}`)
+        const msg = render('reviewRequest', { name: o.customerName || 'there', site }, siteLink(`review/${token}`))
         const r = await sendEmail({
           to: o.email,
           toName: o.customerName,
