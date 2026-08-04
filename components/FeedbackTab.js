@@ -32,12 +32,12 @@ export default function FeedbackTab({ userPhone, userName }) {
     try {
       const [sRes, allRes] = await Promise.all([
         fetch(`/api/users/${encodeURIComponent(userPhone)}/feedback`).then((r) => r.json()),
-        fetch('/api/admin/feedback/questions/all').then((r) => r.json())
+        fetch('/api/feedback/forms/configured').then((r) => r.json())
       ])
       if (sRes.success) setMySubmissions(sRes.feedbacks || [])
       if (allRes.success) {
         const map = {}
-        for (const f of allRes.forms || []) map[f.productId] = true
+        for (const id of allRes.productIds || []) map[id] = true
         setConfiguredMap(map)
       }
     } catch (err) {
