@@ -720,22 +720,6 @@ export async function GET(request) {
     }
 
     // GET /api/admin/feedback - Get all feedback submissions (admin view)
-    // POST /api/admin/feedback/:id/publish - show or hide a submission publicly
-    if (segments[0] === 'admin' && segments[1] === 'feedback' && segments.length === 4 && segments[3] === 'publish') {
-      const body = await request.json().catch(() => ({}))
-      const { db } = await connectToDatabase()
-      const publish = !!body.publish
-
-      const result = await db.collection('feedback_submissions').updateOne(
-        { id: segments[2] },
-        { $set: { publishedAsReview: publish, publishedAt: publish ? new Date().toISOString() : null } }
-      )
-      if (!result.matchedCount) {
-        return NextResponse.json({ success: false, message: 'Feedback not found' }, { status: 404 })
-      }
-      return NextResponse.json({ success: true, publishedAsReview: publish })
-    }
-
     if (segments[0] === 'admin' && segments[1] === 'feedback' && segments.length === 2) {
       const { db } = await connectToDatabase()
 
@@ -1355,6 +1339,22 @@ export async function POST(request) {
       }
       
       return NextResponse.json({ success: false, message: 'Invalid password' }, { status: 401 })
+    }
+
+    // POST /api/admin/feedback/:id/publish - show or hide a submission publicly
+    if (segments[0] === 'admin' && segments[1] === 'feedback' && segments.length === 4 && segments[3] === 'publish') {
+      const body = await request.json().catch(() => ({}))
+      const { db } = await connectToDatabase()
+      const publish = !!body.publish
+
+      const result = await db.collection('feedback_submissions').updateOne(
+        { id: segments[2] },
+        { $set: { publishedAsReview: publish, publishedAt: publish ? new Date().toISOString() : null } }
+      )
+      if (!result.matchedCount) {
+        return NextResponse.json({ success: false, message: 'Feedback not found' }, { status: 404 })
+      }
+      return NextResponse.json({ success: true, publishedAsReview: publish })
     }
 
     // POST /api/admin/email-templates - save or reset one template
