@@ -8,7 +8,6 @@ import { useCart } from '@/lib/CartContext'
 import Button from '@/components/Button'
 import { Star, Check, Package, Shield, Truck } from 'lucide-react'
 import Link from 'next/link'
-import ProductFeedbackSection from '@/components/ProductFeedbackSection'
 import ProductReviews, { RatingSummary } from '@/components/ProductReviews'
 import { SHIPPING_CONFIG } from '@/lib/constants'
 
@@ -312,8 +311,6 @@ export default function ProductPage() {
           {/* Customer reviews */}
           <ProductReviews product={product} />
 
-          {/* Customer Feedback (admin-defined questionnaire answers) */}
-          <ProductFeedbackSection productId={product.id} productName={product.name} />
         </div>
       </div>
     </div>
