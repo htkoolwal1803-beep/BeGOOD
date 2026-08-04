@@ -130,20 +130,32 @@ export default function AdminFeedbackPage() {
   }, [authenticated, selectedProductId])
 
   const togglePublish = async (submission, publish) => {
+    setMessage('')
     try {
       const res = await adminFetch(`/api/admin/feedback/${submission.id}/publish`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ publish })
       })
-      const d = await res.json()
-      if (d.success) {
+      const d = await res.json().catch(() => ({}))
+
+      if (res.ok && d.success) {
         setSubmissions((prev) =>
           prev.map((x) => (x.id === submission.id ? { ...x, publishedAsReview: d.publishedAsReview } : x))
         )
+        setMessage(publish ? 'Now showing on the product page' : 'Hidden from the product page')
+        return
       }
+
+      // Never fail silently: a toggle that does nothing and says nothing is
+      // indistinguishable from a broken button.
+      setMessage(
+        res.status === 401
+          ? 'Session expired — please sign out and sign in again.'
+          : d.message || `Could not update (error ${res.status})`
+      )
     } catch {
-      // leave the toggle as it was
+      setMessage('Could not reach the server. Please try again.')
     }
   }
 
@@ -595,6 +607,13 @@ export default function AdminFeedbackPage() {
         {/* Submissions tab */}
         {tab === 'submissions' && (
           <div className="space-y-4">
+            {/* Result of the publish toggle. Without this the toggle could fail
+                and say nothing, which reads as a broken button. */}
+            {message && (
+              <div className="brand-card p-3 text-sm text-[#3f5a46] bg-[#dce6d7]/50 border border-[#c3d5c0]">
+                {message}
+              </div>
+            )}
             {submissionsLoading ? (
               <div className="flex justify-center py-8">
                 <Loader2 className="w-6 h-6 animate-spin text-[#6f8a74]" />
