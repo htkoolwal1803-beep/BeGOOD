@@ -6,6 +6,7 @@ import Button from '@/components/Button'
 import FeedbackQuestionRenderer, { formatAnswer } from '@/components/FeedbackQuestionRenderer'
 import { products } from '@/lib/products'
 import { adminFetch, setAdminKey } from '@/lib/adminAuth'
+import { hasAdverseReport } from '@/lib/feedbackToReview'
 import {
   ArrowLeft, Plus, Trash2, ArrowUp, ArrowDown, Loader2,
   MessageSquare, ListChecks, Save, Eye, Check
@@ -127,6 +128,24 @@ export default function AdminFeedbackPage() {
       loadQuestions(selectedProductId)
     }
   }, [authenticated, selectedProductId])
+
+  const togglePublish = async (submission, publish) => {
+    try {
+      const res = await adminFetch(`/api/admin/feedback/${submission.id}/publish`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ publish })
+      })
+      const d = await res.json()
+      if (d.success) {
+        setSubmissions((prev) =>
+          prev.map((x) => (x.id === submission.id ? { ...x, publishedAsReview: d.publishedAsReview } : x))
+        )
+      }
+    } catch {
+      // leave the toggle as it was
+    }
+  }
 
   const loadSubmissions = async () => {
     setSubmissionsLoading(true)
@@ -612,10 +631,26 @@ export default function AdminFeedbackPage() {
                       <div className="divide-y">
                         {group.items.map((s) => (
                           <div key={s.id} className="p-6">
-                            <div className="flex items-center justify-between mb-3 text-sm text-[#6b736d]">
+                            <div className="flex flex-wrap items-center justify-between mb-3 gap-2 text-sm text-[#6b736d]">
                               <span className="font-medium text-[#1f2229]">{s.userName || 'Anonymous'} · {s.userPhone}</span>
                               <span>{new Date(s.createdAt).toLocaleString()}</span>
                             </div>
+
+                            {/* Adverse-effect answers are surfaced rather than
+                                left buried in the answer list, because they
+                                need a person to read and act on them. */}
+                            {hasAdverseReport(s) && (
+                              <div className="mb-3 rounded-lg border border-[#e8b4a8] bg-[#fbeae5] px-3 py-2">
+                                <p className="text-sm font-semibold text-[#8f3a24]">
+                                  Reports an unwanted effect — please read
+                                </p>
+                                <p className="text-xs text-[#8f3a24] mt-0.5">
+                                  Follow up with this customer directly. Do not publish
+                                  this as a review without checking with them first.
+                                </p>
+                              </div>
+                            )}
+
                             <div className="space-y-2">
                               {(s.answers || []).map((a, i) => (
                                 <div key={i} className="text-sm">
@@ -624,6 +659,20 @@ export default function AdminFeedbackPage() {
                                 </div>
                               ))}
                             </div>
+
+                            {/* Publishing is opt-in: this collection holds test
+                                and internal submissions alongside real ones. */}
+                            <label className="mt-4 flex items-center gap-2 text-sm cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={!!s.publishedAsReview}
+                                onChange={(e) => togglePublish(s, e.target.checked)}
+                                className="w-4 h-4"
+                              />
+                              <span className={s.publishedAsReview ? 'font-semibold text-[#3f5a46]' : 'text-[#59615b]'}>
+                                Show on the product page as a review
+                              </span>
+                            </label>
                           </div>
                         ))}
                       </div>
