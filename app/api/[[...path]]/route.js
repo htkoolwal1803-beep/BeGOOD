@@ -5,6 +5,7 @@ import crypto from 'crypto'
 import { cartHasHamper } from '@/lib/products'
 import { sendEmail, layout } from '@/lib/email'
 import { TEMPLATE_KEYS, DEFAULT_TEMPLATES, mergeTemplate, fillTemplate, bodyToHtml } from '@/lib/emailTemplates'
+import { feedbackToReview, hasAdverseReport } from '@/lib/feedbackToReview'
 
 /**
  * Admin API guard.
@@ -506,16 +507,29 @@ export async function GET(request) {
         .limit(100)
         .toArray()
 
+      // Feedback submissions the admin has chosen to show publicly.
+      const published = await db
+        .collection('feedback_submissions')
+        .find({ productId: segments[1], publishedAsReview: true })
+        .sort({ createdAt: -1 })
+        .limit(100)
+        .toArray()
+
+      const fromFeedback = published.map(feedbackToReview).filter(Boolean)
+
       return NextResponse.json({
         success: true,
-        reviews: reviews.map((r) => ({
-          name: r.name,
-          role: r.role || 'Verified buyer',
-          rating: r.rating,
-          comment: r.comment,
-          date: r.date,
-          incentivised: !!r.incentivised
-        }))
+        reviews: [
+          ...reviews.map((r) => ({
+            name: r.name,
+            role: r.role || 'Verified buyer',
+            rating: r.rating,
+            comment: r.comment,
+            date: r.date,
+            incentivised: !!r.incentivised
+          })),
+          ...fromFeedback
+        ]
       })
     }
 
@@ -659,6 +673,19 @@ export async function GET(request) {
       return NextResponse.json({ success: true, forms })
     }
 
+    // GET /api/feedback/forms/configured - which products accept feedback.
+    // The customer profile page used to call the admin endpoint for this, which
+    // stopped working once admin routes required a password. This exposes only
+    // the product ids, never the questions or anyone's answers.
+    if (segments[0] === 'feedback' && segments[1] === 'forms' && segments[2] === 'configured') {
+      const { db } = await connectToDatabase()
+      const forms = await db.collection('feedback_questions').find({ active: true }).toArray()
+      return NextResponse.json({
+        success: true,
+        productIds: [...new Set(forms.map((f) => f.productId).filter(Boolean))]
+      })
+    }
+
     // GET /api/feedback/product/:productId - Get feedback for a specific product
     if (segments[0] === 'feedback' && segments[1] === 'product' && segments.length === 3) {
       const { db } = await connectToDatabase()
@@ -693,6 +720,22 @@ export async function GET(request) {
     }
 
     // GET /api/admin/feedback - Get all feedback submissions (admin view)
+    // POST /api/admin/feedback/:id/publish - show or hide a submission publicly
+    if (segments[0] === 'admin' && segments[1] === 'feedback' && segments.length === 4 && segments[3] === 'publish') {
+      const body = await request.json().catch(() => ({}))
+      const { db } = await connectToDatabase()
+      const publish = !!body.publish
+
+      const result = await db.collection('feedback_submissions').updateOne(
+        { id: segments[2] },
+        { $set: { publishedAsReview: publish, publishedAt: publish ? new Date().toISOString() : null } }
+      )
+      if (!result.matchedCount) {
+        return NextResponse.json({ success: false, message: 'Feedback not found' }, { status: 404 })
+      }
+      return NextResponse.json({ success: true, publishedAsReview: publish })
+    }
+
     if (segments[0] === 'admin' && segments[1] === 'feedback' && segments.length === 2) {
       const { db } = await connectToDatabase()
 
