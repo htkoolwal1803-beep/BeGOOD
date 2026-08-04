@@ -120,23 +120,50 @@ export default function ProductReviews({ product }) {
         {reviews.map((r, i) => (
           <div
             key={`${r.name}-${i}`}
-            className="rounded-2xl border border-[#e6ddcd] bg-[#fbf7ed]/60 p-4 sm:p-5"
+            className="rounded-2xl border border-[#e6ddcd] bg-[#fbf7ed]/60 p-4 sm:p-5 flex flex-col"
           >
-            <Stars rating={r.rating} />
-            <p className="mt-3 text-[15px] leading-relaxed text-[#464c49]">
-              &ldquo;{r.comment}&rdquo;
-            </p>
-            <p className="mt-4 text-sm font-semibold text-[#1f2229]">{r.name}</p>
-            <p className="text-xs text-[#6b736d]">
-              {[r.role, formatDate(r.date)].filter(Boolean).join(' · ')}
-            </p>
-            {r.incentivised && (
-              /* Disclosed rather than hidden: the reward was for writing a
-                 review, not for a positive one. */
-              <p className="text-[11px] text-[#8b938b] mt-1">
-                Received a discount code for reviewing
+            <div className="flex items-start justify-between gap-3">
+              <Stars rating={r.rating} />
+              <span className="text-[11px] font-semibold text-[#3f5a46] bg-[#dce6d7] rounded-full px-2 py-0.5 whitespace-nowrap">
+                Verified buyer
+              </span>
+            </div>
+
+            {r.comment && (
+              <p className="mt-3 text-[15px] leading-relaxed text-[#464c49]">
+                &ldquo;{r.comment}&rdquo;
               </p>
             )}
+
+            {/* Answers from the feedback form. The before/after anxiety numbers
+                are the most persuasive thing on the page, so they are shown
+                rather than left buried in the admin panel. */}
+            {Array.isArray(r.details) && r.details.length > 0 && (
+              <dl className="mt-4 grid grid-cols-2 gap-x-3 gap-y-2">
+                {r.details.map((d, di) => (
+                  <div key={di} className="min-w-0">
+                    <dt className="text-[11px] uppercase tracking-wide text-[#8b938b] truncate">
+                      {d.label}
+                    </dt>
+                    <dd className="text-sm font-semibold text-[#3f5a46]">{d.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
+
+            <div className="mt-auto pt-4">
+              <p className="text-sm font-semibold text-[#1f2229]">{r.name}</p>
+              <p className="text-xs text-[#6b736d]">
+                {[r.role, formatDate(r.date)].filter(Boolean).join(' · ')}
+              </p>
+              {r.incentivised && (
+                /* Disclosed rather than hidden: the reward was for writing a
+                   review, not for a positive one. */
+                <p className="text-[11px] text-[#8b938b] mt-1">
+                  Received a discount code for reviewing
+                </p>
+              )}
+            </div>
           </div>
         ))}
       </div>
