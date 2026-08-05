@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Lock, Star, Plus, Trash2, Bell } from 'lucide-react'
+import { Lock, Star, Bell } from 'lucide-react'
 import Button from '@/components/Button'
-import { adminFetch, setAdminKey } from '@/lib/adminAuth'
+import { adminFetch, setAdminKey, hasAdminKey } from '@/lib/adminAuth'
 
 export default function AdminReviewsPage() {
   const router = useRouter()
+
   const [authenticated, setAuthenticated] = useState(false)
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -15,15 +16,26 @@ export default function AdminReviewsPage() {
   const [notifications, setNotifications] = useState([])
   const [error, setError] = useState('')
   const [activeTab, setActiveTab] = useState('reviews') // 'reviews' or 'notifications'
-  
-  // Review form state
-  const [showAddReview, setShowAddReview] = useState(false)
-  const [reviewForm, setReviewForm] = useState({
-    productId: 'begood-abar-001',
-    name: '',
-    rating: 5,
-    comment: ''
-  })
+
+  // Every admin page used to ask for the password again, even when you had
+  // just typed it on the dashboard. The key is already in sessionStorage for
+  // this tab, so reuse it rather than making the same person prove themselves
+  // twice - a second prompt reads as a dead end and pages get abandoned.
+  useEffect(() => {
+    if (hasAdminKey()) setAuthenticated(true)
+  }, [])
+
+  // ?tab=notifications opens straight on the P-Bar list, so it can be linked
+  // to directly from the dashboard. Read from location rather than
+  // useSearchParams, which would force a Suspense boundary at build time.
+  useEffect(() => {
+    const tab = new URLSearchParams(window.location.search).get('tab')
+    if (tab === 'notifications') setActiveTab('notifications')
+  }, [])
+
+  useEffect(() => {
+    if (authenticated) fetchData()
+  }, [authenticated])
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -42,7 +54,6 @@ export default function AdminReviewsPage() {
       if (data.success) {
         setAdminKey(password)
         setAuthenticated(true)
-        fetchData()
       } else {
         setError('Invalid password')
       }
@@ -67,33 +78,6 @@ export default function AdminReviewsPage() {
       if (notificationsData.success) setNotifications(notificationsData.notifications)
     } catch (error) {
       console.error('Error fetching data:', error)
-    }
-  }
-
-  const handleAddReview = async (e) => {
-    e.preventDefault()
-    
-    try {
-      const response = await adminFetch('/api/admin/reviews', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(reviewForm)
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        setShowAddReview(false)
-        setReviewForm({
-          productId: 'begood-abar-001',
-          name: '',
-          rating: 5,
-          comment: ''
-        })
-        fetchData()
-      }
-    } catch (error) {
-      console.error('Error adding review:', error)
     }
   }
 
@@ -148,8 +132,11 @@ export default function AdminReviewsPage() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="font-playfair text-4xl font-bold mb-2">Content Management</h1>
-            <p className="text-[#59615b]">Manage reviews and notification signups</p>
+            <h1 className="font-playfair text-4xl font-bold mb-2">Reviews & P-Bar Signups</h1>
+            <p className="text-[#59615b]">
+              Customer reviews written on the site are managed under{' '}
+              <a href="/admin/feedback" className="underline text-[#3f5a46]">Feedback</a>.
+            </p>
           </div>
           <button
             onClick={() => router.push('/admin')}
@@ -189,78 +176,13 @@ export default function AdminReviewsPage() {
         {activeTab === 'reviews' && (
           <div>
             <div className="brand-card p-6 mb-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="font-playfair text-2xl font-bold">Customer Reviews</h2>
-                <Button onClick={() => setShowAddReview(!showAddReview)}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Review
-                </Button>
+              <div className="mb-6">
+                <h2 className="font-playfair text-2xl font-bold mb-1">Customer Reviews</h2>
+                <p className="text-sm text-[#59615b]">
+                  Read-only. Reviews arrive from customers through the review link in
+                  their email; they are not written here.
+                </p>
               </div>
-
-              {/* Add Review Form */}
-              {showAddReview && (
-                <form onSubmit={handleAddReview} className="mb-8 p-6 bg-[#f4ecdd] rounded-xl">
-                  <h3 className="font-semibold text-lg mb-4">Add New Review</h3>
-                  <div className="grid gap-4">
-                    <div>
-                      <label className="block text-sm font-semibold mb-2">Product</label>
-                      <select
-                        value={reviewForm.productId}
-                        onChange={(e) => setReviewForm({ ...reviewForm, productId: e.target.value })}
-                        className="w-full px-4 py-3 border border-[#d9cbb5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
-                      >
-                        <option value="begood-abar-001">A-Bar</option>
-                      </select>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-semibold mb-2">Customer Name</label>
-                      <input
-                        type="text"
-                        value={reviewForm.name}
-                        onChange={(e) => setReviewForm({ ...reviewForm, name: e.target.value })}
-                        className="w-full px-4 py-3 border border-[#d9cbb5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
-                        placeholder="John D."
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold mb-2">Rating</label>
-                      <select
-                        value={reviewForm.rating}
-                        onChange={(e) => setReviewForm({ ...reviewForm, rating: parseInt(e.target.value) })}
-                        className="w-full px-4 py-3 border border-[#d9cbb5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
-                      >
-                        <option value={5}>5 Stars</option>
-                        <option value={4}>4 Stars</option>
-                        <option value={3}>3 Stars</option>
-                        <option value={2}>2 Stars</option>
-                        <option value={1}>1 Star</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold mb-2">Review Comment</label>
-                      <textarea
-                        value={reviewForm.comment}
-                        onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })}
-                        className="w-full px-4 py-3 border border-[#d9cbb5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
-                        rows={4}
-                        placeholder="This product really helped me..."
-                        required
-                      />
-                    </div>
-
-                    <div className="flex gap-3">
-                      <Button type="submit">Add Review</Button>
-                      <Button type="button" variant="outline" onClick={() => setShowAddReview(false)}>
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                </form>
-              )}
 
               {/* Reviews List */}
               <div className="space-y-4">
