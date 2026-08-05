@@ -94,8 +94,8 @@ export default function PrivacyPage() {
             <h2 className="font-playfair text-3xl font-bold mb-4">8. Contact Us</h2>
             <p className="text-[#464c49] leading-relaxed">
               If you have any questions about this Privacy Policy, please contact us at:<br />
-              Email: support@begood.com<br />
-              Phone: +91 XXXXX XXXXX
+              Email: admin@begoodshop.in<br />
+              Phone: +91 8000366966
             </p>
           </section>
         </div>
