@@ -69,6 +69,10 @@ export default function CheckoutPage() {
   // Hampers are prepaid only - see isHamperProduct in lib/products.js
   const hasHamper = cartHasHamper(cart)
 
+  // WhatsApp consent. Unticked by default: pre-ticked consent is not consent,
+  // and Meta counts blocks from unwilling recipients against the sender.
+  const [whatsappOptIn, setWhatsappOptIn] = useState(false)
+
   // First-order status decides the free-delivery threshold (₹249 vs ₹600).
   // Verified on the server once we know the phone number.
   const [isFirstOrder, setIsFirstOrder] = useState(false)
@@ -641,7 +645,8 @@ Please prepare this order for shipment.
         paymentMethod: 'cod',
         paymentId: null,
         userId: user?.uid || null,
-        affiliateCode: affiliateCode || null
+        affiliateCode: affiliateCode || null,
+        whatsappOptIn: whatsappOptIn
       }
 
       const orderResponse = await fetch('/api/orders', {
@@ -743,7 +748,8 @@ Please prepare this order for shipment.
         couponDiscount: couponDiscount,
         totalAmount: orderTotal,
         userId: user?.uid || null,
-        affiliateCode: affiliateCode || null
+        affiliateCode: affiliateCode || null,
+        whatsappOptIn: whatsappOptIn
       }
 
       // Store pending order on server before initiating payment (for webhook backup)
@@ -1318,6 +1324,18 @@ Please prepare this order for shipment.
                       Change address
                     </button>
                   </div>
+
+                  <label className="flex items-start gap-2 mb-4 text-sm cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={whatsappOptIn}
+                      onChange={(e) => setWhatsappOptIn(e.target.checked)}
+                      className="w-4 h-4 mt-0.5 shrink-0"
+                    />
+                    <span className="text-[#59615b]">
+                      Send my order updates and occasional offers on WhatsApp
+                    </span>
+                  </label>
 
                   <Button
                     onClick={paymentMethod === 'cod' && !hasHamper ? handleCODOrder : handleRazorpayPayment}
