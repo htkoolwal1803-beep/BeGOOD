@@ -132,7 +132,7 @@ export default function AdminReviewsPage() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="font-playfair text-4xl font-bold mb-2">Reviews & P-Bar Signups</h1>
+            <h1 className="font-playfair text-4xl font-bold mb-2">Reviews & Notifications</h1>
             <p className="text-[#59615b]">
               Customer reviews written on the site are managed under{' '}
               <a href="/admin/feedback" className="underline text-[#3f5a46]">Feedback</a>.
@@ -168,7 +168,7 @@ export default function AdminReviewsPage() {
             }`}
           >
             <Bell className="inline-block w-5 h-5 mr-2" />
-            P-Bar Signups ({notifications.length})
+            Notifications ({notifications.length})
           </button>
         </div>
 
@@ -219,7 +219,10 @@ export default function AdminReviewsPage() {
         {/* Notifications Tab */}
         {activeTab === 'notifications' && (
           <div className="brand-card p-6">
-            <h2 className="font-playfair text-2xl font-bold mb-6">P-Bar Launch Notifications</h2>
+            <h2 className="font-playfair text-2xl font-bold mb-2">P-Bar Launch Notifications</h2>
+            <p className="text-sm text-[#59615b] mb-6">
+              Everyone who asked to be told when P-Bar launches.
+            </p>
             
             {notifications.length === 0 ? (
               <p className="text-[#6b736d] text-center py-8">No signups yet</p>
