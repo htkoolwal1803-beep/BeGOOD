@@ -128,8 +128,8 @@ export default function Home() {
     },
     {
       name: 'Shubhe Aditya',
-      role: 'Person',
-      comment: 'I had a fight with my girlfriend and i was thinking so much about it. I wasted an hour thinking about it and then I ate it and it just all felt so normal and relaxing. I think it just save me time.',
+      role: 'Student',
+      comment: 'I had a fight with my bestfriend and i was thinking so much about it. I wasted an hour thinking about it and then I ate it and it just all felt so normal and relaxing. I think it just save me time.',
       rating: 5
     },
     {
