@@ -155,7 +155,7 @@ export default function AdminDashboard() {
               <Link href="/admin/reviews?tab=notifications">
                 <Button variant="outline">
                   <Bell className="w-4 h-4 mr-2" />
-                  P-Bar Signups
+                  Notifications
                 </Button>
               </Link>
               <Link href="/admin/coupons">
