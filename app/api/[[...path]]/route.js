@@ -493,7 +493,8 @@ export async function GET(request) {
           productIds: rr.productIds || [],
           customerName: rr.customerName || '',
           submitted: !!rr.submittedAt,
-          couponCode: rr.couponCode || null
+          couponCode: rr.couponCode || null,
+          isTest: !!rr.isTest
         }
       })
     }
@@ -872,20 +873,25 @@ export async function POST(request) {
 
       const now = new Date()
       const productId = (rr.productIds && rr.productIds[0]) || 'begood-abar-001'
+      const isTest = !!rr.isTest
 
-      await db.collection('reviews').insertOne({
-        id: uuidv4(),
-        productId,
-        orderId: rr.orderId,
-        name: (body.name || rr.customerName || 'BeGood customer').toString().slice(0, 60),
-        role: 'Verified buyer',
-        rating,
-        comment: (body.comment || '').toString().slice(0, 800),
-        date: now.toISOString(),
-        approved: true,
-        incentivised: true,
-        source: 'review_request'
-      })
+      // A test walk-through must never leave a review on the product page.
+      // Everything else about the flow runs exactly as it does for a customer.
+      if (!isTest) {
+        await db.collection('reviews').insertOne({
+          id: uuidv4(),
+          productId,
+          orderId: rr.orderId,
+          name: (body.name || rr.customerName || 'BeGood customer').toString().slice(0, 60),
+          role: 'Verified buyer',
+          rating,
+          comment: (body.comment || '').toString().slice(0, 800),
+          date: now.toISOString(),
+          approved: true,
+          incentivised: true,
+          source: 'review_request'
+        })
+      }
 
       // Unique single-use coupon, valid 90 days.
       const code = 'REV' + Math.random().toString(36).slice(2, 8).toUpperCase()
@@ -900,7 +906,7 @@ export async function POST(request) {
         expiryDate: expiry.toISOString(),
         isActive: true,
         createdAt: now.toISOString(),
-        note: `Review reward for order ${rr.orderId}`
+        note: isTest ? 'Test coupon from a retention test send - safe to delete' : `Review reward for order ${rr.orderId}`
       })
 
       await db.collection('review_requests').updateOne(
@@ -925,7 +931,7 @@ export async function POST(request) {
         })
       }
 
-      return NextResponse.json({ success: true, couponCode: code })
+      return NextResponse.json({ success: true, couponCode: code, isTest })
     }
 
     // POST /api/cron/retention - the whole post-purchase sequence in one job.
@@ -969,6 +975,25 @@ export async function POST(request) {
         const byKeyT = Object.fromEntries(savedT.map((t) => [t.key, t]))
         const testVars = { name: 'there', site }
 
+        // The review request is the one email with no fixed destination - its
+        // link is unique per customer. The test used to fall back to /shop, so
+        // the single button most worth checking was the one that could not be.
+        // A test send now mints a real review link against a throwaway request
+        // marked isTest, so the whole flow can be walked end to end.
+        const testToken = uuidv4().replace(/-/g, '')
+        await db.collection('review_requests').insertOne({
+          id: uuidv4(),
+          orderId: `TEST-${testToken.slice(0, 6).toUpperCase()}`,
+          email: testEmail,
+          customerName: 'BeGood test',
+          productIds: ['begood-abar-001'],
+          token: testToken,
+          isTest: true,
+          sentAt: new Date().toISOString(),
+          status: 'sent'
+        })
+        const testReviewLink = siteLink(`review/${testToken}`)
+
         const samples = TEMPLATE_KEYS.map((key) => {
           const t = mergeTemplate(key, byKeyT[key])
           return {
@@ -978,7 +1003,11 @@ export async function POST(request) {
               heading: fillTemplate(t.heading, testVars),
               body: bodyToHtml(t.body, testVars),
               ctaLabel: t.ctaLabel,
-              ctaUrl: siteLink(t.ctaPath || 'shop'),
+              // No destination means no button, rather than a button that
+              // quietly drops the reader on the homepage.
+              ctaUrl: key === 'reviewRequest'
+                ? testReviewLink
+                : (t.ctaPath ? siteLink(t.ctaPath) : null),
               footnote: fillTemplate(t.footnote, testVars)
             })
           }
@@ -995,7 +1024,7 @@ export async function POST(request) {
           sent.push({ key: sample.key, subject: sample.subject, ok: r.ok, reason: r.reason || null })
         }
 
-        return NextResponse.json({ success: true, testEmail, sent })
+        return NextResponse.json({ success: true, testEmail, sent, reviewLink: testReviewLink })
       }
 
       // Saved wording wins over the coded defaults.
@@ -1009,7 +1038,7 @@ export async function POST(request) {
             heading: fillTemplate(t.heading, vars),
             body: bodyToHtml(t.body, vars),
             ctaLabel: t.ctaLabel,
-            ctaUrl: ctaUrl || siteLink(t.ctaPath),
+            ctaUrl: ctaUrl || (t.ctaPath ? siteLink(t.ctaPath) : null),
             footnote: fillTemplate(t.footnote, vars)
           })
         }
