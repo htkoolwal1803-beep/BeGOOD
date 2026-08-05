@@ -326,6 +326,21 @@ export default function AdminRetentionPage() {
                       </li>
                     ))}
                   </ul>
+                  {testResult.reviewLink && (
+                    <p className="text-xs text-[#4a5a4d] mt-3 break-all">
+                      The review email links to{' '}
+                      <a
+                        href={testResult.reviewLink}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="underline text-[#3f5a46]"
+                      >
+                        {testResult.reviewLink}
+                      </a>{' '}
+                      — a real, working link. Submitting it issues a coupon but does not
+                      post a review.
+                    </p>
+                  )}
                   {testResult.sent.some((x) => !x.ok) && (
                     <p className="text-xs text-[#b4472e] mt-2">
                       Something failed. If it says not_configured, the Brevo keys are missing
