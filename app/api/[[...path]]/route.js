@@ -4,7 +4,8 @@ import { v4 as uuidv4 } from 'uuid'
 import crypto from 'crypto'
 import { cartHasHamper } from '@/lib/products'
 import { sendEmail, layout, siteUrl, siteLink } from '@/lib/email'
-import { TEMPLATE_KEYS, DEFAULT_TEMPLATES, mergeTemplate, fillTemplate, bodyToHtml } from '@/lib/emailTemplates'
+import { TEMPLATE_KEYS, DEFAULT_TEMPLATES, mergeTemplate, fillTemplate, bodyToHtml, whatsappBody } from '@/lib/emailTemplates'
+import { sendWhatsAppTemplate, isWhatsAppConfigured, toWhatsAppNumber } from '@/lib/whatsapp'
 import { feedbackToReview, hasAdverseReport } from '@/lib/feedbackToReview'
 
 /**
@@ -1014,16 +1015,69 @@ export async function POST(request) {
         }
       }
 
-      const summary = { dryRun, reviewMaxAge, usage: 0, reviewRequests: 0, replenishment: 0, skipped: 0 }
+      // ?channel=email  - force email only, ignoring WhatsApp
+      // ?includeNonOptedIn=1 - also WhatsApp customers who never ticked the
+      //   opt-in box. Meta requires opt-in for marketing templates, and blocks
+      //   from non-opted-in recipients lower the number's quality rating, so
+      //   this is deliberately off unless asked for.
+      const channel = url.searchParams.get('channel') || 'auto'
+      const includeNonOptedIn = url.searchParams.get('includeNonOptedIn') === '1'
+      const waReady = isWhatsAppConfigured() && channel !== 'email'
+
+      const summary = {
+        dryRun, reviewMaxAge, channel, includeNonOptedIn,
+        usage: 0, reviewRequests: 0, replenishment: 0, skipped: 0,
+        viaWhatsApp: 0, viaEmail: 0
+      }
       const wouldSend = { usage: [], reviewRequests: [], replenishment: [] }
 
-      // In a dry run nothing is sent and nothing is written.
-      const deliver = async (kind, order, payload) => {
+      /** May this order be contacted on WhatsApp for this template? */
+      const whatsAppAllowed = (order, tplKey) => {
+        if (!waReady) return false
+        if (!toWhatsAppNumber(order.phone)) return false
+        const t = mergeTemplate(tplKey, savedByKey[tplKey])
+        if (!t.waTemplate) return false
+        // Utility templates relate to an order the customer placed, so they do
+        // not depend on a marketing opt-in. Marketing ones do.
+        if (t.waCategory === 'utility') return true
+        return !!order.whatsappOptIn || includeNonOptedIn
+      }
+
+      /**
+       * WhatsApp first, email as the fallback, never both for the same person.
+       * In a dry run nothing is sent and nothing is written.
+       */
+      const deliver = async (kind, order, payload, tplKey, waParams = [], waUrlParam = null) => {
+        const useWa = whatsAppAllowed(order, tplKey)
+
         if (dryRun) {
-          wouldSend[kind].push({ orderId: order.orderId, email: order.email })
+          wouldSend[kind].push({
+            orderId: order.orderId,
+            via: useWa ? 'whatsapp' : 'email',
+            to: useWa ? order.phone : order.email
+          })
           return { ok: false, dry: true }
         }
-        return sendEmail(payload)
+
+        if (useWa) {
+          const t = mergeTemplate(tplKey, savedByKey[tplKey])
+          const wa = await sendWhatsAppTemplate({
+            to: order.phone,
+            template: t.waTemplate,
+            params: waParams,
+            urlParams: waUrlParam ? [waUrlParam] : []
+          })
+          if (wa.ok) {
+            summary.viaWhatsApp++
+            return { ok: true, channel: 'whatsapp' }
+          }
+          // A WhatsApp failure should not cost the customer the message.
+          console.warn(`[retention] WhatsApp failed (${wa.reason}), falling back to email`)
+        }
+
+        const mail = await sendEmail(payload)
+        if (mail.ok) summary.viaEmail++
+        return mail
       }
 
       // --- Day 3: how to actually use it -------------------------------------
@@ -1043,7 +1097,7 @@ export async function POST(request) {
           toName: o.customerName,
           subject: msg.subject,
           html: msg.html
-        })
+        }, 'usage', [o.customerName || 'there'])
         if (r.ok) {
           await db.collection('orders').updateOne({ orderId: o.orderId }, { $set: { usageEmailSentAt: new Date().toISOString() } })
           summary.usage++
@@ -1081,12 +1135,12 @@ export async function POST(request) {
         })
 
         const msg = render('reviewRequest', { name: o.customerName || 'there', site }, siteLink(`review/${token}`))
-        const r = await sendEmail({
+        const r = await deliver('reviewRequests', o, {
           to: o.email,
           toName: o.customerName,
           subject: msg.subject,
           html: msg.html
-        })
+        }, 'reviewRequest', [o.customerName || 'there'], `review/${token}`)
         if (r.ok) summary.reviewRequests++
       }
 
@@ -1120,7 +1174,7 @@ export async function POST(request) {
           toName: o.customerName,
           subject: msg.subject,
           html: msg.html
-        })
+        }, 'replenishment', [o.customerName || 'there'])
         if (r.ok) {
           await db.collection('orders').updateOne({ orderId: o.orderId }, { $set: { reminderSentAt: new Date().toISOString() } })
           summary.replenishment++
@@ -1197,6 +1251,10 @@ export async function POST(request) {
         userId: body.userId || null,
         orderType: body.orderType || 'regular',
         affiliateCode: body.affiliateCode || null,
+        // Explicit WhatsApp consent, captured at checkout. Meta requires opt-in
+        // for marketing templates, so this is what the retention job checks.
+        whatsappOptIn: !!body.whatsappOptIn,
+        whatsappOptInAt: body.whatsappOptIn ? new Date().toISOString() : null,
         createdAt: new Date().toISOString(),
         createdVia: 'frontend'
       }
