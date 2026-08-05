@@ -926,7 +926,8 @@ export async function POST(request) {
                    <p style="font-size:22px;font-weight:700;letter-spacing:2px;color:#3f5a46;background:#dce6d7;padding:12px 16px;border-radius:10px;display:inline-block;">${code}</p>`,
             ctaLabel: 'Use it now',
             ctaUrl: siteLink('shop'),
-            footnote: `Valid for 90 days, one use.`
+            footnote: `Valid for 90 days, one use.`,
+            style: 'plain'
           })
         })
       }
@@ -1008,7 +1009,8 @@ export async function POST(request) {
               ctaUrl: key === 'reviewRequest'
                 ? testReviewLink
                 : (t.ctaPath ? siteLink(t.ctaPath) : null),
-              footnote: fillTemplate(t.footnote, testVars)
+              footnote: fillTemplate(t.footnote, testVars),
+              style: t.layoutStyle
             })
           }
         })
@@ -1039,7 +1041,8 @@ export async function POST(request) {
             body: bodyToHtml(t.body, vars),
             ctaLabel: t.ctaLabel,
             ctaUrl: ctaUrl || (t.ctaPath ? siteLink(t.ctaPath) : null),
-            footnote: fillTemplate(t.footnote, vars)
+            footnote: fillTemplate(t.footnote, vars),
+            style: t.layoutStyle
           })
         }
       }
