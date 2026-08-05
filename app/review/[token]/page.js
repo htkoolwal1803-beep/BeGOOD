@@ -84,6 +84,12 @@ export default function ReviewPage() {
 
           {state === 'form' && (
             <>
+              {info?.isTest && (
+                <p className="mb-4 rounded-lg bg-[#f4e3c8] border border-[#e0c893] px-3 py-2 text-xs text-[#7a5a24]">
+                  Test link. The flow works exactly as it does for a customer, but nothing
+                  you write here will appear on the product page.
+                </p>
+              )}
               <h1 className="font-playfair text-2xl sm:text-3xl font-bold mb-2">How did it go?</h1>
               <p className="text-[#59615b] mb-1">
                 Good or bad, we would like the honest version.
