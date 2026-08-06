@@ -95,7 +95,7 @@ export default function ReviewPage() {
                 Good or bad, we would like the honest version.
               </p>
               <p className="text-xs text-[#8b938b] mb-6">
-                The ₹20 is for writing a review, not for a positive one.
+                The ₹20 is for writing a review.
               </p>
 
               <form onSubmit={submit} className="space-y-5">
