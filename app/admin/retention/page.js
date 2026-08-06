@@ -14,6 +14,16 @@ export default function AdminRetentionPage() {
   const [loading, setLoading] = useState(false)
 
   const [reviewMaxAge, setReviewMaxAge] = useState(200)
+
+  // Which of the three to run. All on by default, matching the daily cron.
+  const EMAIL_TYPES = [
+    { key: 'usage', label: 'Day 3 — how to use it' },
+    { key: 'reviewRequests', label: 'Day 7 — review request + ₹20' },
+    { key: 'replenishment', label: 'Day 25 — running low' }
+  ]
+  const [types, setTypes] = useState(EMAIL_TYPES.map((t) => t.key))
+  const toggleType = (key) =>
+    setTypes((cur) => (cur.includes(key) ? cur.filter((k) => k !== key) : [...cur, key]))
   const [running, setRunning] = useState('')
   const [result, setResult] = useState(null)
   const [error, setError] = useState('')
@@ -89,6 +99,7 @@ export default function AdminRetentionPage() {
   }
 
   const run = async (dry) => {
+    if (!types.length) return setError('Choose at least one email to send')
     if (!dry) {
       const n = result?.wouldSend
         ? (result.wouldSend.usage.length + result.wouldSend.reviewRequests.length + result.wouldSend.replenishment.length)
@@ -104,6 +115,7 @@ export default function AdminRetentionPage() {
     setResult(null)
     try {
       const qs = new URLSearchParams({ reviewMaxAge: String(reviewMaxAge) })
+      qs.set('types', types.join(','))
       if (dry) qs.set('dryRun', '1')
       const res = await adminFetch(`/api/cron/retention?${qs.toString()}`, { method: 'POST' })
       const data = await res.json()
@@ -358,10 +370,25 @@ export default function AdminRetentionPage() {
               Run the sequence now
             </h2>
             <p className="text-sm text-[#59615b] mb-5">
-              This runs the same job the daily cron runs. It sends the day-3 usage tip,
-              the day-7 review request and the day-25 replenishment reminder to anyone
-              due one. Nobody is emailed twice.
+              This runs the same job the daily cron runs, for anyone due a message.
+              One email per person per run, cancelled orders excluded, and nobody is
+              emailed twice.
             </p>
+
+            <label className="block text-sm font-semibold mb-2">Which emails to send</label>
+            <div className="space-y-2 mb-5">
+              {EMAIL_TYPES.map((t) => (
+                <label key={t.key} className="flex items-center gap-2 text-sm cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={types.includes(t.key)}
+                    onChange={() => toggleType(t.key)}
+                    className="w-4 h-4 shrink-0"
+                  />
+                  <span className="text-[#464c49]">{t.label}</span>
+                </label>
+              ))}
+            </div>
 
             <label className="block text-sm font-semibold mb-2">
               Include customers who ordered up to this many days ago
