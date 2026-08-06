@@ -135,15 +135,15 @@ export default function TermsPage() {
             <h2 className="font-playfair text-3xl font-bold mb-4">11. Contact Information</h2>
             <p className="text-[#464c49] leading-relaxed">
               For questions about these Terms and Conditions, please contact us at:<br />
-              Email: support@begood.com<br />
-              Phone: +91 XXXXX XXXXX
+              Email: healhat25@gmail.com<br />
+              Phone: +91 8000366966
             </p>
           </section>
 
           <div className="mt-12 p-6 brand-panel">
             <p className="text-sm text-[#464c49] leading-relaxed">
               <strong>FSSAI Disclaimer:</strong> This product is a functional food and is not intended to diagnose, treat, 
-              cure, or prevent any disease. FSSAI License No: XXXXXXXXXXX
+              cure, or prevent any disease. FSSAI License No: 
             </p>
           </div>
         </div>
