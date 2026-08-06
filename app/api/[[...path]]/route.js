@@ -1056,9 +1056,43 @@ export async function POST(request) {
       const includeNonOptedIn = url.searchParams.get('includeNonOptedIn') === '1'
       const waReady = isWhatsAppConfigured() && channel !== 'email'
 
+      // ?types=usage,reviewRequests,replenishment - run only some of the three.
+      // Omitted means all of them, which is what the daily cron does.
+      const ALL_TYPES = ['usage', 'reviewRequests', 'replenishment']
+      const typesParam = (url.searchParams.get('types') || '').trim()
+      const enabled = new Set(
+        typesParam
+          ? typesParam.split(',').map((t) => t.trim()).filter((t) => ALL_TYPES.includes(t))
+          : ALL_TYPES
+      )
+
+      // Cancelled orders are not a relationship to nurture. Orders with no
+      // status at all are kept - the field predates the admin status dropdown.
+      const notCancelled = { status: { $not: /^cancell?ed$/i } }
+
+      /**
+       * One message per person, not per order.
+       *
+       * A customer with six orders was getting six review requests in a single
+       * run. Keeps the most recent order for each address, since that is the
+       * one worth referring to.
+       */
+      const oneOrderPerEmail = (orders) => {
+        const byEmail = new Map()
+        for (const o of orders) {
+          const key = String(o.email || '').trim().toLowerCase()
+          if (!key) continue
+          const seen = byEmail.get(key)
+          if (!seen || String(o.createdAt) > String(seen.createdAt)) byEmail.set(key, o)
+        }
+        return [...byEmail.values()]
+      }
+
       const summary = {
         dryRun, reviewMaxAge, channel, includeNonOptedIn,
+        types: [...enabled],
         usage: 0, reviewRequests: 0, replenishment: 0, skipped: 0,
+        duplicatesCollapsed: 0, cancelledSkipped: 0,
         viaWhatsApp: 0, viaEmail: 0
       }
       const wouldSend = { usage: [], reviewRequests: [], replenishment: [] }
@@ -1116,11 +1150,14 @@ export async function POST(request) {
       // The most under-rated message here. A-Bar is usage-dependent: eaten five
       // minutes before an exam it will seem not to work, and that customer is
       // gone without ever telling us why.
-      const usageOrders = await db.collection('orders').find({
+      const usageRaw = enabled.has('usage') ? await db.collection('orders').find({
         createdAt: { $lte: daysAgo(3).toISOString(), $gte: daysAgo(6).toISOString() },
         usageEmailSentAt: { $exists: false },
-        email: { $exists: true, $ne: null, $ne: '' }
-      }).limit(50).toArray()
+        email: { $exists: true, $ne: null, $ne: '' },
+        ...notCancelled
+      }).limit(200).toArray() : []
+      const usageOrders = oneOrderPerEmail(usageRaw)
+      summary.duplicatesCollapsed += usageRaw.length - usageOrders.length
 
       for (const o of usageOrders) {
         const msg = render('usage', { name: o.customerName || 'there', site })
@@ -1137,13 +1174,20 @@ export async function POST(request) {
       }
 
       // --- Day 7: review request + ₹20 ---------------------------------------
-      const reviewOrders = await db.collection('orders').find({
+      const reviewRaw = enabled.has('reviewRequests') ? await db.collection('orders').find({
         createdAt: { $lte: daysAgo(7).toISOString(), $gte: daysAgo(reviewMaxAge).toISOString() },
-        email: { $exists: true, $ne: null, $ne: '' }
-      }).limit(50).toArray()
+        email: { $exists: true, $ne: null, $ne: '' },
+        ...notCancelled
+      }).limit(200).toArray() : []
+      const reviewOrders = oneOrderPerEmail(reviewRaw)
+      summary.duplicatesCollapsed += reviewRaw.length - reviewOrders.length
 
       for (const o of reviewOrders) {
-        const existing = await db.collection('review_requests').findOne({ orderId: o.orderId })
+        // Match on the address as well as the order: someone who was already
+        // asked after an earlier order should not be asked again.
+        const existing = await db.collection('review_requests').findOne({
+          $or: [{ orderId: o.orderId }, { email: o.email }]
+        })
         if (existing) { summary.skipped++; continue }
 
         const token = uuidv4().replace(/-/g, '')
@@ -1177,11 +1221,14 @@ export async function POST(request) {
       }
 
       // --- Day 25: replenishment --------------------------------------------
-      const replenOrders = await db.collection('orders').find({
+      const replenRaw = enabled.has('replenishment') ? await db.collection('orders').find({
         createdAt: { $lte: daysAgo(25).toISOString(), $gte: daysAgo(40).toISOString() },
         reminderSentAt: { $exists: false },
-        email: { $exists: true, $ne: null, $ne: '' }
-      }).limit(50).toArray()
+        email: { $exists: true, $ne: null, $ne: '' },
+        ...notCancelled
+      }).limit(200).toArray() : []
+      const replenOrders = oneOrderPerEmail(replenRaw)
+      summary.duplicatesCollapsed += replenRaw.length - replenOrders.length
 
       for (const o of replenOrders) {
         const ids = (o.products || []).map((p) => p.productId || '')
