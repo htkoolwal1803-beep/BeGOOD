@@ -883,13 +883,14 @@ export async function POST(request) {
       const signature = request.headers.get('x-razorpay-signature')
       const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET
 
-      // Verify webhook signature if secret is configured
-      if (webhookSecret && signature) {
-        const isValid = verifyRazorpaySignature(rawBody, signature, webhookSecret)
-        if (!isValid) {
-          console.error('Invalid Razorpay webhook signature')
-          return NextResponse.json({ success: false, message: 'Invalid signature' }, { status: 401 })
-        }
+      // Never accept an unsigned webhook. A missing secret is a deployment error.
+      if (!webhookSecret) {
+        console.error('RAZORPAY_WEBHOOK_SECRET is not configured')
+        return NextResponse.json({ success: false, message: 'Webhook is not configured' }, { status: 503 })
+      }
+      if (!signature || !verifyRazorpaySignature(rawBody, signature, webhookSecret)) {
+        console.error('Invalid Razorpay webhook signature')
+        return NextResponse.json({ success: false, message: 'Invalid signature' }, { status: 401 })
       }
 
       const event = JSON.parse(rawBody)
@@ -1411,9 +1412,16 @@ export async function POST(request) {
       return NextResponse.json({ success: true, message: 'Pending payment stored' })
     }
 
-    // POST /api/orders - Create new order
+    // POST /api/orders - Create COD orders only. Online orders are created
+    // exclusively by /api/razorpay/verify after server-side verification.
     if (segments[0] === 'orders' && segments.length === 1) {
       const body = await request.json()
+      if (body.paymentMethod !== 'cod') {
+        return NextResponse.json(
+          { success: false, message: 'Online payment must be verified by Razorpay' },
+          { status: 400 }
+        )
+      }
       const { db } = await connectToDatabase()
       
       // Check if order already exists for this payment (prevent duplicates)
