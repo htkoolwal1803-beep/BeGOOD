@@ -13,7 +13,7 @@ const groups = [
     questions: [
       {
         question: 'What is BeGood A-Bar?',
-        answer: 'A-Bar is a 40 g functional chocolate bar made for calmer, clearer high-stakes moments. Its three key ingredients are 140 mg L-Theanine, 134 mg magnesium glycinate (20% RDA) and 2.18 g chicory root.'
+        answer: 'A-Bar is a 40 g functional chocolate bar made for calmer, clearer high-stakes moments. Its three key ingredients are L-Theanine, magnesium glycinate and chicory root extract.'
       },
       {
         question: 'What are the full ingredients?',
@@ -34,7 +34,7 @@ const groups = [
     questions: [
       {
         question: 'When should I eat it?',
-        answer: 'The suggested use is one bar around 30–45 minutes before an exam, interview, presentation or another high-stakes moment. Timing and experience vary between people.'
+        answer: 'Enjoy one bar shortly before an exam, interview, presentation or another high-stakes moment. A-Bar is designed to act in less than 20 minutes. Timing and experience vary between people.'
       },
       {
         question: 'Will it make me drowsy?',
