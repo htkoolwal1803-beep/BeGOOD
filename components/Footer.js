@@ -8,7 +8,7 @@ export default function Footer() {
       <div className="brand-container py-14 sm:py-18 lg:py-20">
         <div className="grid gap-12 lg:grid-cols-[1.4fr_0.65fr_0.65fr]">
           <div>
-            <Link href="/" className="block w-[210px] overflow-hidden rounded-xl bg-[#fffaf1] px-3 py-2">
+            <Link href="/" className="block w-[220px] rounded-2xl border border-white/10 bg-[#fffaf1] px-4 py-3 shadow-sm">
               <BrandLogo />
             </Link>
             <p className="mt-6 max-w-lg text-base leading-7 text-[#cddbd4]">
