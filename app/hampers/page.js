@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import HeroPack from '@/components/HeroPack'
 import Link from 'next/link'
 import Button from '@/components/Button'
 import HamperCTA from '@/components/HamperCTA'
@@ -136,12 +137,7 @@ export default function HampersPage() {
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
             <div className="relative aspect-square bg-[#f4ecdd] rounded-2xl overflow-hidden">
-              <Image
-                src="/a-bar-packaging.png"
-                alt="BeGood A-Bar"
-                fill
-                className="object-contain"
-              />
+              <HeroPack />
             </div>
             <div>
               <h2 className="font-playfair text-4xl md:text-5xl font-bold mb-6">What is A-Bar?</h2>
