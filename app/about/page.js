@@ -1,4 +1,4 @@
-import Image from 'next/image'
+import HeroPack from '@/components/HeroPack'
 import Link from 'next/link'
 import { ArrowRight, Brain, Heart, Leaf, Microscope, ShieldCheck, Sparkles, Target } from 'lucide-react'
 import Button from '@/components/Button'
@@ -9,15 +9,15 @@ export const metadata = {
 }
 
 const values = [
-  { icon: Microscope, title: 'Science, made understandable', text: 'We explain ingredient roles and quantities in plain language, with clear limits on what a functional food can promise.' },
+  { icon: Microscope, title: 'Science, made understandable', text: 'We explain ingredient roles in plain language, with clear limits on what a functional food can promise.' },
   { icon: Heart, title: 'Human moments first', text: 'Every product begins with a real moment: the exam, interview, presentation or conversation where composure matters.' },
   { icon: ShieldCheck, title: 'Clarity builds trust', text: 'From the full formula to delivery fees and checkout, important information should never be hidden.' }
 ]
 
 const ingredients = [
-  { icon: Brain, name: 'L-Theanine', amount: '140 mg', text: 'Studied for supporting relaxed alertness without drowsiness.' },
-  { icon: Sparkles, name: 'Magnesium Glycinate', amount: '134 mg · 20% RDA', text: 'Supports normal nervous-system and psychological function.' },
-  { icon: Leaf, name: 'Chicory Root', amount: '2.18 g', text: 'A prebiotic root ingredient included to support the magnesium-absorption strategy.' }
+  { icon: Brain, name: 'L-Theanine', text: 'Studied for supporting relaxed alertness without drowsiness.' },
+  { icon: Sparkles, name: 'Magnesium Glycinate', text: 'Supports normal nervous-system and psychological function.' },
+  { icon: Leaf, name: 'Chicory Root', text: 'A prebiotic root ingredient included to support the magnesium-absorption strategy.' }
 ]
 
 export default function AboutPage() {
@@ -33,7 +33,7 @@ export default function AboutPage() {
             <div className="mt-8 flex flex-col gap-3 sm:flex-row"><Link href="/shop"><Button size="lg">Explore A-Bar <ArrowRight className="ml-2 h-5 w-5" /></Button></Link><Link href="/how-it-works"><Button variant="outline" size="lg">See how it works</Button></Link></div>
           </div>
           <div className="relative mx-auto aspect-square w-full max-w-lg overflow-hidden rounded-[2rem] border border-[#d8c8b0] bg-[radial-gradient(circle_at_50%_35%,#fffaf1_0%,#eee3ce_74%)] shadow-[0_30px_80px_rgba(64,46,35,0.12)]">
-            <Image src="/a-bar-packaging.png" alt="BeGood A-Bar functional chocolate" fill priority className="object-contain p-8 sm:p-12" />
+            <HeroPack />
             <div className="absolute bottom-5 left-5 right-5 rounded-2xl border border-white/60 bg-white/80 p-4 backdrop-blur">
               <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[#8a79a8]">The idea</p><p className="mt-1 font-bold text-[#2d2019]">A focused mind, on demand.</p>
             </div>
@@ -65,10 +65,10 @@ export default function AboutPage() {
       <section className="border-y border-[#e4d8c7] bg-[#f3ecdf] py-20 sm:py-24">
         <div className="brand-container">
           <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
-            <div><span className="brand-pill">Formula philosophy</span><h2 className="mt-5 font-playfair text-4xl font-bold text-[#2d2019] sm:text-5xl">Focused ingredients, clearly explained.</h2><p className="mt-5 text-lg leading-8 text-[#59615b]">These are the three ingredients at the centre of A-Bar. The product page lists all 18 formula ingredients and their quantities.</p></div>
+            <div><span className="brand-pill">Formula philosophy</span><h2 className="mt-5 font-playfair text-4xl font-bold text-[#2d2019] sm:text-5xl">Focused ingredients, clearly explained.</h2><p className="mt-5 text-lg leading-8 text-[#59615b]">These are the three ingredients at the centre of A-Bar. The product page lists the complete formula without publishing proprietary quantities.</p></div>
             <div className="grid gap-4 sm:grid-cols-3">
-              {ingredients.map(({ icon: Icon, name, amount, text }) => (
-                <article key={name} className="rounded-[1.5rem] border border-[#d8c8b0] bg-[#fffaf1] p-6"><span className="grid h-12 w-12 place-items-center rounded-2xl bg-[#dce6d7]"><Icon className="h-6 w-6 text-[#1f4b3c]" /></span><p className="mt-5 text-xs font-extrabold uppercase tracking-[0.14em] text-[#8a79a8]">{amount}</p><h3 className="mt-2 text-xl font-bold">{name}</h3><p className="mt-3 text-sm leading-6 text-[#59615b]">{text}</p></article>
+              {ingredients.map(({ icon: Icon, name, text }) => (
+                <article key={name} className="rounded-[1.5rem] border border-[#d8c8b0] bg-[#fffaf1] p-6"><span className="grid h-12 w-12 place-items-center rounded-2xl bg-[#dce6d7]"><Icon className="h-6 w-6 text-[#1f4b3c]" /></span><h3 className="mt-5 text-xl font-bold">{name}</h3><p className="mt-3 text-sm leading-6 text-[#59615b]">{text}</p></article>
               ))}
             </div>
           </div>
