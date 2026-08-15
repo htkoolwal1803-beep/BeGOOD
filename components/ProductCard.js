@@ -2,8 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import Button from './Button'
-import { ShoppingCart, Bell } from 'lucide-react'
+import { Check, Plus, Sparkles } from 'lucide-react'
 import { useCart } from '@/lib/CartContext'
 import { useState } from 'react'
 import { RatingSummary } from '@/components/ProductReviews'
@@ -12,86 +11,80 @@ export default function ProductCard({ product }) {
   const { addToCart } = useCart()
   const [added, setAdded] = useState(false)
 
-  const handleAddToCart = (e) => {
-    e.preventDefault()
-    // For single SKU products (no variants)
+  const handleAddToCart = () => {
     addToCart(product, { size: product.weight, price: product.price }, 1)
     setAdded(true)
-    setTimeout(() => setAdded(false), 2000)
+    setTimeout(() => setAdded(false), 1800)
   }
 
-  // If product is coming soon, don't make it clickable
-  const CardWrapper = product.comingSoon ? 'div' : Link
+  if (product.comingSoon) {
+    return (
+      <article className="brand-card overflow-hidden opacity-90">
+        <div className="relative aspect-square bg-[#efe8f7]">
+          <Image src="/coming-soon-placeholder.svg" alt={product.name} fill className="object-contain p-10" />
+        </div>
+        <div className="p-5 sm:p-6">
+          <p className="eyebrow"><Sparkles className="h-3.5 w-3.5" /> Coming soon</p>
+          <h3 className="mt-3 font-playfair text-2xl font-semibold">{product.name}</h3>
+          <p className="mt-2 text-sm leading-6 text-[#675d57]">{product.shortDescription}</p>
+        </div>
+      </article>
+    )
+  }
+
+  const discount = product.compareAtPrice && product.compareAtPrice > product.price
+    ? Math.round((1 - product.price / product.compareAtPrice) * 100)
+    : null
 
   return (
-    <CardWrapper href={product.comingSoon ? undefined : `/product/${product.id}`}>
-      <div className={`group brand-card relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_55px_-38px_rgba(31,34,41,0.6)] ${product.comingSoon ? 'opacity-90' : ''}`}>
-        {/* Discount Badge */}
-        {!product.comingSoon && product.compareAtPrice && product.compareAtPrice > product.price && (
-          <div className="absolute top-4 left-4 z-10 bg-[#b4472e] text-[#fbf7ed] px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
-            {Math.round((1 - product.price / product.compareAtPrice) * 100)}% OFF
-          </div>
+    <article className="group flex h-full flex-col overflow-hidden rounded-[1.5rem] border border-[#2d2019]/10 bg-[#fffaf1] shadow-[0_22px_60px_-50px_rgba(45,32,25,.75)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_30px_70px_-48px_rgba(45,32,25,.65)]">
+      <Link href={`/product/${product.id}`} className="relative block aspect-[1.05/1] overflow-hidden bg-[radial-gradient(circle_at_50%_42%,#e4dbea_0%,#f5efe7_62%,#eee7dc_100%)]">
+        {discount && (
+          <span className="absolute left-4 top-4 z-20 rounded-full bg-[#8a79a8] px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.12em] text-white">
+            Save {discount}%
+          </span>
         )}
+        <Image
+          src={product.image}
+          alt={product.name}
+          fill
+          sizes="(max-width: 768px) 340px, 420px"
+          className="object-contain p-[9%] drop-shadow-[0_22px_18px_rgba(45,32,25,.2)] transition-transform duration-500 group-hover:scale-[1.04]"
+        />
+        <span className="absolute bottom-4 right-4 rounded-full border border-[#2d2019]/10 bg-[#fffaf1]/90 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#1f4b3c] backdrop-blur">
+          {product.weight}
+        </span>
+      </Link>
 
-        {/* Coming Soon Badge */}
-        {product.comingSoon && (
-          <div className="absolute top-4 right-4 z-10 bg-[#6f8a74] text-[#fbf7ed] px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
-            Coming Soon
+      <div className="flex flex-1 flex-col p-5 sm:p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <Link href={`/product/${product.id}`}>
+              <h3 className="font-playfair text-2xl font-semibold leading-tight text-[#2d2019] transition-colors group-hover:text-[#1f4b3c]">{product.name}</h3>
+            </Link>
+            <RatingSummary product={product} className="mt-2" />
           </div>
-        )}
-
-        {/* Image */}
-        <div className="relative aspect-square overflow-hidden bg-[#f4ecdd]">
-          <Image
-            src={product.comingSoon ? '/coming-soon-placeholder.svg' : product.image}
-            alt={product.name}
-            fill
-            className={`${product.comingSoon ? 'object-contain p-8' : 'object-contain p-4'} ${!product.comingSoon && 'group-hover:scale-105'} transition-transform duration-300`}
-          />
+          <div className="shrink-0 text-right">
+            <p className="text-xl font-extrabold text-[#1f4b3c]">₹{product.price}</p>
+            {discount && <p className="text-xs text-[#93877f] line-through">₹{product.compareAtPrice}</p>}
+          </div>
         </div>
 
-        {/* Content */}
-        <div className="p-6">
-          <h3 className="font-playfair text-2xl font-semibold mb-2 text-[#1f2229]">{product.name}</h3>
-          <p className="text-[#59615b] text-sm mb-4 line-clamp-2">{product.shortDescription}</p>
+        <p className="mt-4 line-clamp-2 text-sm leading-6 text-[#675d57]">{product.shortDescription}</p>
 
-          {/* Weight */}
-          {product.weight && !product.comingSoon && (
-            <div className="mb-4">
-              <span className="text-sm text-[#6b736d]">{product.weight}</span>
-            </div>
-          )}
-
-          {/* Rating - visible before the click, not just on the product page. */}
-          {!product.comingSoon && <RatingSummary product={product} className="mb-3" />}
-
-          {/* Price & Action */}
-          {product.comingSoon ? (
-            <div className="flex items-center justify-center">
-              <span className="text-lg font-semibold text-[#536a58] flex items-center">
-                <Bell className="w-4 h-4 mr-2" />
-                Notify Me on Homepage
-              </span>
-            </div>
-          ) : (
-            <div className="flex items-center justify-between">
-              <span className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-[#536a58]">₹{product.price}</span>
-                {product.compareAtPrice && product.compareAtPrice > product.price && (
-                  <span className="text-sm text-[#9a938a] line-through">₹{product.compareAtPrice}</span>
-                )}
-              </span>
-              <button
-                onClick={handleAddToCart}
-                className="bg-[#6f8a74] text-[#fbf7ed] px-4 py-2 rounded-full hover:bg-[#536a58] transition-colors flex items-center space-x-2"
-              >
-                <ShoppingCart className="w-4 h-4" />
-                <span className="text-sm">{added ? 'Added!' : 'Add'}</span>
-              </button>
-            </div>
-          )}
+        <div className="mt-auto flex items-center gap-3 pt-5">
+          <Link href={`/product/${product.id}`} className="flex min-h-11 flex-1 items-center justify-center rounded-full border border-[#1f4b3c]/25 px-4 text-sm font-bold text-[#1f4b3c] transition-colors hover:bg-[#dce9e2]">
+            View details
+          </Link>
+          <button
+            onClick={handleAddToCart}
+            aria-label={`Add ${product.name} to cart`}
+            className={`flex min-h-11 items-center justify-center gap-2 rounded-full px-4 text-sm font-bold text-white transition-all ${added ? 'bg-[#8a79a8]' : 'bg-[#1f4b3c] hover:bg-[#173c30]'}`}
+          >
+            {added ? <><Check className="h-4 w-4" /> Added</> : <><Plus className="h-4 w-4" /> Add</>}
+          </button>
         </div>
       </div>
-    </CardWrapper>
+    </article>
   )
 }
