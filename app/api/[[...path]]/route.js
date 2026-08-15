@@ -38,6 +38,7 @@ function razorpayAuthHeader() {
 
 async function priceOnlineOrder(body, db) {
   if (!Array.isArray(body.products) || body.products.length === 0) throw new Error('Cart is empty')
+
   const products = body.products.map((line) => {
     const product = getProductById(line.productId)
     const quantity = Math.max(1, Math.min(50, Number.parseInt(line.quantity, 10) || 0))
@@ -50,10 +51,62 @@ async function priceOnlineOrder(body, db) {
       price: product.price
     }
   })
+
   const subtotal = products.reduce((sum, line) => sum + line.price * line.quantity, 0)
   const phone = String(body.phone || '')
   const digits = phone.replace(/\D/g, '').slice(-10)
-  const previousOrder = digits ? await db.collection('orders').findOne({ phone: { $regex: digits + '
+  const previousOrder = digits
+    ? await db.collection('orders').findOne({ phone: { $regex: new RegExp(digits + '$') } })
+    : null
+  const shippingFee = resolveDeliveryFee({
+    cartTotal: subtotal,
+    methodId: body.deliveryMethodId,
+    isPickup: !!body.isPickup,
+    isFirstOrder: !previousOrder
+  })
+
+  let couponDiscount = 0
+  let coupon = null
+  if (body.couponCode) {
+    coupon = await db.collection('coupons').findOne({
+      code: String(body.couponCode).toUpperCase(),
+      isActive: true
+    })
+    if (!coupon ||
+        (coupon.expiryDate && new Date(coupon.expiryDate) < new Date()) ||
+        (coupon.maxUses !== null && coupon.usedCount >= coupon.maxUses)) {
+      throw new Error('Coupon is no longer valid')
+    }
+
+    const used = await db.collection('coupon_usage').findOne({
+      couponId: coupon.id,
+      $or: [{ userId: body.userId || null }, { userPhone: phone }]
+    })
+    if (used) throw new Error('Coupon has already been used')
+
+    const quantity = products.reduce((sum, line) => sum + line.quantity, 0)
+    if (coupon.discountType === 'bulk_tiered') {
+      if (quantity < 5) throw new Error('Minimum 5 bars required for this coupon')
+      couponDiscount = quantity >= 15 ? 235 : quantity >= 10 ? 125 : 50
+    } else if (coupon.discountType === 'fixed') {
+      couponDiscount = Number(coupon.discountValue) || 0
+    } else if (coupon.discountType === 'percentage') {
+      couponDiscount = Math.round(subtotal * (Number(coupon.discountValue) || 0) / 100)
+    }
+  }
+
+  couponDiscount = Math.max(0, Math.min(couponDiscount, subtotal + shippingFee))
+  return {
+    products,
+    subtotal,
+    shippingFee,
+    couponDiscount,
+    totalAmount: subtotal + shippingFee - couponDiscount,
+    coupon
+  }
+}
+
+function verifyRazorpaySignature(body, signature, secret) {
   const expectedSignature = crypto
     .createHmac('sha256', secret)
     .update(body)
