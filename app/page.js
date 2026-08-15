@@ -1,6 +1,6 @@
 'use client'
 
-import Image from 'next/image'
+import HeroPack from '@/components/HeroPack'
 import Link from 'next/link'
 import Button from '@/components/Button'
 import ProductCard from '@/components/ProductCard'
@@ -178,14 +178,7 @@ export default function Home() {
               <div className="absolute inset-[10%] rounded-full bg-[#d9cfe8] opacity-75 blur-[1px]" />
               <div className="absolute inset-[4%] rounded-full border border-[#8a79a8]/25" />
               <div className="absolute inset-[18%] rounded-full border border-dashed border-[#1f4b3c]/20" />
-              <Image
-                src="/a-bar-packaging.png"
-                alt="BeGood A-Bar functional chocolate"
-                fill
-                sizes="(max-width: 640px) 390px, (max-width: 1024px) 510px, 650px"
-                className="z-10 object-contain p-[8%] drop-shadow-[0_35px_30px_rgba(45,32,25,.24)]"
-                priority
-              />
+              <HeroPack />
 
               <div className="science-float left-0 top-[17%]">
                 <Brain className="h-4 w-4 text-[#8a79a8]" />
