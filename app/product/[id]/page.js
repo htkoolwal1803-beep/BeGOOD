@@ -72,7 +72,7 @@ export default function ProductPage() {
 
         <section className="brand-panel grid overflow-hidden lg:grid-cols-[1.03fr_0.97fr]">
           <div className="relative min-h-[360px] bg-[radial-gradient(circle_at_50%_35%,#fffaf1_0%,#eee3ce_72%)] sm:min-h-[520px] lg:min-h-[650px]">
-            <Image src={product.image} alt={product.name} fill priority className="object-contain p-7 sm:p-12" />
+            <Image src={product.image} alt={product.name} fill priority unoptimized={typeof product.image === 'string' && product.image.startsWith('data:')} className="object-contain p-7 sm:p-12" />
             {isAbar && (
               <div className="absolute left-5 top-5 rounded-full border border-[#d8c8b0] bg-[#fffaf1]/90 px-3 py-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[#1f4b3c] shadow-sm backdrop-blur">
                 Functional chocolate · 40 g
@@ -142,7 +142,7 @@ export default function ProductPage() {
             <div>
               <span className="brand-pill">Formula focus</span>
               <h2 className="mt-5 font-playfair text-4xl font-bold text-[#2d2019] sm:text-5xl">Three ingredients at the centre.</h2>
-              <p className="mt-5 text-lg leading-8 text-[#59615b]">A focused formula explained in plain language—what is in the bar, how much, and why it is there.</p>
+              <p className="mt-5 text-lg leading-8 text-[#59615b]">A focused formula explained in plain language—what is in the bar and why it is there.</p>
               <Link href="/how-it-works" className="mt-6 inline-flex items-center gap-2 font-bold text-[#1f4b3c]">See the full journey <ArrowRight className="h-4 w-4" /></Link>
             </div>
             <div className="grid gap-4 sm:grid-cols-3">
@@ -151,8 +151,7 @@ export default function ProductPage() {
                 return (
                   <article key={ingredient.name} className="brand-card p-5 sm:p-6">
                     <span className="grid h-12 w-12 place-items-center rounded-2xl bg-[#e7def1]"><Icon className="h-6 w-6 text-[#735f94]" /></span>
-                    <p className="mt-5 text-xs font-extrabold uppercase tracking-[0.15em] text-[#8a79a8]">{ingredient.amount}</p>
-                    <h3 className="mt-2 text-xl font-bold text-[#2d2019]">{ingredient.name}</h3>
+                    <h3 className="mt-5 text-xl font-bold text-[#2d2019]">{ingredient.name}</h3>
                     <p className="mt-3 text-sm leading-6 text-[#59615b]">{ingredient.benefit}</p>
                   </article>
                 )
@@ -165,16 +164,15 @@ export default function ProductPage() {
               <div className="border-b border-[#e3d7c5] p-6 sm:p-8">
                 <span className="brand-pill">Complete formula</span>
                 <h2 className="mt-4 font-playfair text-3xl font-bold text-[#2d2019] sm:text-4xl">Every ingredient, clearly listed.</h2>
-                <p className="mt-3 text-[#59615b]">Quantities shown are per A-Bar, as supplied in the product formula.</p>
+                <p className="mt-3 text-[#59615b]">The complete A-Bar ingredient list, presented clearly without proprietary quantities.</p>
               </div>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3">
                 {product.fullIngredients.map((ingredient, index) => (
                   <div key={ingredient.name} className="flex min-h-[92px] items-start justify-between gap-4 border-b border-[#e9dfcf] p-5 sm:border-r">
                     <div className="flex gap-3">
                       <span className="mt-0.5 text-xs font-extrabold text-[#9a8a73]">{String(index + 1).padStart(2, '0')}</span>
-                      <div><p className="font-semibold leading-5 text-[#2d2019]">{ingredient.name}</p>{ingredient.note && <p className="mt-1 text-xs font-bold text-[#735f94]">{ingredient.note}</p>}</div>
+                      <div><p className="font-semibold leading-5 text-[#2d2019]">{ingredient.name}</p></div>
                     </div>
-                    <span className="shrink-0 rounded-full bg-[#eef3ea] px-2.5 py-1 text-xs font-extrabold text-[#1f4b3c]">{ingredient.amount}</span>
                   </div>
                 ))}
               </div>
