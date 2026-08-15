@@ -27,18 +27,18 @@ import { useEffect, useState } from 'react'
 const sciencePoints = [
   {
     title: 'L-Theanine',
-    detail: 'An amino acid studied for supporting relaxed alertness without the heavy feeling.',
+    detail: '140 mg per bar, studied for supporting relaxed alertness without the heavy feeling.',
     icon: Brain
   },
   {
-    title: 'Whole-food energy',
-    detail: 'Walnuts and pumpkin seeds bring satisfying fats, minerals and texture.',
-    icon: Leaf
+    title: 'Magnesium Glycinate',
+    detail: '134 mg per bar (20% RDA) to support normal nervous-system function.',
+    icon: Sparkles
   },
   {
-    title: 'Premium cocoa',
-    detail: 'A familiar chocolate ritual makes calm-focus support easy to enjoy.',
-    icon: Coffee
+    title: 'Chicory Root Extract',
+    detail: '2.18 g of chicory root, included to help support magnesium absorption.',
+    icon: Leaf
   }
 ]
 
