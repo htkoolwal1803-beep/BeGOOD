@@ -48,6 +48,7 @@ export default function ProductCard({ product }) {
           src={product.image}
           alt={product.name}
           fill
+          unoptimized={typeof product.image === 'string' && product.image.startsWith('data:')}
           sizes="(max-width: 768px) 340px, 420px"
           className="object-contain p-[9%] drop-shadow-[0_22px_18px_rgba(45,32,25,.2)] transition-transform duration-500 group-hover:scale-[1.04]"
         />
