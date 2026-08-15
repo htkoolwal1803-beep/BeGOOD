@@ -752,7 +752,10 @@ Please prepare this order for shipment.
         totalAmount: orderTotal,
         userId: user?.uid || null,
         affiliateCode: affiliateCode || null,
-        whatsappOptIn: whatsappOptIn
+        whatsappOptIn: whatsappOptIn,
+        deliveryMethodId: deliveryMethod,
+        isPickup,
+        isFirstOrder
       }
 
       const razorpayOrderResponse = await fetch('/api/razorpay/order', {
