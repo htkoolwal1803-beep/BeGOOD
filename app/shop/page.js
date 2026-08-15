@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { ArrowRight, Check, FlaskConical, Leaf, ShieldCheck, Sparkles } from 'lucide-react'
+import { ArrowRight, Check, FlaskConical, Leaf, Microscope, Sparkles } from 'lucide-react'
 import FirstOrderBanner from '@/components/FirstOrderBanner'
 import ProductCard from '@/components/ProductCard'
 import { products } from '@/lib/products'
@@ -42,7 +42,7 @@ export default function ShopPage() {
       <section className="brand-container py-16 sm:py-20">
         <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div><p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#8a79a8]">The collection</p><h2 className="mt-2 font-playfair text-3xl font-bold text-[#2d2019] sm:text-4xl">Find the format that fits.</h2></div>
-          <p className="max-w-md text-sm leading-6 text-[#6b736d]">All A-Bar formats use the same core formula. Bundle pages show the per-bar ingredient quantities clearly.</p>
+          <p className="max-w-md text-sm leading-6 text-[#6b736d]">All A-Bar formats use the same core formula. Choose the pack size that best fits your routine.</p>
         </div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {availableProducts.map((product) => <ProductCard key={product.id} product={product} />)}
@@ -59,9 +59,9 @@ export default function ShopPage() {
           </div>
           <div className="grid border-t border-white/10 sm:grid-cols-3 lg:border-l lg:border-t-0">
             {[
-              [FlaskConical, 'Transparent formula', 'Ingredient quantities shown clearly on the product page.'],
+              [FlaskConical, 'Transparent formula', 'The complete ingredient list is shown clearly on the product page.'],
               [Leaf, 'Food-first ritual', 'A familiar chocolate format instead of pills or powders.'],
-              [ShieldCheck, 'Secure purchase', 'Razorpay checkout and clear delivery information.']
+              [Microscope, 'Science backed', 'Research-led ingredients selected to support calm focus and normal nervous-system function.']
             ].map(([Icon, title, text]) => (
               <div key={title} className="border-b border-white/10 p-6 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0 lg:flex lg:flex-col lg:justify-end">
                 <Icon className="h-7 w-7 text-[#bfaed7]" /><h3 className="mt-4 font-bold">{title}</h3><p className="mt-2 text-sm leading-6 text-[#b9cbc2]">{text}</p>
