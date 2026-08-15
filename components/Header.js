@@ -1,11 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { ShoppingCart, Menu, X, User, LogOut } from 'lucide-react'
+import { ShoppingBag, Menu, X, User, LogOut, ArrowUpRight } from 'lucide-react'
 import { useCart } from '@/lib/CartContext'
 import { useAuth } from '@/lib/AuthContext'
 import { useState } from 'react'
-import Image from 'next/image'
+import BrandLogo from '@/components/BrandLogo'
 
 export default function Header() {
   const { cartCount } = useCart()
@@ -14,177 +14,117 @@ export default function Header() {
   const [userMenuOpen, setUserMenuOpen] = useState(false)
 
   const navLinks = [
-    { href: '/', label: 'Home' },
     { href: '/shop', label: 'Shop' },
-    { href: '/hampers', label: 'Hampers' },
-    { href: '/how-it-works', label: 'How It Works' },
-    { href: '/about', label: 'About' },
-    { href: '/faq', label: 'FAQ' },
-    { href: '/contact', label: 'Contact' }
+    { href: '/how-it-works', label: 'How it works' },
+    { href: '/#ingredients', label: 'Ingredients' },
+    { href: '/about', label: 'Our story' },
+    { href: '/faq', label: 'FAQ' }
   ]
 
   const handleSignOut = async () => {
     await signOut()
     setUserMenuOpen(false)
+    setMobileMenuOpen(false)
   }
 
   return (
-    <header className="sticky top-0 z-50 px-3 pt-3">
+    <header className="sticky top-0 z-50 border-b border-[#38281f]/10 bg-[#fffaf1]/95 backdrop-blur-xl">
       <meta name="google-site-verification" content="H0iZwFX5FeTVI0TST6S9N6Ef-rUefSS9biYBMVhIwto" />
-      <div className="container mx-auto rounded-[1.35rem] border border-[#d9cbb5]/80 bg-[#fbf7ed]/92 px-4 shadow-[0_18px_45px_-32px_rgba(31,34,41,0.65)] backdrop-blur-md">
-        <div className="flex items-center justify-between h-16 md:h-20">
-          {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <Image
-              src="/begood-logo.png"
-              alt="BeGood Logo"
-              width={240}
-              height={80}
-              className="h-14 md:h-16 w-auto"
-            />
+
+      <div className="bg-[#1f4b3c] px-4 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.16em] text-[#fffaf1] sm:text-xs">
+        Free first-order delivery over ₹249 · Made for high-stakes moments
+      </div>
+
+      <div className="brand-container">
+        <div className="flex h-[72px] items-center justify-between gap-4 lg:h-[82px]">
+          <Link href="/" className="relative z-10 block w-[132px] sm:w-[162px] lg:w-[188px]" aria-label="BeGood home">
+            <BrandLogo compact />
           </Link>
-  
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-7">
-            {navLinks.map(link => (
+
+          <nav className="hidden items-center gap-7 lg:flex">
+            {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-sm font-medium text-[#2f332f] transition-colors hover:text-[#6f8a74]"
+                className="text-sm font-semibold text-[#38281f]/78 transition-colors hover:text-[#1f4b3c]"
               >
                 {link.label}
               </Link>
             ))}
           </nav>
 
-          {/* Cart, User & Mobile Menu */}
-          <div className="flex items-center space-x-4">
-            {/* User Account */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5">
             {!loading && (
-              <div className="relative">
+              <div className="relative hidden sm:block">
                 {user ? (
                   <>
                     <button
                       onClick={() => setUserMenuOpen(!userMenuOpen)}
-                      className="flex items-center space-x-2 text-[#2f332f] hover:text-[#6f8a74] transition-colors"
+                      aria-label="Open account menu"
+                      className="flex h-10 w-10 items-center justify-center rounded-full text-[#38281f] transition-colors hover:bg-[#ebe5f3]"
                     >
-                      <User className="w-6 h-6" />
-                      <span className="hidden md:inline text-sm font-medium">
-                        {userProfile?.name || 'Account'}
-                      </span>
+                      <User className="h-[19px] w-[19px]" />
                     </button>
-                    
-                    {/* User Dropdown Menu */}
                     {userMenuOpen && (
-                      <div className="absolute right-0 mt-3 w-52 rounded-2xl border border-[#d9cbb5] bg-[#fbf7ed] py-2 shadow-xl z-50">
-                        <Link
-                          href="/profile"
-                          className="block px-4 py-2 text-sm text-[#2f332f] hover:bg-[#dce6d7]/70"
-                          onClick={() => setUserMenuOpen(false)}
-                        >
-                          My Profile
-                        </Link>
-                        <Link
-                          href="/profile?tab=orders"
-                          className="block px-4 py-2 text-sm text-[#2f332f] hover:bg-[#dce6d7]/70"
-                          onClick={() => setUserMenuOpen(false)}
-                        >
-                          Order History
-                        </Link>
-                        <Link
-                          href="/profile?tab=addresses"
-                          className="block px-4 py-2 text-sm text-[#2f332f] hover:bg-[#dce6d7]/70"
-                          onClick={() => setUserMenuOpen(false)}
-                        >
-                          Saved Addresses
-                        </Link>
-                        <hr className="my-2" />
-                        <button
-                          onClick={handleSignOut}
-                          className="w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-red-50 flex items-center space-x-2"
-                        >
-                          <LogOut className="w-4 h-4" />
-                          <span>Sign Out</span>
+                      <div className="absolute right-0 top-12 w-56 overflow-hidden rounded-2xl border border-[#38281f]/10 bg-[#fffaf1] py-2 shadow-2xl">
+                        <p className="border-b border-[#38281f]/10 px-4 pb-3 pt-2 text-xs text-[#675d57]">
+                          {userProfile?.name || 'Your account'}
+                        </p>
+                        <Link href="/profile" onClick={() => setUserMenuOpen(false)} className="block px-4 py-3 text-sm font-medium hover:bg-[#f5f0e7]">My profile</Link>
+                        <Link href="/profile?tab=orders" onClick={() => setUserMenuOpen(false)} className="block px-4 py-3 text-sm font-medium hover:bg-[#f5f0e7]">Order history</Link>
+                        <button onClick={handleSignOut} className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-medium text-red-700 hover:bg-red-50">
+                          <LogOut className="h-4 w-4" /> Sign out
                         </button>
                       </div>
                     )}
                   </>
                 ) : (
-                  <Link
-                    href="/login"
-                    className="flex items-center space-x-2 text-[#2f332f] hover:text-[#6f8a74] transition-colors"
-                  >
-                    <User className="w-6 h-6" />
-                    <span className="hidden md:inline text-sm font-medium">Login</span>
+                  <Link href="/login" aria-label="Login" className="flex h-10 w-10 items-center justify-center rounded-full text-[#38281f] transition-colors hover:bg-[#ebe5f3]">
+                    <User className="h-[19px] w-[19px]" />
                   </Link>
                 )}
               </div>
             )}
 
-            <Link href="/cart" className="relative group rounded-full bg-[#dce6d7]/70 p-2">
-              <ShoppingCart className="w-5 h-5 text-[#2f332f] group-hover:text-[#6f8a74] transition-colors" />
+            <Link href="/cart" aria-label={`Cart with ${cartCount} items`} className="relative flex h-10 w-10 items-center justify-center rounded-full text-[#38281f] transition-colors hover:bg-[#ebe5f3]">
+              <ShoppingBag className="h-[19px] w-[19px]" />
               {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-[#6f8a74] text-[#fbf7ed] text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#8a79a8] px-1 text-[10px] font-bold text-white">
                   {cartCount}
                 </span>
               )}
             </Link>
 
-            {/* Mobile Menu Button */}
+            <Link href="/product/begood-abar-2pack" className="hidden items-center gap-2 rounded-full bg-[#1f4b3c] px-5 py-3 text-sm font-bold text-white shadow-[0_12px_25px_-15px_rgba(31,75,60,.85)] transition-all hover:-translate-y-0.5 hover:bg-[#173c30] md:flex">
+              Try A-Bar <ArrowUpRight className="h-4 w-4" />
+            </Link>
+
             <button
-              className="md:hidden"
+              className="flex h-10 w-10 items-center justify-center rounded-full text-[#38281f] lg:hidden"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-expanded={mobileMenuOpen}
+              aria-label="Toggle navigation"
             >
-              {mobileMenuOpen ? (
-                <X className="w-6 h-6 text-[#2f332f]" />
-              ) : (
-                <Menu className="w-6 h-6 text-[#2f332f]" />
-              )}
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
         </div>
 
-        {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <nav className="md:hidden py-4 border-t border-[#d9cbb5]">
-            {navLinks.map(link => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="block py-3 text-[#2f332f] hover:text-[#6f8a74] transition-colors font-medium"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {link.label}
-              </Link>
-            ))}
-            {user ? (
-              <>
-                <Link
-                  href="/profile"
-                  className="block py-3 text-[#2f332f] hover:text-[#6f8a74] transition-colors font-medium"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  My Profile
+          <nav className="border-t border-[#38281f]/10 pb-5 pt-2 lg:hidden">
+            <div className="grid">
+              {navLinks.map((link) => (
+                <Link key={link.href} href={link.href} onClick={() => setMobileMenuOpen(false)} className="border-b border-[#38281f]/7 py-3.5 text-base font-semibold text-[#38281f]">
+                  {link.label}
                 </Link>
-                <button
-                  onClick={() => {
-                    handleSignOut()
-                    setMobileMenuOpen(false)
-                  }}
-                  className="block py-3 text-red-600 hover:text-red-700 transition-colors font-medium"
-                >
-                  Sign Out
-                </button>
-              </>
-            ) : (
-              <Link
-                href="/login"
-                className="block py-3 text-[#536a58] hover:text-[#1f2229] transition-colors font-medium"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Login / Sign Up
+              ))}
+              <Link href={user ? '/profile' : '/login'} onClick={() => setMobileMenuOpen(false)} className="py-3.5 text-base font-semibold text-[#38281f]">
+                {user ? 'My account' : 'Login / Sign up'}
               </Link>
-            )}
+              <Link href="/product/begood-abar-2pack" onClick={() => setMobileMenuOpen(false)} className="mt-2 flex items-center justify-center gap-2 rounded-full bg-[#1f4b3c] px-5 py-3.5 font-bold text-white">
+                Try A-Bar <ArrowUpRight className="h-4 w-4" />
+              </Link>
+            </div>
           </nav>
         )}
       </div>

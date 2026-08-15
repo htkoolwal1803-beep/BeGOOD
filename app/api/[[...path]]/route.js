@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server'
 import { MongoClient } from 'mongodb'
 import { v4 as uuidv4 } from 'uuid'
 import crypto from 'crypto'
-import { cartHasHamper } from '@/lib/products'
+import { cartHasHamper, getProductById } from '@/lib/products'
+import { resolveDeliveryFee } from '@/lib/constants'
 import { sendEmail, layout, siteUrl, siteLink } from '@/lib/email'
 import { TEMPLATE_KEYS, DEFAULT_TEMPLATES, mergeTemplate, fillTemplate, bodyToHtml, whatsappBody } from '@/lib/emailTemplates'
 import { sendWhatsAppTemplate, isWhatsAppConfigured, toWhatsAppNumber } from '@/lib/whatsapp'
@@ -28,6 +29,83 @@ function adminDenied() {
 }
 
 // Razorpay webhook signature verification
+function razorpayAuthHeader() {
+  const keyId = process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID
+  const keySecret = process.env.RAZORPAY_KEY_SECRET
+  if (!keyId || !keySecret) throw new Error('Razorpay is not configured')
+  return { keyId, keySecret, authorization: 'Basic ' + Buffer.from(`${keyId}:${keySecret}`).toString('base64') }
+}
+
+async function priceOnlineOrder(body, db) {
+  if (!Array.isArray(body.products) || body.products.length === 0) throw new Error('Cart is empty')
+
+  const products = body.products.map((line) => {
+    const product = getProductById(line.productId)
+    const quantity = Math.max(1, Math.min(50, Number.parseInt(line.quantity, 10) || 0))
+    if (!product || product.upcoming || product.price <= 0) throw new Error('Invalid product')
+    return {
+      productId: product.id,
+      productName: product.name,
+      variant: { ...(line.variant || {}), price: product.price },
+      quantity,
+      price: product.price
+    }
+  })
+
+  const subtotal = products.reduce((sum, line) => sum + line.price * line.quantity, 0)
+  const phone = String(body.phone || '')
+  const digits = phone.replace(/\D/g, '').slice(-10)
+  const previousOrder = digits
+    ? await db.collection('orders').findOne({ phone: { $regex: new RegExp(digits + '$') } })
+    : null
+  const shippingFee = resolveDeliveryFee({
+    cartTotal: subtotal,
+    methodId: body.deliveryMethodId,
+    isPickup: !!body.isPickup,
+    isFirstOrder: !previousOrder
+  })
+
+  let couponDiscount = 0
+  let coupon = null
+  if (body.couponCode) {
+    coupon = await db.collection('coupons').findOne({
+      code: String(body.couponCode).toUpperCase(),
+      isActive: true
+    })
+    if (!coupon ||
+        (coupon.expiryDate && new Date(coupon.expiryDate) < new Date()) ||
+        (coupon.maxUses !== null && coupon.usedCount >= coupon.maxUses)) {
+      throw new Error('Coupon is no longer valid')
+    }
+
+    const used = await db.collection('coupon_usage').findOne({
+      couponId: coupon.id,
+      $or: [{ userId: body.userId || null }, { userPhone: phone }]
+    })
+    if (used) throw new Error('Coupon has already been used')
+
+    const quantity = products.reduce((sum, line) => sum + line.quantity, 0)
+    if (coupon.discountType === 'bulk_tiered') {
+      if (quantity < 5) throw new Error('Minimum 5 bars required for this coupon')
+      couponDiscount = quantity >= 15 ? 235 : quantity >= 10 ? 125 : 50
+    } else if (coupon.discountType === 'fixed') {
+      couponDiscount = Number(coupon.discountValue) || 0
+    } else if (coupon.discountType === 'percentage') {
+      couponDiscount = Math.round(subtotal * (Number(coupon.discountValue) || 0) / 100)
+    }
+  }
+
+  couponDiscount = Math.max(0, Math.min(couponDiscount, subtotal + shippingFee))
+  return {
+    products,
+    subtotal,
+    shippingFee,
+    couponDiscount,
+    totalAmount: subtotal + shippingFee - couponDiscount,
+    coupon
+  }
+}
+
 function verifyRazorpaySignature(body, signature, secret) {
   const expectedSignature = crypto
     .createHmac('sha256', secret)
@@ -751,19 +829,121 @@ export async function POST(request) {
     }
 
   try {
+    // POST /api/razorpay/order - Create a trusted Razorpay order on the server
+    if (segments[0] === 'razorpay' && segments[1] === 'order') {
+      const body = await request.json()
+      const { db } = await connectToDatabase()
+      const pricing = await priceOnlineOrder(body, db)
+      const { keyId, authorization } = razorpayAuthHeader()
+      const amount = Math.round(pricing.totalAmount * 100)
+      if (!Number.isInteger(amount) || amount < 100) {
+        return NextResponse.json({ success: false, message: 'Invalid order amount' }, { status: 400 })
+      }
+
+      const rpResponse = await fetch('https://api.razorpay.com/v1/orders', {
+        method: 'POST',
+        headers: { Authorization: authorization, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount,
+          currency: 'INR',
+          receipt: uuidv4().replace(/-/g, '').slice(0, 32),
+          notes: { phone: String(body.phone || '').slice(0, 20) }
+        })
+      })
+      const rpOrder = await rpResponse.json()
+      if (!rpResponse.ok || !rpOrder.id) {
+        console.error('Razorpay order creation failed:', rpOrder?.error?.code || rpResponse.status)
+        return NextResponse.json({ success: false, message: rpOrder?.error?.description || 'Unable to start payment' }, { status: 502 })
+      }
+
+      await db.collection('pending_payments').updateOne(
+        { razorpayOrderId: rpOrder.id },
+        { $set: { ...body, ...pricing, razorpayOrderId: rpOrder.id, amount, status: 'pending', createdAt: new Date().toISOString() } },
+        { upsert: true }
+      )
+      return NextResponse.json({ success: true, keyId, orderId: rpOrder.id, amount, currency: 'INR' })
+    }
+
+    // POST /api/razorpay/verify - Verify signature and create the paid order
+    if (segments[0] === 'razorpay' && segments[1] === 'verify') {
+      const { razorpay_payment_id: paymentId, razorpay_order_id: razorpayOrderId, razorpay_signature: signature } = await request.json()
+      if (!paymentId || !razorpayOrderId || !signature) {
+        return NextResponse.json({ success: false, message: 'Incomplete payment response' }, { status: 400 })
+      }
+      const { keySecret, authorization } = razorpayAuthHeader()
+      const expected = crypto.createHmac('sha256', keySecret).update(`${razorpayOrderId}|${paymentId}`).digest('hex')
+      const supplied = String(signature)
+      if (expected.length !== supplied.length || !crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(supplied))) {
+        return NextResponse.json({ success: false, message: 'Payment verification failed' }, { status: 401 })
+      }
+
+      const { db } = await connectToDatabase()
+      const existing = await db.collection('orders').findOne({ paymentId })
+      if (existing) return NextResponse.json({ success: true, order: existing, duplicate: true })
+      const pending = await db.collection('pending_payments').findOne({ razorpayOrderId, status: 'pending' })
+      if (!pending) return NextResponse.json({ success: false, message: 'Pending order not found' }, { status: 404 })
+
+      const paymentResponse = await fetch(`https://api.razorpay.com/v1/payments/${paymentId}`, {
+        headers: { Authorization: authorization }
+      })
+      const payment = await paymentResponse.json()
+      if (!paymentResponse.ok || payment.order_id !== razorpayOrderId ||
+          payment.amount !== pending.amount || !['authorized', 'captured'].includes(payment.status)) {
+        return NextResponse.json({ success: false, message: 'Payment could not be confirmed' }, { status: 400 })
+      }
+
+      const order = {
+        orderId: uuidv4(),
+        customerName: pending.customerName,
+        email: pending.email,
+        phone: pending.phone,
+        address: pending.address,
+        pincode: pending.pincode,
+        city: pending.city || '',
+        state: pending.state || '',
+        products: pending.products,
+        subtotal: pending.subtotal,
+        shippingFee: pending.shippingFee,
+        deliveryMethod: pending.deliveryMethod,
+        couponCode: pending.couponCode || null,
+        couponDiscount: pending.couponDiscount || 0,
+        totalAmount: pending.totalAmount,
+        paymentMethod: 'online',
+        status: 'Confirmed',
+        paymentId,
+        razorpayOrderId,
+        userId: pending.userId || null,
+        affiliateCode: pending.affiliateCode || null,
+        whatsappOptIn: !!pending.whatsappOptIn,
+        whatsappOptInAt: pending.whatsappOptIn ? new Date().toISOString() : null,
+        createdAt: new Date().toISOString(),
+        createdVia: 'razorpay_verified'
+      }
+      await db.collection('orders').insertOne(order)
+      await db.collection('pending_payments').deleteOne({ _id: pending._id })
+      await db.collection('analytics').insertOne({
+        event: 'order_completed',
+        params: { orderId: order.orderId, amount: order.totalAmount, paymentMethod: 'online' },
+        timestamp: new Date().toISOString(),
+        userAgent: request.headers.get('user-agent')
+      })
+      return NextResponse.json({ success: true, order })
+    }
+
     // POST /api/razorpay/webhook - Razorpay webhook for payment events
     if (segments[0] === 'razorpay' && segments[1] === 'webhook') {
       const rawBody = await request.text()
       const signature = request.headers.get('x-razorpay-signature')
       const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET
 
-      // Verify webhook signature if secret is configured
-      if (webhookSecret && signature) {
-        const isValid = verifyRazorpaySignature(rawBody, signature, webhookSecret)
-        if (!isValid) {
-          console.error('Invalid Razorpay webhook signature')
-          return NextResponse.json({ success: false, message: 'Invalid signature' }, { status: 401 })
-        }
+      // Never accept an unsigned webhook. A missing secret is a deployment error.
+      if (!webhookSecret) {
+        console.error('RAZORPAY_WEBHOOK_SECRET is not configured')
+        return NextResponse.json({ success: false, message: 'Webhook is not configured' }, { status: 503 })
+      }
+      if (!signature || !verifyRazorpaySignature(rawBody, signature, webhookSecret)) {
+        console.error('Invalid Razorpay webhook signature')
+        return NextResponse.json({ success: false, message: 'Invalid signature' }, { status: 401 })
       }
 
       const event = JSON.parse(rawBody)
@@ -1285,9 +1465,16 @@ export async function POST(request) {
       return NextResponse.json({ success: true, message: 'Pending payment stored' })
     }
 
-    // POST /api/orders - Create new order
+    // POST /api/orders - Create COD orders only. Online orders are created
+    // exclusively by /api/razorpay/verify after server-side verification.
     if (segments[0] === 'orders' && segments.length === 1) {
       const body = await request.json()
+      if (body.paymentMethod !== 'cod') {
+        return NextResponse.json(
+          { success: false, message: 'Online payment must be verified by Razorpay' },
+          { status: 400 }
+        )
+      }
       const { db } = await connectToDatabase()
       
       // Check if order already exists for this payment (prevent duplicates)

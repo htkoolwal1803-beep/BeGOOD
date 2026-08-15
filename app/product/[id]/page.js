@@ -1,60 +1,48 @@
 'use client'
 
-import { useParams } from 'next/navigation'
 import Image from 'next/image'
-import { useState, useEffect } from 'react'
-import { getProductById } from '@/lib/products'
-import { useCart } from '@/lib/CartContext'
-import Button from '@/components/Button'
-import { Star, Check, Package, Shield, Truck } from 'lucide-react'
 import Link from 'next/link'
+import { useParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { ArrowRight, Brain, Check, ChevronRight, Leaf, Minus, Package, Plus, ShieldCheck, Sparkles, Truck } from 'lucide-react'
+import Button from '@/components/Button'
 import ProductReviews, { RatingSummary } from '@/components/ProductReviews'
+import { useCart } from '@/lib/CartContext'
 import { SHIPPING_CONFIG } from '@/lib/constants'
+import { getProductById } from '@/lib/products'
+
+const ingredientIcons = [Brain, Sparkles, Leaf]
 
 export default function ProductPage() {
   const params = useParams()
   const product = getProductById(params.id)
   const { addToCart } = useCart()
-  
   const [quantity, setQuantity] = useState(1)
   const [added, setAdded] = useState(false)
 
   useEffect(() => {
-    // Track product view
-    if (product && typeof window !== 'undefined') {
-      if (window.gtag) {
-        window.gtag('event', 'view_item', {
-          items: [{
-            item_id: product.id,
-            item_name: product.name,
-            price: product.price
-          }]
-        })
-      }
-
-      fetch('/api/analytics/track', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          event: 'product_view',
-          params: { 
-            productId: product.id,
-            productName: product.name
-          },
-          timestamp: new Date().toISOString()
-        })
-      }).catch(err => console.error('Analytics error:', err))
-    }
+    if (!product || typeof window === 'undefined') return
+    window.gtag?.('event', 'view_item', {
+      items: [{ item_id: product.id, item_name: product.name, price: product.price }]
+    })
+    fetch('/api/analytics/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        event: 'product_view',
+        params: { productId: product.id, productName: product.name },
+        timestamp: new Date().toISOString()
+      })
+    }).catch(() => {})
   }, [product])
 
   if (!product) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Product not found</h1>
-          <Link href="/shop">
-            <Button>Back to Shop</Button>
-          </Link>
+      <div className="brand-page flex min-h-[70vh] items-center justify-center px-4 py-20">
+        <div className="brand-panel max-w-md p-8 text-center">
+          <h1 className="font-playfair text-3xl font-bold">Product not found</h1>
+          <p className="mt-3 text-[#59615b]">This product may have moved or is no longer available.</p>
+          <Link href="/shop" className="mt-7 inline-block"><Button>Back to shop</Button></Link>
         </div>
       </div>
     )
@@ -71,246 +59,150 @@ export default function ProductPage() {
     window.location.href = '/checkout'
   }
 
+  const isAbar = product.id.startsWith('begood-abar')
+
   return (
-    <div className="brand-page min-h-screen py-12 md:py-20">
-      <div className="container mx-auto px-4">
-        {/* Product Main Section */}
-        <div className="brand-panel grid md:grid-cols-2 gap-12 mb-20 p-6 md:p-10">
-          {/* Image */}
-          <div className="relative aspect-square bg-[#f4ecdd] rounded-[1.5rem] overflow-hidden">
-            <Image
-              src={product.image}
-              alt={product.name}
-              fill
-              className="object-contain p-4"
-              priority
-            />
+    <div className="brand-page min-h-screen pb-20">
+      <div className="brand-container pt-6 sm:pt-8">
+        <nav className="mb-6 flex items-center gap-2 text-sm text-[#6b736d]" aria-label="Breadcrumb">
+          <Link href="/shop" className="transition-colors hover:text-[#1f4b3c]">Shop</Link>
+          <ChevronRight className="h-4 w-4" />
+          <span className="truncate text-[#2d2019]">{product.name}</span>
+        </nav>
+
+        <section className="brand-panel grid overflow-hidden lg:grid-cols-[1.03fr_0.97fr]">
+          <div className="relative min-h-[360px] bg-[radial-gradient(circle_at_50%_35%,#fffaf1_0%,#eee3ce_72%)] sm:min-h-[520px] lg:min-h-[650px]">
+            <Image src={product.image} alt={product.name} fill priority className="object-contain p-7 sm:p-12" />
+            {isAbar && (
+              <div className="absolute left-5 top-5 rounded-full border border-[#d8c8b0] bg-[#fffaf1]/90 px-3 py-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[#1f4b3c] shadow-sm backdrop-blur">
+                Functional chocolate · 40 g
+              </div>
+            )}
           </div>
 
-          {/* Product Info */}
-          <div className="space-y-6">
-            <div>
-              <p className="text-[#6f8a74] font-semibold mb-2">{product.category}</p>
-              <h1 className="font-playfair text-4xl md:text-5xl font-bold mb-4">{product.name}</h1>
-              <p className="text-xl text-[#59615b]">{product.shortDescription}</p>
+          <div className="flex flex-col p-6 sm:p-10 lg:p-12">
+            <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#8a79a8]">{product.category}</p>
+            <h1 className="mt-3 font-playfair text-4xl font-bold leading-tight text-[#2d2019] sm:text-5xl">{product.name}</h1>
+            <p className="mt-4 text-lg leading-8 text-[#59615b]">{product.shortDescription}</p>
+            <RatingSummary product={product} className="mt-5" />
+
+            <div className="mt-7 flex flex-wrap items-end gap-x-3 gap-y-2 border-y border-[#e3d7c5] py-6">
+              <span className="text-4xl font-extrabold text-[#1f4b3c]">₹{product.price}</span>
+              {product.compareAtPrice > product.price && <span className="pb-1 text-xl text-[#9a938a] line-through">₹{product.compareAtPrice}</span>}
+              {product.weight && <span className="pb-1 text-sm font-semibold text-[#6b736d]">{product.weight}</span>}
             </div>
 
-
-            {/* Price and Weight */}
-            <div>
-              <div className="flex items-baseline gap-3 mb-2">
-                <div className="text-4xl font-bold text-[#6f8a74]">₹{product.price}</div>
-                {product.compareAtPrice && product.compareAtPrice > product.price && (
-                  <span className="text-2xl text-[#9a938a] line-through">₹{product.compareAtPrice}</span>
-                )}
-                {product.weight && (
-                  <span className="text-xl text-[#59615b]">({product.weight})</span>
-                )}
-              </div>
-              {product.compareAtPrice && product.compareAtPrice > product.price && (
-                <div className="inline-block bg-[#b4472e]/10 text-[#b4472e] px-3 py-1 rounded-full text-sm font-semibold">
-                  Save ₹{product.compareAtPrice - product.price} ({Math.round((1 - product.price / product.compareAtPrice) * 100)}% off)
-                </div>
-              )}
-
-              {/* Rating sits at the point of decision, not buried below. */}
-              <RatingSummary product={product} className="mt-3" />
-
-              {/* Delivery cost stated before checkout - unexpected extra costs
-                  are the single biggest cause of cart abandonment. */}
-              <p className="mt-3 text-sm text-[#59615b]">
-                {product.price >= SHIPPING_CONFIG.FREE_SHIPPING_THRESHOLD ? (
-                  <>Free delivery on this item.</>
-                ) : (
-                  <>
-                    Delivery ₹{SHIPPING_CONFIG.SHIPPING_FEE} &middot;{' '}
-                    <span className="font-semibold text-[#3f5a46]">
-                      free on orders over ₹{SHIPPING_CONFIG.FREE_SHIPPING_THRESHOLD}
-                    </span>
-                  </>
-                )}
-              </p>
-            </div>
-
-            {/* Key Aspects */}
-            {product.keyAspects && (
-              <div className="bg-[#dce6d7]/60 p-6 rounded-2xl border border-[#d9cbb5]">
-                <h3 className="font-semibold mb-3">Key Features:</h3>
-                <ul className="space-y-2">
-                  {product.keyAspects.map((aspect, idx) => (
-                    <li key={idx} className="flex items-center text-sm">
-                      <Check className="w-4 h-4 text-[#6f8a74] mr-2 flex-shrink-0" />
-                      {aspect}
-                    </li>
-                  ))}
-                </ul>
+            {product.keyAspects?.length > 0 && (
+              <div className="mt-6 grid gap-2 sm:grid-cols-2">
+                {product.keyAspects.slice(0, 6).map((aspect) => (
+                  <div key={aspect} className="flex items-start gap-2 rounded-xl bg-[#eef3ea] px-3 py-3 text-sm font-medium text-[#31483d]">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#1f4b3c]" /> {aspect}
+                  </div>
+                ))}
               </div>
             )}
 
-            {/* Quantity */}
-            <div>
-              <label className="block text-sm font-semibold mb-2">Quantity</label>
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-10 h-10 rounded-lg border-2 border-[#d9cbb5] hover:border-[#6f8a74] transition-colors"
-                >
-                  -
-                </button>
-                <span className="w-12 text-center font-semibold">{quantity}</span>
-                <button
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="w-10 h-10 rounded-lg border-2 border-[#d9cbb5] hover:border-[#6f8a74] transition-colors"
-                >
-                  +
-                </button>
+            <div className="mt-auto pt-7">
+              <div className="mb-4 flex items-center justify-between gap-4">
+                <span className="text-sm font-bold">Quantity</span>
+                <div className="flex items-center rounded-full border border-[#d8c8b0] bg-white p-1">
+                  <button onClick={() => setQuantity(Math.max(1, quantity - 1))} aria-label="Decrease quantity" className="grid h-9 w-9 place-items-center rounded-full transition-colors hover:bg-[#eef3ea]"><Minus className="h-4 w-4" /></button>
+                  <span className="w-10 text-center font-bold" aria-live="polite">{quantity}</span>
+                  <button onClick={() => setQuantity(quantity + 1)} aria-label="Increase quantity" className="grid h-9 w-9 place-items-center rounded-full transition-colors hover:bg-[#eef3ea]"><Plus className="h-4 w-4" /></button>
+                </div>
               </div>
-            </div>
-
-            {/* Buttons */}
-            <div className="space-y-3">
-              <Button
-                onClick={handleBuyNow}
-                size="lg"
-                className="w-full"
-              >
-                Buy Now
-              </Button>
-              <Button
-                onClick={handleAddToCart}
-                variant="outline"
-                size="lg"
-                className="w-full"
-              >
-                {added ? 'Added to Cart!' : 'Add to Cart'}
-              </Button>
-            </div>
-
-            {/* Features */}
-            <div className="grid grid-cols-3 gap-4 pt-6 border-t">
-              <div className="text-center">
-                <Package className="w-6 h-6 mx-auto mb-2 text-[#6f8a74]" />
-                <p className="text-xs text-[#59615b]">Premium Quality</p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Button onClick={handleBuyNow} size="lg" className="w-full">Buy now <ArrowRight className="ml-2 h-4 w-4" /></Button>
+                <Button onClick={handleAddToCart} variant="outline" size="lg" className="w-full">{added ? 'Added to cart' : 'Add to cart'}</Button>
               </div>
-              <div className="text-center">
-                <Shield className="w-6 h-6 mx-auto mb-2 text-[#6f8a74]" />
-                <p className="text-xs text-[#59615b]">Lab Tested</p>
-              </div>
-              <div className="text-center">
-                <Truck className="w-6 h-6 mx-auto mb-2 text-[#6f8a74]" />
-                <p className="text-xs text-[#59615b]">Fast Delivery</p>
-              </div>
-            </div>
-
-            {/* Quality promise. Covers wrong items and genuine transit damage.
-                Melting and cocoa butter separation are excluded because both are
-                inherent to real chocolate rather than faults - explained here so
-                a customer seeing bloom does not think the bar has spoiled. */}
-            <div className="mt-4 p-4 bg-[#dce6d7]/50 border border-[#c3d5c0] rounded-lg">
-              <p className="text-sm font-semibold text-[#3f5a46] mb-1">
-                Our quality promise
-              </p>
-              <p className="text-xs leading-relaxed text-[#4a5a4d]">
-                If your order arrives incorrect, incomplete, or the packaging is torn or
-                crushed in transit, message us within 24 hours with a photo and we will
-                replace it or refund you. As a food product, A-Bar cannot be returned
-                once opened.
-              </p>
-              <p className="text-xs leading-relaxed text-[#4a5a4d] mt-2">
-                <strong>A note on how it looks:</strong> cocoa butter can separate and
-                leave a pale, marbled surface, especially in warm weather. That is
-                natural in real chocolate made without stabilisers &mdash; it is
-                perfectly safe to eat and not a damaged product.{' '}
-                <a href="/refund" className="underline">Full policy</a>
+              <p className="mt-4 text-center text-xs leading-5 text-[#6b736d]">
+                {product.price >= SHIPPING_CONFIG.FREE_SHIPPING_THRESHOLD
+                  ? 'Free delivery on this item.'
+                  : `Delivery ₹${SHIPPING_CONFIG.SHIPPING_FEE} · Free above ₹${SHIPPING_CONFIG.FREE_SHIPPING_THRESHOLD}.`}
               </p>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Product Details Tabs */}
-        <div className="max-w-4xl mx-auto space-y-12">
-          {/* Description */}
-          <section className="brand-card p-6 md:p-8">
-            <h2 className="font-playfair text-3xl font-bold mb-6">About This Product</h2>
-            <p className="text-[#464c49] text-lg leading-relaxed">{product.fullDescription}</p>
-          </section>
+        <section className="mt-8 grid gap-3 sm:grid-cols-3">
+          {[
+            [Package, 'Carefully packed', 'Protected for the journey'],
+            [ShieldCheck, 'Secure checkout', 'Razorpay encrypted payment'],
+            [Truck, 'Delivery clarity', 'Charges shown before payment']
+          ].map(([Icon, title, text]) => (
+            <div key={title} className="brand-card flex items-center gap-4 p-5">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#dce6d7]"><Icon className="h-5 w-5 text-[#1f4b3c]" /></span>
+              <div><p className="font-bold text-[#2d2019]">{title}</p><p className="text-sm text-[#6b736d]">{text}</p></div>
+            </div>
+          ))}
+        </section>
 
-          {/* Key Ingredients */}
-          {product.ingredients && product.ingredients.length > 0 && (
-          <section>
-            <h2 className="font-playfair text-3xl font-bold mb-6">Key Ingredients</h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              {product.ingredients.map((ingredient, idx) => (
-                <div key={idx} className="brand-card overflow-hidden">
-                  {ingredient.image && (
-                    <div className="relative aspect-[4/3] bg-[#f4ecdd]">
-                      <Image
-                        src={ingredient.image}
-                        alt={ingredient.name}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                  )}
-                  <div className="p-6">
-                    <h3 className="font-semibold text-xl mb-2">{ingredient.name}</h3>
-                    <p className="text-[#464c49]">{ingredient.benefit}</p>
-                  </div>
-                </div>
-              ))}
+        <div className="mx-auto mt-20 max-w-6xl space-y-20">
+          <section className="grid items-start gap-8 lg:grid-cols-[0.8fr_1.2fr]">
+            <div>
+              <span className="brand-pill">Formula focus</span>
+              <h2 className="mt-5 font-playfair text-4xl font-bold text-[#2d2019] sm:text-5xl">Three ingredients at the centre.</h2>
+              <p className="mt-5 text-lg leading-8 text-[#59615b]">A focused formula explained in plain language—what is in the bar, how much, and why it is there.</p>
+              <Link href="/how-it-works" className="mt-6 inline-flex items-center gap-2 font-bold text-[#1f4b3c]">See the full journey <ArrowRight className="h-4 w-4" /></Link>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-3">
+              {product.ingredients?.map((ingredient, index) => {
+                const Icon = ingredientIcons[index % ingredientIcons.length]
+                return (
+                  <article key={ingredient.name} className="brand-card p-5 sm:p-6">
+                    <span className="grid h-12 w-12 place-items-center rounded-2xl bg-[#e7def1]"><Icon className="h-6 w-6 text-[#735f94]" /></span>
+                    <p className="mt-5 text-xs font-extrabold uppercase tracking-[0.15em] text-[#8a79a8]">{ingredient.amount}</p>
+                    <h3 className="mt-2 text-xl font-bold text-[#2d2019]">{ingredient.name}</h3>
+                    <p className="mt-3 text-sm leading-6 text-[#59615b]">{ingredient.benefit}</p>
+                  </article>
+                )
+              })}
             </div>
           </section>
+
+          {product.fullIngredients?.length > 0 ? (
+            <section className="brand-panel overflow-hidden">
+              <div className="border-b border-[#e3d7c5] p-6 sm:p-8">
+                <span className="brand-pill">Complete formula</span>
+                <h2 className="mt-4 font-playfair text-3xl font-bold text-[#2d2019] sm:text-4xl">Every ingredient, clearly listed.</h2>
+                <p className="mt-3 text-[#59615b]">Quantities shown are per A-Bar, as supplied in the product formula.</p>
+              </div>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3">
+                {product.fullIngredients.map((ingredient, index) => (
+                  <div key={ingredient.name} className="flex min-h-[92px] items-start justify-between gap-4 border-b border-[#e9dfcf] p-5 sm:border-r">
+                    <div className="flex gap-3">
+                      <span className="mt-0.5 text-xs font-extrabold text-[#9a8a73]">{String(index + 1).padStart(2, '0')}</span>
+                      <div><p className="font-semibold leading-5 text-[#2d2019]">{ingredient.name}</p>{ingredient.note && <p className="mt-1 text-xs font-bold text-[#735f94]">{ingredient.note}</p>}</div>
+                    </div>
+                    <span className="shrink-0 rounded-full bg-[#eef3ea] px-2.5 py-1 text-xs font-extrabold text-[#1f4b3c]">{ingredient.amount}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="px-6 py-4 text-xs leading-5 text-[#6b736d] sm:px-8">Contains walnuts, almonds and soy. Contains honey and is not vegan. Check the pack before use if you have food allergies or sensitivities.</p>
+            </section>
+          ) : product.ingredientsList && (
+            <section className="brand-card p-6 sm:p-8"><h2 className="font-playfair text-3xl font-bold">Full ingredients</h2><p className="mt-4 leading-7 text-[#59615b]">{product.ingredientsList}</p></section>
           )}
 
-          {/* Full Ingredients List */}
-          {product.ingredientsList && (
-            <section className="brand-card p-6">
-              <h2 className="font-playfair text-2xl font-bold mb-4">Full Ingredients List</h2>
-              <p className="text-[#464c49] leading-relaxed">
-                <span className="font-semibold text-[#1f2229]">Ingredients: </span>
-                {product.ingredientsList}
-              </p>
+          {product.howItWorks && (
+            <section className="grid gap-6 rounded-[2rem] bg-[#172f28] p-6 text-[#fffaf1] sm:p-10 lg:grid-cols-[0.75fr_1.25fr] lg:p-12">
+              <div><p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#bfaed7]">How it works</p><h2 className="mt-4 font-playfair text-4xl font-bold">A simple ritual, not a complicated routine.</h2></div>
+              <p className="text-lg leading-8 text-[#dce6e1]">{product.howItWorks}</p>
             </section>
           )}
 
-          {/* How It Works */}
-          {product.howItWorks && (
-          <section className="brand-card p-6 md:p-8">
-            <h2 className="font-playfair text-3xl font-bold mb-6">How It Works</h2>
-            <div className="text-[#464c49] text-lg leading-relaxed whitespace-pre-line">
-              {product.howItWorks}
-            </div>
-          </section>
+          {product.occasions?.length > 0 && (
+            <section>
+              <div className="text-center"><span className="brand-pill">Made for real moments</span><h2 className="mt-5 font-playfair text-4xl font-bold">When to reach for A-Bar.</h2></div>
+              <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {product.occasions.map((occasion) => <div key={occasion} className="brand-card flex items-center gap-3 p-5"><Check className="h-5 w-5 shrink-0 text-[#1f4b3c]" /><span className="font-semibold text-[#3d403e]">{occasion}</span></div>)}
+              </div>
+            </section>
           )}
 
-          {/* When To Use */}
-          {product.occasions && product.occasions.length > 0 && (
-          <section className="brand-card p-6 md:p-8">
-            <h2 className="font-playfair text-3xl font-bold mb-6">When To Use</h2>
-            <div className="grid md:grid-cols-2 gap-4">
-              {product.occasions.map((occasion, idx) => (
-                <div key={idx} className="flex items-center space-x-3 p-4 bg-[#dce6d7]/60 rounded-xl border border-[#d9cbb5]">
-                  <Check className="w-5 h-5 text-[#6f8a74] flex-shrink-0" />
-                  <span className="text-[#464c49]">{occasion}</span>
-                </div>
-              ))}
-            </div>
-          </section>
-          )}
+          {product.usage && <section className="rounded-[1.75rem] border border-[#c9badc] bg-[#f1eaf7] p-6 sm:p-8"><p className="text-xs font-extrabold uppercase tracking-[0.17em] text-[#735f94]">How to enjoy it</p><p className="mt-3 text-lg leading-8 text-[#493f52]">{product.usage}</p></section>}
 
-          {/* Usage */}
-          {product.usage && (
-          <section className="bg-[#dce6d7]/70 border border-[#d9cbb5] p-8 rounded-2xl">
-            <h2 className="font-playfair text-2xl font-bold mb-4">Usage Instructions</h2>
-            <p className="text-[#464c49] text-lg">{product.usage}</p>
-          </section>
-          )}
-
-
-
-          {/* Customer reviews */}
           <ProductReviews product={product} />
-
         </div>
       </div>
     </div>

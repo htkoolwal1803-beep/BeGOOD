@@ -1,174 +1,82 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import { ArrowRight, Brain, Heart, Leaf, Microscope, ShieldCheck, Sparkles, Target } from 'lucide-react'
 import Button from '@/components/Button'
-import { ArrowRight, Target, Heart, Award } from 'lucide-react'
 
 export const metadata = {
-  title: 'About Us - BeGood | Just Feel It',
-  description: 'Learn about BeGood\'s mission to bring calm, focus, and wellness through premium functional chocolate.'
+  title: 'About BeGood | A Focused Mind, On Demand',
+  description: 'Meet BeGood—the science-led functional food brand creating a simpler calm-focus ritual for high-stakes moments.'
 }
 
+const values = [
+  { icon: Microscope, title: 'Science, made understandable', text: 'We explain ingredient roles and quantities in plain language, with clear limits on what a functional food can promise.' },
+  { icon: Heart, title: 'Human moments first', text: 'Every product begins with a real moment: the exam, interview, presentation or conversation where composure matters.' },
+  { icon: ShieldCheck, title: 'Clarity builds trust', text: 'From the full formula to delivery fees and checkout, important information should never be hidden.' }
+]
+
+const ingredients = [
+  { icon: Brain, name: 'L-Theanine', amount: '140 mg', text: 'Studied for supporting relaxed alertness without drowsiness.' },
+  { icon: Sparkles, name: 'Magnesium Glycinate', amount: '134 mg · 20% RDA', text: 'Supports normal nervous-system and psychological function.' },
+  { icon: Leaf, name: 'Chicory Root', amount: '2.18 g', text: 'A prebiotic root ingredient included to support the magnesium-absorption strategy.' }
+]
+
 export default function AboutPage() {
-  const ingredients = [
-    {
-      name: 'Walnuts',
-      image: '/ingredients/walnuts.jpg',
-      benefit: 'Naturally nutrient-rich nuts that support brain health and add a satisfying, wholesome texture.'
-    },
-    {
-      name: 'Pumpkin Seeds',
-      image: '/ingredients/pumpkin-seeds.jpg',
-      benefit: 'A clean seed source that brings minerals, plant-based goodness, and steady nourishment.'
-    },
-    {
-      name: 'Cocoa Butter',
-      image: '/ingredients/cocoa-butter.jpg',
-      benefit: 'A smooth cocoa-derived fat that gives A-Bar its premium chocolate mouthfeel.'
-    },
-    {
-      name: 'L-Theanine',
-      image: '/ingredients/l-theanine.jpg',
-      benefit: 'Supports calm focus without drowsiness, helping you feel composed when it matters.'
-    }
-  ]
-
   return (
-    <div className="brand-page min-h-screen">
-      {/* Hero Section */}
-      <section className="bg-[#fbf7ed]/75 py-20 md:py-32">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="font-playfair text-5xl md:text-6xl font-bold mb-6">
-              Just Feel It
-            </h1>
-            <p className="text-xl md:text-2xl text-[#59615b] leading-relaxed">
-              We believe emotional balance should be convenient and effective. 
-              That's why we created BeGood-functional consumables that helps you improve your human performance
-              when it matters most.
-            </p>
+    <div className="brand-page min-h-screen overflow-hidden">
+      <section className="relative py-16 sm:py-24 lg:py-28">
+        <div className="pointer-events-none absolute -left-28 top-12 h-72 w-72 rounded-full bg-[#dce9dc] blur-3xl" />
+        <div className="brand-container relative grid items-center gap-12 lg:grid-cols-[1fr_0.9fr]">
+          <div>
+            <span className="brand-pill"><Target className="h-4 w-4" /> Our point of view</span>
+            <h1 className="mt-6 font-playfair text-5xl font-bold leading-[1.03] text-[#2d2019] sm:text-6xl lg:text-7xl">Your state of mind is part of your preparation.</h1>
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-[#59615b] sm:text-xl">BeGood exists to make emotional preparation more practical—through thoughtfully formulated foods that fit naturally into real life.</p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row"><Link href="/shop"><Button size="lg">Explore A-Bar <ArrowRight className="ml-2 h-5 w-5" /></Button></Link><Link href="/how-it-works"><Button variant="outline" size="lg">See how it works</Button></Link></div>
           </div>
-        </div>
-      </section>
-
-      {/* Our Story */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
-            <div>
-              <h2 className="font-playfair text-4xl font-bold mb-6">Our Story</h2>
-              <div className="space-y-4 text-[#464c49] text-lg leading-relaxed">
-                <p>
-                  BeGood was born from a simple observation: everyone focuses on gaining knowledge,
-                  improving health or just are not in own control. But nobody focuses on emotions despite it been the 
-                  major stakeholder for our decisions and relations.
-                </p>
-                <p>
-                  We asked ourselves: why is that so and we figured that that's because we have been told that emotions can 
-                  only be controlled or balanced with your will and mind persistence. It was tough and inconvenient. So we created BeGood to help humans
-                  to not lose their decision-making consciousness when you are impulsive and vulnerable ?
-                </p>
-                <p>
-                  That's how BeGood came to life—premium products with science-backed ingredients. Delicious. Effective. Convenient.
-                </p>
-              </div>
-            </div>
-            <div className="relative bg-[#f4ecdd] rounded-2xl overflow-hidden">
-              <Image
-                src="/a-bar-packaging.png"
-                alt="BeGood Product"
-                fill
-                className="object-contain"
-              />
+          <div className="relative mx-auto aspect-square w-full max-w-lg overflow-hidden rounded-[2rem] border border-[#d8c8b0] bg-[radial-gradient(circle_at_50%_35%,#fffaf1_0%,#eee3ce_74%)] shadow-[0_30px_80px_rgba(64,46,35,0.12)]">
+            <Image src="/a-bar-packaging.png" alt="BeGood A-Bar functional chocolate" fill priority className="object-contain p-8 sm:p-12" />
+            <div className="absolute bottom-5 left-5 right-5 rounded-2xl border border-white/60 bg-white/80 p-4 backdrop-blur">
+              <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[#8a79a8]">The idea</p><p className="mt-1 font-bold text-[#2d2019]">A focused mind, on demand.</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Our Mission & Values */}
-      <section className="py-20 bg-[#f4ecdd]">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="font-playfair text-4xl md:text-5xl font-bold mb-4">Our Mission & Values</h2>
-            <p className="text-xl text-[#59615b] max-w-2xl mx-auto">
-              We're on a mission to make emotional wellness convinient, enjoyable, and effective.
-            </p>
+      <section className="bg-[#172f28] py-20 text-[#fffaf1] sm:py-24">
+        <div className="brand-container grid gap-10 lg:grid-cols-[0.78fr_1.22fr]">
+          <div><p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#bfaed7]">Why we started</p><h2 className="mt-4 font-playfair text-4xl font-bold sm:text-5xl">Knowledge matters. So does the state in which you use it.</h2></div>
+          <div className="space-y-5 text-lg leading-8 text-[#dce6e1]">
+            <p>People spend years building skills, yet the minutes before an exam, interview or presentation can still feel noisy. We saw a need for a preparation ritual that was convenient, familiar and easy to use.</p>
+            <p>A-Bar is our first answer: functional ingredients in a premium chocolate format, designed for calmer, clearer high-stakes moments. It does not replace sleep, practice, therapy or medical care. It simply gives preparation a tangible final step.</p>
           </div>
+        </div>
+      </section>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            <div className="brand-card p-5 sm:p-8 text-center">
-              <div className="w-16 h-16 bg-[#6f8a74]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Target className="w-8 h-8 text-[#6f8a74]" />
-              </div>
-              <h3 className="font-playfair text-2xl font-bold mb-4">Science-Backed</h3>
-              <p className="text-[#464c49]">
-                Every ingredient is carefully selected based on research and proven benefits. 
-                We don't compromise on efficacy.
-              </p>
-            </div>
+      <section className="py-20 sm:py-24">
+        <div className="brand-container">
+          <div className="mx-auto max-w-3xl text-center"><span className="brand-pill">What guides us</span><h2 className="mt-5 font-playfair text-4xl font-bold sm:text-5xl">Professional by design. Responsible by default.</h2></div>
+          <div className="mt-10 grid gap-5 md:grid-cols-3">
+            {values.map(({ icon: Icon, title, text }, index) => (
+              <article key={title} className="brand-card p-6 sm:p-8"><div className="flex items-center justify-between"><span className="grid h-12 w-12 place-items-center rounded-2xl bg-[#e7def1]"><Icon className="h-6 w-6 text-[#735f94]" /></span><span className="font-playfair text-4xl font-bold text-[#ded4c5]">0{index + 1}</span></div><h3 className="mt-6 text-2xl font-bold text-[#2d2019]">{title}</h3><p className="mt-3 leading-7 text-[#59615b]">{text}</p></article>
+            ))}
+          </div>
+        </div>
+      </section>
 
-            <div className="brand-card p-5 sm:p-8 text-center">
-              <div className="w-16 h-16 bg-[#6f8a74]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Heart className="w-8 h-8 text-[#6f8a74]" />
-              </div>
-              <h3 className="font-playfair text-2xl font-bold mb-4">Human First</h3>
-              <p className="text-[#464c49]">
-                We understand real stress because we've lived it. Our products are designed 
-                for real people facing real moments.
-              </p>
-            </div>
-
-            <div className="brand-card p-5 sm:p-8 text-center">
-              <div className="w-16 h-16 bg-[#6f8a74]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Award className="w-8 h-8 text-[#6f8a74]" />
-              </div>
-              <h3 className="font-playfair text-2xl font-bold mb-4">Premium Quality</h3>
-              <p className="text-[#464c49]">
-                All our ingredients are of premium quality and 100% natural.
-              </p>
+      <section className="border-y border-[#e4d8c7] bg-[#f3ecdf] py-20 sm:py-24">
+        <div className="brand-container">
+          <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
+            <div><span className="brand-pill">Formula philosophy</span><h2 className="mt-5 font-playfair text-4xl font-bold text-[#2d2019] sm:text-5xl">Focused ingredients, clearly explained.</h2><p className="mt-5 text-lg leading-8 text-[#59615b]">These are the three ingredients at the centre of A-Bar. The product page lists all 18 formula ingredients and their quantities.</p></div>
+            <div className="grid gap-4 sm:grid-cols-3">
+              {ingredients.map(({ icon: Icon, name, amount, text }) => (
+                <article key={name} className="rounded-[1.5rem] border border-[#d8c8b0] bg-[#fffaf1] p-6"><span className="grid h-12 w-12 place-items-center rounded-2xl bg-[#dce6d7]"><Icon className="h-6 w-6 text-[#1f4b3c]" /></span><p className="mt-5 text-xs font-extrabold uppercase tracking-[0.14em] text-[#8a79a8]">{amount}</p><h3 className="mt-2 text-xl font-bold">{name}</h3><p className="mt-3 text-sm leading-6 text-[#59615b]">{text}</p></article>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* The Science */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="font-playfair text-4xl md:text-5xl font-bold mb-8 text-center">The Science Behind BeGood</h2>
-            <p className="text-xl text-[#59615b] mb-12 text-center">
-              Our formula combines whole-food ingredients with L-Theanine, an amino acid found naturally in tea
-            </p>
-
-              <div className="grid gap-6 md:grid-cols-2">
-                {ingredients.map((ingredient) => (
-                  <div key={ingredient.name} className="brand-card overflow-hidden">
-                    <div className="relative aspect-[4/3]">
-                      <Image src={ingredient.image} alt={ingredient.name} fill className="object-cover" />
-                    </div>
-                    <div className="p-6">
-                      <h3 className="text-2xl font-bold mb-3">{ingredient.name}</h3>
-                      <p className="text-[#464c49] leading-relaxed">{ingredient.benefit}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-[#6f8a74] to-[#536a58] text-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="font-playfair text-4xl md:text-5xl font-bold mb-6">Experience the Difference</h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90">
-            Made for the moments that matter most
-          </p>
-          <Link href="/shop">
-            <Button variant="secondary" size="lg">
-              Shop Now <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
-          </Link>
-        </div>
+      <section className="py-20 sm:py-24">
+        <div className="brand-container"><div className="grid items-center gap-7 rounded-[2rem] bg-[linear-gradient(135deg,#efe5f5_0%,#e6efe4_100%)] p-7 sm:p-10 lg:grid-cols-[1fr_auto] lg:p-12"><div><p className="text-xs font-extrabold uppercase tracking-[0.17em] text-[#735f94]">Our first chapter</p><h2 className="mt-3 font-playfair text-4xl font-bold text-[#2d2019]">Meet the bar that started BeGood.</h2><p className="mt-4 max-w-3xl text-lg leading-8 text-[#59615b]">A-Bar turns calm-focus support into a chocolate ritual you can keep in your bag, desk or study space.</p></div><Link href="/product/begood-abar-001"><Button size="lg">Shop A-Bar <ArrowRight className="ml-2 h-5 w-5" /></Button></Link></div></div>
       </section>
     </div>
   )
