@@ -13,6 +13,7 @@ import { calculateShipping, calculateOrderTotal, SHIPPING_CONFIG, COD_CONFIG, DE
 import { estimateDeliveryByPincode } from '@/lib/deliveryDistance'
 import { cartHasHamper } from '@/lib/products'
 import { markReturningVisitor } from '@/lib/firstOrder'
+import { ABAR_HERO_SRC } from '@/components/HeroPack'
 
 export default function CheckoutPage() {
   const { cart, cartTotal, clearCart } = useCart()
@@ -775,7 +776,7 @@ Please prepare this order for shipment.
         order_id: razorpayOrder.orderId,
         name: 'BeGood',
         description: 'Functional Chocolate Order',
-        image: '/a-bar-packaging.png',
+        image: ABAR_HERO_SRC,
         prefill: {
           name: profileData.name,
           email: profileData.email,
@@ -1325,7 +1326,8 @@ Please prepare this order for shipment.
                         src={item.image}
                         alt={item.name}
                         fill
-                        className="object-cover"
+                        unoptimized={typeof item.image === 'string' && item.image.startsWith('data:')}
+                        className="object-contain p-2"
                       />
                     </div>
                     <div className="flex-1 min-w-0">

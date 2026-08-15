@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
+import HeroPack from '@/components/HeroPack'
 import { Package, Truck, Calendar, Sparkles } from 'lucide-react'
 
 export default function SubscriptionCard() {
@@ -18,12 +18,7 @@ export default function SubscriptionCard() {
 
         {/* Image Section */}
         <div className="relative aspect-square overflow-hidden bg-[#f4ecdd]">
-          <Image
-            src="/a-bar-packaging.png"
-            alt="A-Bar Subscription"
-            fill
-            className="object-contain p-4 group-hover:scale-105 transition-transform duration-300"
-          />
+          <HeroPack className="transition-transform duration-300 group-hover:scale-[1.04]" />
           {/* Subscription Overlay */}
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#3f4350] to-transparent p-4">
             <p className="text-white font-bold text-center">SUBSCRIPTION</p>

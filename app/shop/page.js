@@ -32,7 +32,7 @@ export default function ShopPage() {
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-[#59615b] sm:text-xl">Start with one bar, keep two ready, or stock up for the moments already on your calendar.</p>
           </div>
           <div className="mx-auto mt-9 flex max-w-3xl flex-wrap justify-center gap-3 text-sm font-semibold text-[#31483d]">
-            {['140 mg L-Theanine', 'Magnesium glycinate', 'Chicory root', 'No added sugar'].map((item) => (
+            {['L-Theanine', 'Magnesium glycinate', 'Chicory root', 'Acts in less than 20 min'].map((item) => (
               <span key={item} className="inline-flex items-center gap-2 rounded-full border border-[#c7d7c7] bg-white/70 px-4 py-2"><Check className="h-4 w-4 text-[#1f4b3c]" /> {item}</span>
             ))}
           </div>

@@ -27,17 +27,17 @@ import { useEffect, useState } from 'react'
 const sciencePoints = [
   {
     title: 'L-Theanine',
-    detail: '140 mg per bar, studied for supporting relaxed alertness without the heavy feeling.',
+    detail: 'Studied for supporting relaxed alertness without the heavy feeling.',
     icon: Brain
   },
   {
     title: 'Magnesium Glycinate',
-    detail: '134 mg per bar (20% RDA) to support normal nervous-system function.',
+    detail: 'Supports normal nervous-system function in a highly usable chelated form.',
     icon: Sparkles
   },
   {
     title: 'Chicory Root Extract',
-    detail: '2.18 g of chicory root, included to help support magnesium absorption.',
+    detail: 'A prebiotic root ingredient included to help support magnesium absorption.',
     icon: Leaf
   }
 ]
@@ -186,7 +186,7 @@ export default function Home() {
               </div>
               <div className="science-float bottom-[11%] right-0">
                 <Clock3 className="h-4 w-4 text-[#1f4b3c]" />
-                <span><strong>30–45 min</strong><small>Designed for the moment</small></span>
+                <span><strong>&lt;20 min</strong><small>Designed to act</small></span>
               </div>
             </div>
           </div>
@@ -198,7 +198,7 @@ export default function Home() {
           {[
             ['100%', 'natural ingredients'],
             ['0g', 'added sugar'],
-            ['30–45', 'minute routine'],
+            ['<20', 'minutes to act'],
             ['4.9/5', 'customer rating']
           ].map(([number, label]) => (
             <div key={label} className="px-3 py-6 text-center sm:py-8">
@@ -240,7 +240,7 @@ export default function Home() {
               <div className="mt-3 grid grid-cols-3 overflow-hidden rounded-3xl border border-white/15 bg-white/[0.06]">
                 {[
                   ['01', 'Enjoy', 'Like premium chocolate'],
-                  ['02', 'Pause', 'Give yourself 30–45 min'],
+                  ['02', 'Prepare', 'Acts in less than 20 min'],
                   ['03', 'Step in', 'Calmer, clearer, composed']
                 ].map(([number, title, detail]) => (
                   <div key={title} className="border-r border-white/10 p-4 last:border-r-0 sm:p-6">
