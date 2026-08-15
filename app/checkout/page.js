@@ -646,7 +646,10 @@ Please prepare this order for shipment.
         paymentId: null,
         userId: user?.uid || null,
         affiliateCode: affiliateCode || null,
-        whatsappOptIn: whatsappOptIn
+        whatsappOptIn: whatsappOptIn,
+        deliveryMethodId: deliveryMethod,
+        isPickup,
+        isFirstOrder
       }
 
       const orderResponse = await fetch('/api/orders', {
@@ -752,21 +755,21 @@ Please prepare this order for shipment.
         whatsappOptIn: whatsappOptIn
       }
 
-      // Store pending order on server before initiating payment (for webhook backup)
-      try {
-        await fetch('/api/pending-payment', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(preOrderData)
-        })
-      } catch (e) {
-        console.error('Failed to store pending payment:', e)
+      const razorpayOrderResponse = await fetch('/api/razorpay/order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(preOrderData)
+      })
+      const razorpayOrder = await razorpayOrderResponse.json()
+      if (!razorpayOrderResponse.ok || !razorpayOrder.success) {
+        throw new Error(razorpayOrder.message || 'Unable to start payment')
       }
-      
+
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: orderTotal * 100,
-        currency: 'INR',
+        key: razorpayOrder.keyId,
+        amount: razorpayOrder.amount,
+        currency: razorpayOrder.currency,
+        order_id: razorpayOrder.orderId,
         name: 'BeGood',
         description: 'Functional Chocolate Order',
         image: '/a-bar-packaging.png',
@@ -779,67 +782,18 @@ Please prepare this order for shipment.
           color: '#6f8a74'
         },
         handler: async function (response) {
-          const paymentId = response.razorpay_payment_id
-
-          const orderData = {
-            ...preOrderData,
-            paymentId: paymentId
-          }
-
-          // Store payment info in localStorage as backup before attempting order creation
-          const pendingOrder = {
-            ...orderData,
-            timestamp: new Date().toISOString(),
-            attempts: 0
-          }
-          localStorage.setItem(`pending_order_${paymentId}`, JSON.stringify(pendingOrder))
-
-          // Retry function for order creation
-          const createOrderWithRetry = async (maxRetries = 3) => {
-            for (let attempt = 1; attempt <= maxRetries; attempt++) {
-              try {
-                console.log(`Order creation attempt ${attempt}/${maxRetries} for payment ${paymentId}`)
-                
-                const orderResponse = await fetch('/api/orders', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(orderData)
-                })
-
-                if (!orderResponse.ok) {
-                  throw new Error(`HTTP error! status: ${orderResponse.status}`)
-                }
-
-                const orderResult = await orderResponse.json()
-
-                if (orderResult.success) {
-        markReturningVisitor()
-                  // Order created successfully - remove from pending
-                  localStorage.removeItem(`pending_order_${paymentId}`)
-                  return { success: true, order: orderResult.order }
-                } else {
-                  throw new Error(orderResult.message || 'Order creation failed')
-                }
-              } catch (error) {
-                console.error(`Attempt ${attempt} failed:`, error)
-                
-                // Update pending order with attempt count
-                pendingOrder.attempts = attempt
-                localStorage.setItem(`pending_order_${paymentId}`, JSON.stringify(pendingOrder))
-                
-                if (attempt < maxRetries) {
-                  // Wait before retry (exponential backoff: 1s, 2s, 4s)
-                  await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt - 1) * 1000))
-                }
-              }
+          try {
+            const verifyResponse = await fetch('/api/razorpay/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(response)
+            })
+            const result = await verifyResponse.json()
+            if (!verifyResponse.ok || !result.success) {
+              throw new Error(result.message || 'Payment verification failed')
             }
-            return { success: false }
-          }
 
-          const result = await createOrderWithRetry(3)
-
-          if (result.success) {
-            // Record coupon usage if coupon was applied
+            markReturningVisitor()
             if (appliedCoupon) {
               try {
                 await fetch('/api/coupons/apply', {
@@ -851,7 +805,7 @@ Please prepare this order for shipment.
                     userId: user?.uid || null,
                     userPhone: user?.phoneNumber || `+91${phone}`,
                     orderId: result.order.orderId,
-                    discountAmount: couponDiscount
+                    discountAmount: result.order.couponDiscount
                   })
                 })
               } catch (couponError) {
@@ -862,13 +816,13 @@ Please prepare this order for shipment.
             if (window.gtag) {
               window.gtag('event', 'purchase', {
                 transaction_id: result.order.orderId,
-                value: orderTotal,
+                value: result.order.totalAmount,
                 currency: 'INR',
-                shipping: shippingFee,
-                items: cart.map(item => ({
-                  item_id: item.id,
-                  item_name: item.name,
-                  price: item.variant.price,
+                shipping: result.order.shippingFee,
+                items: result.order.products.map(item => ({
+                  item_id: item.productId,
+                  item_name: item.productName,
+                  price: item.price,
                   quantity: item.quantity
                 }))
               })
@@ -877,20 +831,12 @@ Please prepare this order for shipment.
             await sendConfirmationEmail(result.order)
             clearCart()
             router.push(`/order/${result.order.orderId}`)
-          } else {
-            // All retries failed - show detailed message and keep data in localStorage
-            alert(
-              `Payment successful but order creation failed after multiple attempts.\n\n` +
-              `Your payment ID: ${paymentId}\n\n` +
-              `Don't worry! Your payment is safe. Please contact support at healhat25@gmail.com with your payment ID.\n\n` +
-              `We will create your order manually within 24 hours.`
-            )
-            
-            // Redirect to a confirmation page with payment info
-            router.push(`/order/pending?paymentId=${paymentId}`)
+          } catch (error) {
+            console.error('Payment verification error:', error)
+            alert('Payment received, but verification is still pending. Please contact support before paying again.')
+          } finally {
+            setLoading(false)
           }
-
-          setLoading(false)
         },
         modal: {
           ondismiss: function() {
@@ -907,7 +853,8 @@ Please prepare this order for shipment.
       razorpay.open()
 
     } catch (error) {
-      alert('Payment initialization failed. Please try again.')
+      console.error('Payment initialization failed:', error)
+      alert(error.message || 'Payment initialization failed. Please try again.')
       setLoading(false)
     }
   }
