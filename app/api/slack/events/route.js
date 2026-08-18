@@ -1,0 +1,47 @@
+import { NextResponse } from 'next/server'
+import { waitUntil } from '@vercel/functions'
+import { approvePost } from '@/lib/social/posts'
+import { processDuePosts } from '@/lib/social/publishers'
+import { recordEventOnce } from '@/lib/social/server'
+import { sendSlackStatus, verifySlackSignature } from '@/lib/social/slack'
+
+export const runtime = 'nodejs'
+export const maxDuration = 60
+
+export async function POST(request) {
+  const rawBody = await request.text()
+  const timestamp = request.headers.get('x-slack-request-timestamp') || ''
+  const signature = request.headers.get('x-slack-signature') || ''
+  if (!verifySlackSignature(rawBody, timestamp, signature)) {
+    return NextResponse.json({ ok: false, error: 'invalid_signature' }, { status: 401 })
+  }
+
+  let payload
+  try { payload = JSON.parse(rawBody) } catch {
+    return NextResponse.json({ ok: false, error: 'invalid_json' }, { status: 400 })
+  }
+  if (payload.type === 'url_verification') return NextResponse.json({ challenge: payload.challenge })
+  if (payload.type !== 'event_callback') return NextResponse.json({ ok: true })
+
+  const event = payload.event || {}
+  if (event.type !== 'message' || event.subtype || event.bot_id) return NextResponse.json({ ok: true })
+  if (event.channel !== process.env.SLACK_CHANNEL_ID || event.user !== process.env.SLACK_APPROVER_USER_ID) {
+    return NextResponse.json({ ok: true })
+  }
+  const match = String(event.text || '').trim().match(/^APPROVE\s+(BG-\d{8}-\d{2})$/)
+  if (!match) return NextResponse.json({ ok: true })
+  if (!(await recordEventOnce(`slack:${payload.event_id || event.client_msg_id || event.ts}`))) {
+    return NextResponse.json({ ok: true })
+  }
+
+  const result = await approvePost({ postId: match[1], userId: event.user, eventTs: event.ts })
+  if (result.approved) {
+    waitUntil((async () => {
+      await sendSlackStatus(`✅ ${match[1]} approved by Hardik. Each platform will publish at its designated time; missed slots publish immediately within 24 hours.`)
+      await processDuePosts({ postId: match[1] })
+    })())
+  } else if (result.reason !== 'already_approved') {
+    waitUntil(sendSlackStatus(`⚠️ ${match[1]} was not approved: ${result.reason.replaceAll('_', ' ')}.`))
+  }
+  return NextResponse.json({ ok: true })
+}
