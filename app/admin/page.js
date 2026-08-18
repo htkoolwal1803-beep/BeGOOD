@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Lock, TrendingUp, ShoppingCart, Users, MapPin, Smartphone, Monitor, Star, ChevronDown, ChevronUp, Phone, Package, Tag, Link2, MessageSquare, Mail, Bell } from 'lucide-react'
+import { Lock, TrendingUp, ShoppingCart, Users, MapPin, Smartphone, Monitor, Star, ChevronDown, ChevronUp, Phone, Package, Tag, Link2, MessageSquare, Mail, Bell, Share2 } from 'lucide-react'
 import Button from '@/components/Button'
 import Link from 'next/link'
 import { adminFetch, setAdminKey } from '@/lib/adminAuth'
@@ -174,6 +174,12 @@ export default function AdminDashboard() {
                 <Button variant="outline">
                   <MessageSquare className="w-4 h-4 mr-2" />
                   Feedback
+                </Button>
+              </Link>
+              <Link href="/admin/social">
+                <Button variant="outline">
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Social
                 </Button>
               </Link>
             </div>

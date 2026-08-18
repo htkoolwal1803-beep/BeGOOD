@@ -10,6 +10,8 @@
         "start": "next start"
     },
     "dependencies": {
+    "@vercel/blob": "^2.8.0",
+    "@vercel/functions": "^3.9.3",
     "@emailjs/browser": "^4.3.3",
     "firebase": "^10.7.1",
         "@hookform/resolvers": "^5.1.1",
