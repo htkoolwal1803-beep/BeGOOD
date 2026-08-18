@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(request, { params }) {
   if (!cronAuthorized(request)) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
-  const phase = params.phase
+  const { phase } = await params
   try {
     if (phase === 'approvals') {
       const results = await sendDueApprovalRequests()

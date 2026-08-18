@@ -12,9 +12,7 @@ const nextConfig = {
       },
     ],
   },
-  experimental: {
-    serverComponentsExternalPackages: ['mongodb'],
-  },
+  serverExternalPackages: ['mongodb'],
   webpack(config, { dev }) {
     if (dev) {
       // Reduce CPU/memory from file watching
