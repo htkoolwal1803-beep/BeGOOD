@@ -37,7 +37,7 @@ export async function POST(request) {
   const result = await approvePost({ postId: match[1], userId: event.user, eventTs: event.ts })
   if (result.approved) {
     waitUntil((async () => {
-      await sendSlackStatus(`✅ ${match[1]} approved by Hardik. Each platform will publish at its designated time; missed slots publish immediately within 24 hours.`)
+      await sendSlackStatus(`✅ ${match[1]} approved by Hardik. Each enabled platform will publish at its designated time; missed slots publish immediately within 24 hours.`)
       await processDuePosts({ postId: match[1] })
     })())
   } else if (result.reason !== 'already_approved') {
