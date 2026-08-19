@@ -60,7 +60,7 @@ After the production route is deployed:
 
 1. Enable Event Subscriptions.
 2. Set Request URL to `https://begoodshop.in/api/slack/events`.
-3. Subscribe to the bot event `message.channels`.
+3. Subscribe to the bot events `message.channels` and `file_shared`.
 4. Save, reinstall the app if Slack requests it, and keep the bot invited to `#gpt`.
 
 The only accepted command is `APPROVE BG-YYYYMMDD-NN`, sent by the configured user in the configured channel.
