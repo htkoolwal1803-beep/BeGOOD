@@ -9,6 +9,22 @@ import { sendSlackStatus, verifySlackSignature } from '@/lib/social/slack'
 export const runtime = 'nodejs'
 export const maxDuration = 60
 
+async function queueContentPack(fileId) {
+  if (!fileId) return false
+  if (!(await recordEventOnce(`slack-pack:${fileId}`))) return true
+
+  waitUntil((async () => {
+    try {
+      const result = await ingestSlackContentPack(fileId)
+      if (result.duplicate) await sendSlackStatus(`ℹ️ ${result.postId} was already queued; its approval request has been restored if needed.`)
+    } catch (error) {
+      await sendSlackStatus(`⚠️ The automated BeGood content-pack was rejected. Nothing was queued. Error: ${String(error?.message || error)}`)
+        .catch(() => {})
+    }
+  })())
+  return true
+}
+
 export async function POST(request) {
   const rawBody = await request.text()
   const timestamp = request.headers.get('x-slack-request-timestamp') || ''
@@ -25,6 +41,15 @@ export async function POST(request) {
   if (payload.type !== 'event_callback') return NextResponse.json({ ok: true })
 
   const event = payload.event || {}
+
+  if (event.type === 'file_shared') {
+    if (event.channel_id !== process.env.SLACK_CHANNEL_ID || event.user_id !== process.env.SLACK_APPROVER_USER_ID) {
+      return NextResponse.json({ ok: true })
+    }
+    await queueContentPack(event.file_id || event.file?.id)
+    return NextResponse.json({ ok: true })
+  }
+
   if (event.type !== 'message' || event.bot_id) return NextResponse.json({ ok: true })
   if (event.channel !== process.env.SLACK_CHANNEL_ID || event.user !== process.env.SLACK_APPROVER_USER_ID) {
     return NextResponse.json({ ok: true })
@@ -33,18 +58,7 @@ export async function POST(request) {
   if (event.subtype === 'file_share') {
     const pack = (event.files || []).find((file) => /^BG-\d{8}-\d{2}\.zip$/i.test(String(file.name || '')))
     if (!pack?.id) return NextResponse.json({ ok: true })
-    if (!(await recordEventOnce(`slack-pack:${payload.event_id || event.client_msg_id || event.ts}`))) {
-      return NextResponse.json({ ok: true })
-    }
-    waitUntil((async () => {
-      try {
-        const result = await ingestSlackContentPack(pack.id)
-        if (result.duplicate) await sendSlackStatus(`ℹ️ ${result.postId} was already queued; its approval request has been restored if needed.`)
-      } catch (error) {
-        await sendSlackStatus(`⚠️ The automated BeGood content-pack was rejected. Nothing was queued. Error: ${String(error?.message || error)}`)
-          .catch(() => {})
-      }
-    })())
+    await queueContentPack(pack.id)
     return NextResponse.json({ ok: true })
   }
 
