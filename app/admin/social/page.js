@@ -27,6 +27,7 @@ function makePostId(date, sequence) {
 function badgeClass(status) {
   if (status === 'published' || status === 'approved') return 'bg-green-100 text-green-800'
   if (status === 'needs_review' || status === 'expired') return 'bg-red-100 text-red-800'
+  if (status === 'disabled') return 'bg-gray-200 text-gray-700'
   return 'bg-amber-100 text-amber-800'
 }
 
@@ -36,6 +37,7 @@ export default function SocialPublishingAdmin() {
   const [data, setData] = useState({ posts: [], connections: [] })
   const [date, setDate] = useState(nextScheduledDate())
   const [sequence, setSequence] = useState(1)
+  const [enabledPlatforms, setEnabledPlatforms] = useState({ linkedin: true, instagram: true })
   const [linkedinCaption, setLinkedinCaption] = useState('')
   const [instagramCaption, setInstagramCaption] = useState('')
   const [pdf, setPdf] = useState(null)
@@ -80,15 +82,19 @@ export default function SocialPublishingAdmin() {
 
   async function createPost(event) {
     event.preventDefault()
-    if (!pdf || images.length < 2) return setMessage('Choose one PDF and at least two JPEG images.')
+    if (!enabledPlatforms.linkedin && !enabledPlatforms.instagram) return setMessage('Enable at least one platform.')
+    if (enabledPlatforms.linkedin && !pdf) return setMessage('Choose a LinkedIn PDF.')
+    if (enabledPlatforms.instagram && images.length < 2) return setMessage('Choose at least two Instagram JPEG images.')
     setBusy('Uploading approved assets…')
     setMessage('')
     try {
-      const document = await upload(pdf, 'linkedin')
+      const document = enabledPlatforms.linkedin ? await upload(pdf, 'linkedin') : null
       const uploadedImages = []
-      for (let index = 0; index < images.length; index += 1) {
-        setBusy(`Uploading Instagram image ${index + 1} of ${images.length}…`)
-        uploadedImages.push(await upload(images[index], 'instagram'))
+      if (enabledPlatforms.instagram) {
+        for (let index = 0; index < images.length; index += 1) {
+          setBusy(`Uploading Instagram image ${index + 1} of ${images.length}…`)
+          uploadedImages.push(await upload(images[index], 'instagram'))
+        }
       }
       setBusy('Creating scheduled post…')
       const response = await adminFetch('/api/admin/social', {
@@ -99,8 +105,9 @@ export default function SocialPublishingAdmin() {
           post: {
             scheduledDate: date,
             sequence,
+            enabledPlatforms: Object.entries(enabledPlatforms).filter(([, enabled]) => enabled).map(([platform]) => platform),
             linkedinCaption,
-            linkedinDocumentUrl: document.url,
+            linkedinDocumentUrl: document?.url,
             linkedinDocumentTitle: postId,
             instagramCaption,
             instagramImages: uploadedImages
@@ -114,6 +121,7 @@ export default function SocialPublishingAdmin() {
       setInstagramCaption('')
       setPdf(null)
       setImages([])
+      setEnabledPlatforms({ linkedin: true, instagram: true })
       await refresh()
     } catch (error) {
       setMessage(error.message)
@@ -213,6 +221,22 @@ export default function SocialPublishingAdmin() {
           <h2 className="text-2xl font-semibold">Queue a post</h2>
           <p className="mt-1 text-sm text-gray-600">Images must be JPEG. Posts are restricted to the every-second-day schedule.</p>
           <div className="mt-6 grid gap-5 md:grid-cols-2">
+            <fieldset className="md:col-span-2 rounded-xl border p-4">
+              <legend className="px-2 text-sm font-semibold">Publishing platforms</legend>
+              <div className="flex flex-wrap gap-6">
+                {['linkedin', 'instagram'].map((platform) => (
+                  <label key={platform} className="flex items-center gap-2 text-sm font-medium capitalize">
+                    <input
+                      type="checkbox"
+                      checked={enabledPlatforms[platform]}
+                      onChange={(event) => setEnabledPlatforms((current) => ({ ...current, [platform]: event.target.checked }))}
+                    />
+                    {platform}
+                  </label>
+                ))}
+              </div>
+              <p className="mt-2 text-xs text-gray-600">Disabled platforms are recorded as disabled and are never approved or published.</p>
+            </fieldset>
             <label className="text-sm font-medium">Publishing date
               <input type="date" value={date} onChange={(event) => setDate(event.target.value)} className="mt-2 w-full rounded-lg border p-3" required />
             </label>
@@ -222,18 +246,26 @@ export default function SocialPublishingAdmin() {
             <label className="text-sm font-medium md:col-span-2">Post ID
               <input value={postId} readOnly className="mt-2 w-full rounded-lg border bg-gray-50 p-3 font-mono" />
             </label>
-            <label className="text-sm font-medium">LinkedIn caption
-              <textarea value={linkedinCaption} onChange={(event) => setLinkedinCaption(event.target.value)} className="mt-2 min-h-44 w-full rounded-lg border p-3" required />
-            </label>
-            <label className="text-sm font-medium">Instagram caption
-              <textarea value={instagramCaption} onChange={(event) => setInstagramCaption(event.target.value)} className="mt-2 min-h-44 w-full rounded-lg border p-3" required />
-            </label>
-            <label className="text-sm font-medium">LinkedIn PDF
-              <input type="file" accept="application/pdf" onChange={(event) => setPdf(event.target.files?.[0] || null)} className="mt-2 block w-full text-sm" required />
-            </label>
-            <label className="text-sm font-medium">Instagram carousel JPEGs (2–10, selected in order)
-              <input type="file" accept="image/jpeg" multiple onChange={(event) => setImages(Array.from(event.target.files || []))} className="mt-2 block w-full text-sm" required />
-            </label>
+            {enabledPlatforms.linkedin && (
+              <>
+                <label className="text-sm font-medium">LinkedIn caption
+                  <textarea value={linkedinCaption} onChange={(event) => setLinkedinCaption(event.target.value)} className="mt-2 min-h-44 w-full rounded-lg border p-3" required />
+                </label>
+                <label className="text-sm font-medium">LinkedIn PDF
+                  <input type="file" accept="application/pdf" onChange={(event) => setPdf(event.target.files?.[0] || null)} className="mt-2 block w-full text-sm" required />
+                </label>
+              </>
+            )}
+            {enabledPlatforms.instagram && (
+              <>
+                <label className="text-sm font-medium">Instagram caption
+                  <textarea value={instagramCaption} onChange={(event) => setInstagramCaption(event.target.value)} className="mt-2 min-h-44 w-full rounded-lg border p-3" required />
+                </label>
+                <label className="text-sm font-medium">Instagram carousel JPEGs (2–10, selected in order)
+                  <input type="file" accept="image/jpeg" multiple onChange={(event) => setImages(Array.from(event.target.files || []))} className="mt-2 block w-full text-sm" required />
+                </label>
+              </>
+            )}
           </div>
           <Button type="submit" className="mt-6" disabled={!!busy}>Upload and queue</Button>
         </form>
