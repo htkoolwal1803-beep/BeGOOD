@@ -24,7 +24,9 @@ export async function GET(request) {
         expiresAt: 1,
         instagramUsername: 1,
         pageName: 1,
-        organizationId: 1
+        organizationId: 1,
+        organizationName: 1,
+        organizationRole: 1
       }).toArray()
     ])
     return NextResponse.json({ success: true, posts, connections })

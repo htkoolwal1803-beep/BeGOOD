@@ -59,6 +59,13 @@ export default function SocialPublishingAdmin() {
   }
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const status = params.get('status')
+    const detail = params.get('detail')
+    if (status) {
+      setMessage(status === 'success' ? (detail || 'Connection completed.') : `Connection failed: ${detail || 'Unknown error'}`)
+      window.history.replaceState({}, '', window.location.pathname)
+    }
     if (hasAdminKey()) refresh().catch((error) => setMessage(error.message))
   }, [])
 
@@ -205,9 +212,14 @@ export default function SocialPublishingAdmin() {
                   <h2 className="text-xl font-semibold">{platform === 'meta' ? 'Instagram / Meta' : 'LinkedIn'}</h2>
                   <p className="text-sm text-gray-600">
                     {connection[platform]
-                      ? `Connected ${connection[platform].instagramUsername ? `@${connection[platform].instagramUsername}` : ''}`
+                      ? platform === 'meta'
+                        ? `Connected @${connection[platform].instagramUsername}`
+                        : `Connected ${connection[platform].organizationName || `organization ${connection[platform].organizationId}`}`
                       : 'OAuth connection required'}
                   </p>
+                  {platform === 'linkedin' && connection[platform]?.organizationRole && (
+                    <p className="mt-1 text-xs text-gray-500">Role verified: {connection[platform].organizationRole}</p>
+                  )}
                 </div>
                 <Button onClick={() => connect(platform)} disabled={!!busy}>
                   {connection[platform] ? 'Reconnect' : 'Connect'}
