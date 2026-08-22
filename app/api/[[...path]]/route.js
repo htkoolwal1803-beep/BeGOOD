@@ -6,7 +6,13 @@ import { cartHasHamper, getProductById } from '@/lib/products'
 import { resolveDeliveryFee } from '@/lib/constants'
 import { sendEmail, layout, siteUrl, siteLink } from '@/lib/email'
 import { TEMPLATE_KEYS, DEFAULT_TEMPLATES, mergeTemplate, fillTemplate, bodyToHtml, whatsappBody } from '@/lib/emailTemplates'
-import { sendWhatsAppTemplate, isWhatsAppConfigured, toWhatsAppNumber } from '@/lib/whatsapp'
+import { sendWhatsAppTemplate, isWhatsAppConfigured, toWhatsAppNumber, whatsAppConfigurationStatus } from '@/lib/whatsapp'
+import {
+  WHATSAPP_TEMPLATES,
+  sendCampaignMessage,
+  sendOrderConfirmation,
+  sendOrderStatusUpdate
+} from '@/lib/whatsappAutomation'
 import { feedbackToReview, hasAdverseReport } from '@/lib/feedbackToReview'
 
 /**
@@ -142,6 +148,16 @@ async function connectToDatabase() {
   return { client, db }
 }
 
+async function notifyOrderPlaced(db, order) {
+  try {
+    return await sendOrderConfirmation({ db, order })
+  } catch (error) {
+    // Messaging must never turn a paid order into an error response.
+    console.error('[whatsapp] order confirmation failed:', error?.message || error)
+    return { ok: false, reason: 'exception' }
+  }
+}
+
 // Pincode validation using India Post API
 async function validatePincode(pincode) {
   try {
@@ -207,6 +223,31 @@ export async function GET(request) {
       const orders = await db.collection('orders').find({}).sort({ createdAt: -1 }).limit(500).toArray()
       
       return NextResponse.json({ success: true, orders })
+    }
+
+    // GET /api/admin/whatsapp - configuration, audience and recent campaigns.
+    if (segments[0] === 'admin' && segments[1] === 'whatsapp' && segments.length === 2) {
+      const { db } = await connectToDatabase()
+      const optedInOrders = await db.collection('orders').find({
+        whatsappOptIn: true,
+        whatsappOptOutAt: { $exists: false },
+        phone: { $exists: true, $nin: [null, ''] },
+        status: { $not: /^cancell?ed$/i }
+      }).sort({ createdAt: -1 }).limit(2000).toArray()
+      const audience = new Set(optedInOrders.map((o) => toWhatsAppNumber(o.phone)).filter(Boolean)).size
+      const campaigns = await db.collection('whatsapp_campaigns').find({}).sort({ createdAt: -1 }).limit(20).toArray()
+      return NextResponse.json({
+        success: true,
+        configuration: whatsAppConfigurationStatus(),
+        audience,
+        templates: {
+          orderConfirmation: WHATSAPP_TEMPLATES.orderConfirmation(),
+          orderStatus: WHATSAPP_TEMPLATES.orderStatus(),
+          offer: WHATSAPP_TEMPLATES.offer(),
+          productLaunch: WHATSAPP_TEMPLATES.productLaunch()
+        },
+        campaigns
+      })
     }
 
     // GET /api/admin/kpis - the numbers that actually decide whether the
@@ -829,6 +870,68 @@ export async function POST(request) {
     }
 
   try {
+    // POST /api/admin/whatsapp - preview or send a consent-only campaign.
+    if (segments[0] === 'admin' && segments[1] === 'whatsapp' && segments.length === 2) {
+      const body = await request.json()
+      const kind = body.kind === 'product_launch' ? 'product_launch' : body.kind === 'offer' ? 'offer' : null
+      const headline = String(body.headline || '').trim().slice(0, 120)
+      const detail = String(body.detail || '').trim().slice(0, 160)
+      const dryRun = body.dryRun !== false
+      if (!kind || !headline || !detail) {
+        return NextResponse.json({ success: false, error: 'Choose a campaign type and complete both message fields.' }, { status: 400 })
+      }
+
+      const { db } = await connectToDatabase()
+      const orders = await db.collection('orders').find({
+        whatsappOptIn: true,
+        whatsappOptOutAt: { $exists: false },
+        phone: { $exists: true, $nin: [null, ''] },
+        status: { $not: /^cancell?ed$/i }
+      }).sort({ createdAt: -1 }).limit(2000).toArray()
+
+      const byNumber = new Map()
+      for (const order of orders) {
+        const number = toWhatsAppNumber(order.phone)
+        if (number && !byNumber.has(number)) byNumber.set(number, order)
+      }
+      const recipients = [...byNumber.values()]
+      if (dryRun) {
+        return NextResponse.json({
+          success: true,
+          dryRun: true,
+          recipients: recipients.length,
+          template: kind === 'offer' ? WHATSAPP_TEMPLATES.offer() : WHATSAPP_TEMPLATES.productLaunch()
+        })
+      }
+
+      if (!isWhatsAppConfigured()) {
+        return NextResponse.json({ success: false, error: 'WhatsApp sending is not configured in Vercel.' }, { status: 503 })
+      }
+      const campaign = {
+        id: uuidv4(),
+        kind,
+        headline,
+        detail,
+        recipientCount: recipients.length,
+        createdAt: new Date().toISOString(),
+        status: 'sending'
+      }
+      await db.collection('whatsapp_campaigns').insertOne(campaign)
+
+      const results = []
+      for (let index = 0; index < recipients.length; index += 5) {
+        const batch = recipients.slice(index, index + 5)
+        results.push(...await Promise.all(batch.map((customer) => sendCampaignMessage({ db, campaign, customer }))))
+      }
+      const sent = results.filter((r) => r.ok && !r.duplicate).length
+      const failed = results.filter((r) => !r.ok).length
+      await db.collection('whatsapp_campaigns').updateOne(
+        { id: campaign.id },
+        { $set: { status: failed ? 'completed_with_errors' : 'completed', sent, failed, completedAt: new Date().toISOString() } }
+      )
+      return NextResponse.json({ success: true, campaignId: campaign.id, recipients: recipients.length, sent, failed })
+    }
+
     // POST /api/razorpay/order - Create a trusted Razorpay order on the server
     if (segments[0] === 'razorpay' && segments[1] === 'order') {
       const body = await request.json()
@@ -927,6 +1030,7 @@ export async function POST(request) {
         timestamp: new Date().toISOString(),
         userAgent: request.headers.get('user-agent')
       })
+      await notifyOrderPlaced(db, order)
       return NextResponse.json({ success: true, order })
     }
 
@@ -1000,12 +1104,15 @@ export async function POST(request) {
             status: 'Confirmed',
             paymentId: paymentId,
             userId: pendingOrder.userId || null,
+            whatsappOptIn: !!pendingOrder.whatsappOptIn,
+            whatsappOptInAt: pendingOrder.whatsappOptIn ? new Date().toISOString() : null,
             createdAt: new Date().toISOString(),
             createdVia: 'webhook'
           }
 
           await db.collection('orders').insertOne(order)
           await db.collection('pending_payments').deleteOne({ _id: pendingOrder._id })
+          await notifyOrderPlaced(db, order)
 
           console.log(`Order ${order.orderId} created via webhook for payment ${paymentId}`)
           return NextResponse.json({ success: true, order })
@@ -1228,12 +1335,7 @@ export async function POST(request) {
       }
 
       // ?channel=email  - force email only, ignoring WhatsApp
-      // ?includeNonOptedIn=1 - also WhatsApp customers who never ticked the
-      //   opt-in box. Meta requires opt-in for marketing templates, and blocks
-      //   from non-opted-in recipients lower the number's quality rating, so
-      //   this is deliberately off unless asked for.
       const channel = url.searchParams.get('channel') || 'auto'
-      const includeNonOptedIn = url.searchParams.get('includeNonOptedIn') === '1'
       const waReady = isWhatsAppConfigured() && channel !== 'email'
 
       // ?types=usage,reviewRequests,replenishment - run only some of the three.
@@ -1269,7 +1371,7 @@ export async function POST(request) {
       }
 
       const summary = {
-        dryRun, reviewMaxAge, channel, includeNonOptedIn,
+        dryRun, reviewMaxAge, channel,
         types: [...enabled],
         usage: 0, reviewRequests: 0, replenishment: 0, skipped: 0,
         duplicatesCollapsed: 0, cancelledSkipped: 0,
@@ -1281,12 +1383,10 @@ export async function POST(request) {
       const whatsAppAllowed = (order, tplKey) => {
         if (!waReady) return false
         if (!toWhatsAppNumber(order.phone)) return false
+        if (order.whatsappOptOutAt) return false
         const t = mergeTemplate(tplKey, savedByKey[tplKey])
         if (!t.waTemplate) return false
-        // Utility templates relate to an order the customer placed, so they do
-        // not depend on a marketing opt-in. Marketing ones do.
-        if (t.waCategory === 'utility') return true
-        return !!order.whatsappOptIn || includeNonOptedIn
+        return !!order.whatsappOptIn
       }
 
       /**
@@ -1543,6 +1643,7 @@ export async function POST(request) {
         timestamp: new Date().toISOString(),
         userAgent: request.headers.get('user-agent')
       })
+      await notifyOrderPlaced(db, order)
       
       return NextResponse.json({ success: true, order })
     }
@@ -2419,8 +2520,15 @@ export async function PUT(request) {
     // PUT /api/admin/orders/:id - Update order status
     if (segments[0] === 'admin' && segments[1] === 'orders' && segments.length === 3) {
       const { status } = await request.json()
+      const allowedStatuses = ['Pending', 'Pending COD', 'Confirmed', 'Processing', 'Shipped', 'Delivered', 'Cancelled']
+      if (!allowedStatuses.includes(status)) {
+        return NextResponse.json({ success: false, message: 'Invalid order status' }, { status: 400 })
+      }
       const { db } = await connectToDatabase()
-      
+      const order = await db.collection('orders').findOne({ orderId: segments[2] })
+      if (!order) {
+        return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 })
+      }
       const result = await db.collection('orders').updateOne(
         { orderId: segments[2] },
         { $set: { status, updatedAt: new Date().toISOString() } }
@@ -2430,7 +2538,16 @@ export async function PUT(request) {
         return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 })
       }
       
-      return NextResponse.json({ success: true })
+      let notification = { ok: false, reason: 'status_unchanged' }
+      if (order.status !== status) {
+        try {
+          notification = await sendOrderStatusUpdate({ db, order: { ...order, status }, status })
+        } catch (error) {
+          console.error('[whatsapp] status update failed:', error?.message || error)
+          notification = { ok: false, reason: 'exception' }
+        }
+      }
+      return NextResponse.json({ success: true, notification })
     }
 
     // PUT /api/admin/products/:id - Update product (admin only)
