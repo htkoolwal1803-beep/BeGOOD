@@ -16,7 +16,7 @@ export async function GET(request) {
   }
   try {
     const connected = await connectLinkedInFromCode(code)
-    return NextResponse.redirect(oauthReturnUrl('linkedin', 'success', `Connected organization ${connected.organizationId}`))
+    return NextResponse.redirect(oauthReturnUrl('linkedin', 'success', `Connected ${connected.organizationName} (${connected.organizationId})`))
   } catch (caught) {
     return NextResponse.redirect(oauthReturnUrl('linkedin', 'error', String(caught?.message || caught)))
   }
