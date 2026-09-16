@@ -1,3 +1,5 @@
+import { SITE_URL } from '@/lib/seo'
+import StructuredData from '@/components/StructuredData'
 import { Inter, Playfair_Display } from 'next/font/google'
 import './globals.css'
 import Header from '@/components/Header'
@@ -10,9 +12,10 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' })
 
 export const metadata = {
-  title: 'BeGood - Just Feel It | Balance Your Emotions',
-  description: 'The only brand that helps you balance your emotions in the most convenient and fast way. Science-backed functional foods that work when you need them most.',
-  keywords: 'functional chocolate, anxiety relief, calm, focus, wellness, emotional balance, natural ingredients',
+  metadataBase: new URL(SITE_URL),
+  title: 'BeGood | A-Bar Functional Chocolate',
+  description: 'Discover BeGood A-Bar functional chocolate with L-Theanine, magnesium glycinate and chicory root. Explore ingredients and shop bars and bundles.',
+  verification: { google: 'H0iZwFX5FeTVI0TST6S9N6Ef-rUefSS9biYBMVhIwto' },
 }
 
 export default function RootLayout({ children }) {
@@ -71,6 +74,13 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className={`${inter.variable} ${playfair.variable} antialiased`}>
+        <StructuredData data={{
+          '@context': 'https://schema.org',
+          '@graph': [
+            { '@type': 'Organization', '@id': SITE_URL + '/#organization', name: 'BeGood', url: SITE_URL },
+            { '@type': 'WebSite', '@id': SITE_URL + '/#website', name: 'BeGood', url: SITE_URL, publisher: { '@id': SITE_URL + '/#organization' } },
+          ],
+        }} />
         <AuthProvider>
           <CartProvider>
             <Header />

@@ -1,7 +1,6 @@
-export const metadata = {
-  title: 'Terms & Conditions - BeGood',
-  description: 'BeGood Terms and Conditions'
-}
+import { pageMetadata } from '@/lib/seo'
+export const metadata = pageMetadata("Terms & Conditions | BeGood", "Read the terms and conditions for shopping on BeGood’s website.", "/terms")
+
 
 export default function TermsPage() {
   return (
@@ -151,3 +150,4 @@ export default function TermsPage() {
     </div>
   )
 }
+
