@@ -1,11 +1,10 @@
+import { pageMetadata } from '@/lib/seo'
+export const metadata = pageMetadata("A-Bar FAQs: Ingredients, Storage & Delivery | BeGood", "Find answers about BeGood A-Bar ingredients, allergens, storage, delivery and orders. Read the product details before choosing your pack.", "/faq")
 import Link from 'next/link'
 import { ArrowRight, ChevronDown, HelpCircle, MessageCircle, ShieldCheck, Sparkles } from 'lucide-react'
 import Button from '@/components/Button'
 
-export const metadata = {
-  title: 'FAQ | BeGood A-Bar',
-  description: 'Clear answers about A-Bar ingredients, timing, use, delivery, storage and checkout.'
-}
+
 
 const groups = [
   {
@@ -119,3 +118,4 @@ export default function FAQPage() {
     </div>
   )
 }
+

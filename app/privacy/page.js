@@ -1,7 +1,6 @@
-export const metadata = {
-  title: 'Privacy Policy - BeGood',
-  description: 'BeGood Privacy Policy'
-}
+import { pageMetadata } from '@/lib/seo'
+export const metadata = pageMetadata("Privacy Policy | BeGood", "Read how BeGood handles personal information when you browse the website, place an order or contact us.", "/privacy")
+
 
 export default function PrivacyPage() {
   return (
@@ -103,3 +102,4 @@ export default function PrivacyPage() {
     </div>
   )
 }
+

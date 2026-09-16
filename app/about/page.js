@@ -1,12 +1,11 @@
+import { pageMetadata } from '@/lib/seo'
+export const metadata = pageMetadata("About BeGood | Functional Chocolate from Jaipur", "Meet BeGood, the Jaipur-based brand behind A-Bar functional chocolate. Learn about our approach to ingredients and everyday food.", "/about")
 import HeroPack from '@/components/HeroPack'
 import Link from 'next/link'
 import { ArrowRight, Brain, Heart, Leaf, Microscope, ShieldCheck, Sparkles, Target } from 'lucide-react'
 import Button from '@/components/Button'
 
-export const metadata = {
-  title: 'About BeGood | A Focused Mind, On Demand',
-  description: 'Meet BeGood—the science-led functional food brand creating a simpler calm-focus ritual for high-stakes moments.'
-}
+
 
 const values = [
   { icon: Microscope, title: 'Science, made understandable', text: 'We explain ingredient roles in plain language, with clear limits on what a functional food can promise.' },
@@ -81,3 +80,4 @@ export default function AboutPage() {
     </div>
   )
 }
+

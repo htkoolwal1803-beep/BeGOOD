@@ -1,7 +1,6 @@
-export const metadata = {
-  title: 'Refund Policy - BeGood',
-  description: 'BeGood No Return and No Refund Policy'
-}
+import { pageMetadata } from '@/lib/seo'
+export const metadata = pageMetadata("Refund & Replacement Policy | BeGood", "Read BeGood’s refund and replacement policy, including how to report a damaged or incorrect order.", "/refund")
+
 
 export default function RefundPage() {
   return (
@@ -130,3 +129,4 @@ export default function RefundPage() {
     </div>
   )
 }
+

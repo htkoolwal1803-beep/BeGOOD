@@ -1,3 +1,5 @@
+import { pageMetadata } from '@/lib/seo'
+export const metadata = pageMetadata("Rakhi Gift Hamper with A-Bar | BeGood", "Explore BeGood’s Rakhi gift hamper with A-Bar chocolate and assorted treats. See the contents, price and ordering details.", "/hampers")
 import Image from 'next/image'
 import HeroPack from '@/components/HeroPack'
 import Link from 'next/link'
@@ -5,11 +7,7 @@ import Button from '@/components/Button'
 import HamperCTA from '@/components/HamperCTA'
 import { ArrowRight, Leaf, Brain, Sparkles, Gift, Check } from 'lucide-react'
 
-export const metadata = {
-  title: 'Rakhi Hampers - BeGood | Made for Moments that Matter',
-  description:
-    "This Rakhi, gift a healthy hamper built around A-Bar - a functional bar that helps ease stress and nervousness, in a premium chocolate taste. Made with 100% natural ingredients."
-}
+
 
 export default function HampersPage() {
   const hamperItems = [
@@ -204,3 +202,4 @@ export default function HampersPage() {
     </div>
   )
 }
+
