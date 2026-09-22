@@ -5,12 +5,34 @@ import Image from 'next/image'
 import Link from 'next/link'
 import Button from '@/components/Button'
 import { Trash2, Plus, Minus, ShoppingBag, Truck } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { calculateShipping, calculateOrderTotal, SHIPPING_CONFIG } from '@/lib/constants'
 import { looksLikeFirstOrder, displayFreeShippingThreshold } from '@/lib/firstOrder'
 
+import { products } from '@/lib/products'
+import { resolveCartLink } from '@/lib/cartLink.mjs'
+
 export default function CartPage() {
-  const { cart, removeFromCart, updateQuantity, cartTotal, cartCount } = useCart()
+  const { cart, removeFromCart, updateQuantity, cartTotal, cartCount, isLoaded, ensureCartProduct } = useCart()
+
+  const handledLink = useRef(false)
+  const [linkReady, setLinkReady] = useState(false)
+  const [linkMessage, setLinkMessage] = useState('')
+  useEffect(() => {
+    if (!isLoaded || handledLink.current) return
+    handledLink.current = true
+    const url = new URL(window.location.href)
+    const result = resolveCartLink(url.searchParams, products)
+    if (result?.error) setLinkMessage(result.error)
+    else if (result) {
+      ensureCartProduct(result.product, result.quantity)
+      setLinkMessage(`${result.product.name} is ready in your cart. Review your order below.`)
+      url.searchParams.delete('product')
+      url.searchParams.delete('quantity')
+      window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash)
+    }
+    setLinkReady(true)
+  }, [isLoaded, ensureCartProduct])
 
   // Calculate shipping and order total
   const shippingFee = calculateShipping(cartTotal)
@@ -35,11 +57,14 @@ export default function CartPage() {
     }
   }, [])
 
+  if (!isLoaded || !linkReady) return <div className="brand-page py-20 text-center" role="status">Preparing your cart…</div>
+
   if (cart.length === 0) {
     return (
       <div className="brand-page min-h-screen flex items-center justify-center py-20">
         <div className="brand-panel max-w-md p-10 text-center">
           <ShoppingBag className="w-24 h-24 text-gray-300 mx-auto mb-6" />
+          {linkMessage && <p role="status" className="mb-4 text-[#59615b]">{linkMessage}</p>}
           <h1 className="font-playfair text-3xl font-bold mb-4">Your Cart is Empty</h1>
           <p className="text-[#59615b] mb-8">Start shopping to add items to your cart</p>
           <Link href="/shop">
@@ -55,6 +80,7 @@ export default function CartPage() {
       <div className="container mx-auto px-4">
         <h1 className="font-playfair text-4xl md:text-5xl font-bold mb-12 text-[#1f2229]">Shopping Cart</h1>
 
+        {linkMessage && <p role="status" className="mb-6 text-[#59615b]">{linkMessage}</p>}
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4">
@@ -209,3 +235,4 @@ export default function CartPage() {
     </div>
   )
 }
+
