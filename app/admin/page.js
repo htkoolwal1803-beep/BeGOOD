@@ -140,6 +140,12 @@ export default function AdminDashboard() {
                   Retention
                 </Button>
               </Link>
+              <Link href="/admin/whatsapp">
+                <Button variant="outline">
+                  <Phone className="w-4 h-4 mr-2" />
+                  WhatsApp
+                </Button>
+              </Link>
               <Link href="/admin/kpis">
                 <Button variant="outline">
                   <Package className="w-4 h-4 mr-2" />
@@ -395,6 +401,8 @@ export default function AdminDashboard() {
                             }}
                           >
                             <option value="Pending">Pending</option>
+                            <option value="Pending COD">Pending COD</option>
+                            <option value="Confirmed">Confirmed</option>
                             <option value="Processing">Processing</option>
                             <option value="Shipped">Shipped</option>
                             <option value="Delivered">Delivered</option>
