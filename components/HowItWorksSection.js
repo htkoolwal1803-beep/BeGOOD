@@ -41,17 +41,17 @@ const stages = [
     time: 'As it absorbs',
     label: 'Move',
     title: 'The key ingredients become available.',
-    detail: 'L-Theanine and magnesium move through the normal absorption pathway. Chicory root supports the formula’s magnesium-absorption strategy.',
+    detail: 'L-Theanine and magnesium move through the normal absorption pathway. Chicory root contributes fibre; enhanced magnesium absorption has not been established for A-Bar.',
     status: 'Ingredients enter circulation',
     icon: HeartPulse,
     color: '#8db09a'
   },
   {
-    time: '< 20 min',
-    label: 'Calm focus',
-    title: 'Step into the moment composed.',
-    detail: 'The formula is designed to support relaxed alertness and normal nervous-system function. A-Bar is designed to act in less than 20 minutes.',
-    status: 'Calm-focus support is active',
+    time: 'Experience varies',
+    label: 'Ingredient research',
+    title: 'Understand the evidence.',
+    detail: 'Ingredient research informs the formulation. It does not establish a clinical effect or onset time for the finished A-Bar.',
+    status: 'No product onset time established',
     icon: Brain,
     color: '#a995c7'
   }
@@ -75,8 +75,8 @@ const ingredientRoles = [
   {
     symbol: 'Cr',
     name: 'Chicory Root',
-    role: 'Absorption strategy',
-    text: 'A prebiotic root ingredient included to support magnesium absorption.',
+    role: 'Fibre ingredient',
+    text: 'Chicory root is a source of fibre included in the formulation.',
     color: 'bg-[#f4e6dc] text-[#9c5137]'
   }
 ]
@@ -120,10 +120,10 @@ export default function HowItWorksSection() {
           <div>
             <span className="brand-pill"><Waves className="h-4 w-4" /> Interactive working model</span>
             <h1 className="mt-6 font-playfair text-5xl font-bold leading-[1.03] text-[#2d2019] sm:text-6xl lg:text-7xl">
-              Watch A-Bar move from bite to calm focus.
+              Explore A-Bar’s ingredient journey.
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-[#59615b] sm:text-xl">
-              Play the model or select any stage to see how the ritual, digestion and key ingredients connect—designed to act in less than 20 minutes.
+              Explore an illustrative model of digestion and ingredient roles. This animation does not show measured effects or timing for A-Bar.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link href="/product/begood-abar-001"><Button size="lg">Try A-Bar <ArrowRight className="ml-2 h-5 w-5" /></Button></Link>
@@ -134,7 +134,7 @@ export default function HowItWorksSection() {
             <div className="absolute inset-[8%] rounded-full bg-[#c9badc]/30 blur-3xl" />
             <img src={ABAR_HERO_SRC} alt="BeGood A-Bar transparent product pack" className="relative z-10 h-full w-full object-contain drop-shadow-[0_30px_26px_rgba(45,32,25,.2)]" />
             <div className="absolute bottom-5 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full border border-[#cbbddd] bg-[#fffaf1]/95 px-4 py-2 text-sm font-extrabold text-[#1f4b3c] shadow-lg backdrop-blur">
-              <Clock3 className="h-4 w-4" /> Acts in less than 20 min
+              <Clock3 className="h-4 w-4" /> 40 g functional chocolate
             </div>
           </div>
         </div>
@@ -284,10 +284,10 @@ export default function HowItWorksSection() {
           <div className="grid items-center gap-7 rounded-[2rem] border border-[#c9badc] bg-[#f1eaf7] p-7 sm:p-10 lg:grid-cols-[1fr_auto] lg:p-12">
             <div>
               <p className="text-xs font-extrabold uppercase tracking-[0.17em] text-[#735f94]">Important context</p>
-              <h2 className="mt-3 font-playfair text-3xl font-bold text-[#2d2019] sm:text-4xl">Designed to act in less than 20 minutes.</h2>
-              <p className="mt-4 max-w-3xl leading-7 text-[#5e5367]">This is an illustrative educational model. A-Bar is a functional food, not a medicine, and individual timing and experience can vary.</p>
+              <h2 className="mt-3 font-playfair text-3xl font-bold text-[#2d2019] sm:text-4xl">Ingredient research has limits.</h2>
+              <p className="mt-4 max-w-3xl leading-7 text-[#5e5367]">This is an illustrative educational model, not a clinical demonstration. A specific onset time has not been established for A-Bar. Read our research page for study details, nutrition results and limitations.</p>
             </div>
-            <Link href="/product/begood-abar-001"><Button size="lg">Shop A-Bar <ArrowRight className="ml-2 h-5 w-5" /></Button></Link>
+            <Link href="/research"><Button size="lg">Read the evidence <ArrowRight className="ml-2 h-5 w-5" /></Button></Link>
           </div>
         </div>
       </section>

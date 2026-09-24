@@ -37,7 +37,7 @@ const sciencePoints = [
   },
   {
     title: 'Chicory Root Extract',
-    detail: 'A prebiotic root ingredient included to help support magnesium absorption.',
+    detail: 'Chicory root is a source of fibre included in the formulation.',
     icon: Leaf
   }
 ]
@@ -165,7 +165,7 @@ export default function Home() {
             </div>
 
             <div className="mt-7 flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs font-semibold text-[#544941] lg:justify-start sm:text-sm">
-              {['100% natural', 'No added sugar', 'No pills or powders'].map((item) => (
+              {['100% natural', 'Sweetened with dates and honey', 'No pills or powders'].map((item) => (
                 <span key={item} className="inline-flex items-center gap-1.5">
                   <Check className="h-4 w-4 text-[#1f4b3c]" /> {item}
                 </span>
@@ -186,7 +186,7 @@ export default function Home() {
               </div>
               <div className="science-float bottom-[11%] right-0">
                 <Clock3 className="h-4 w-4 text-[#1f4b3c]" />
-                <span><strong>&lt;20 min</strong><small>Designed to act</small></span>
+                <span><strong>40 g</strong><small>Per A-Bar</small></span>
               </div>
             </div>
           </div>
@@ -197,9 +197,9 @@ export default function Home() {
         <div className="brand-container grid grid-cols-2 divide-x divide-y divide-[#2d2019]/10 sm:grid-cols-4 sm:divide-y-0">
           {[
             ['100%', 'natural ingredients'],
-            ['0g', 'added sugar'],
-            ['<20', 'minutes to act'],
-            ['4.9/5', 'customer rating']
+            ['Dates + honey', 'sweetened with'],
+            ['40 g', 'per A-Bar'],
+            ['Ingredients', 'clearly listed']
           ].map(([number, label]) => (
             <div key={label} className="px-3 py-6 text-center sm:py-8">
               <p className="font-playfair text-2xl font-semibold text-[#1f4b3c] sm:text-3xl">{number}</p>
@@ -221,7 +221,7 @@ export default function Home() {
                 We pair a researched calm-focus ingredient with familiar whole foods and a premium chocolate experience. Easy to carry. Easy to enjoy. Designed to support clarity without drowsiness.
               </p>
               <Link href="/how-it-works" className="mt-7 inline-flex items-center gap-2 border-b border-[#c9badf] pb-1 text-sm font-bold text-[#e6dcf2]">
-                See our formulation approach <ChevronRight className="h-4 w-4" />
+                Explore ingredients and evidence <ChevronRight className="h-4 w-4" />
               </Link>
             </div>
 
@@ -240,7 +240,7 @@ export default function Home() {
               <div className="mt-3 grid grid-cols-3 overflow-hidden rounded-3xl border border-white/15 bg-white/[0.06]">
                 {[
                   ['01', 'Enjoy', 'Like premium chocolate'],
-                  ['02', 'Prepare', 'Acts in less than 20 min'],
+                  ['02', 'Prepare', 'Take a moment for yourself'],
                   ['03', 'Step in', 'Calmer, clearer, composed']
                 ].map(([number, title, detail]) => (
                   <div key={title} className="border-r border-white/10 p-4 last:border-r-0 sm:p-6">

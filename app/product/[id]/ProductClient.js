@@ -7,6 +7,7 @@ import { ArrowRight, Brain, Check, ChevronRight, Leaf, Minus, Package, Plus, Shi
 import Button from '@/components/Button'
 import ProductReviews, { RatingSummary } from '@/components/ProductReviews'
 import { useCart } from '@/lib/CartContext'
+import NutritionTable from '@/components/NutritionTable'
 import { SHIPPING_CONFIG } from '@/lib/constants'
 
 const ingredientIcons = [Brain, Sparkles, Leaf]
@@ -177,6 +178,8 @@ export default function ProductPage({ product }) {
           ) : product.ingredientsList && (
             <section className="brand-card p-6 sm:p-8"><h2 className="font-playfair text-3xl font-bold">Full ingredients</h2><p className="mt-4 leading-7 text-[#59615b]">{product.ingredientsList}</p></section>
           )}
+
+          {isAbar && <NutritionTable />}
 
           {product.howItWorks && (
             <section className="grid gap-6 rounded-[2rem] bg-[#172f28] p-6 text-[#fffaf1] sm:p-10 lg:grid-cols-[0.75fr_1.25fr] lg:p-12">
