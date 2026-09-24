@@ -16,11 +16,11 @@ const groups = [
       },
       {
         question: 'What are the full ingredients?',
-        answer: 'A-Bar contains L-Theanine, vitamin E, walnuts, chicory powder, cocoa powder, pumpkin seeds, coffee, dark chocolate, rolled oats, almond butter, dates, cocoa butter, honey, pink salt, magnesium glycinate, soy lecithin, glycerin and vanilla extract. Exact per-bar quantities are listed on the A-Bar product page.'
+        answer: 'A-Bar contains L-Theanine, vitamin E, walnuts, chicory powder, cocoa powder, pumpkin seeds, coffee, dark chocolate, rolled oats, almond butter, dates, cocoa butter, honey, pink salt, magnesium glycinate, soy lecithin, glycerin and vanilla extract. A-Bar is sweetened with dates and honey. Nutrition per 40 g bar is listed on the product page.'
       },
       {
         question: 'How is the formula intended to work?',
-        answer: 'L-Theanine is studied for relaxed-alertness support, magnesium contributes to normal nervous-system and psychological function, and chicory root is included to help support the formula’s magnesium-absorption strategy. A-Bar is a functional food, not a medicine, and individual experiences vary.'
+        answer: 'L-Theanine is studied for relaxed-alertness support, magnesium contributes to normal nervous-system and psychological function, and chicory root contributes fibre. These ingredient roles do not establish clinical effects of A-Bar. A-Bar is a functional food, not a medicine, and individual experiences vary.'
       },
       {
         question: 'Is A-Bar vegetarian or vegan?',
@@ -33,7 +33,7 @@ const groups = [
     questions: [
       {
         question: 'When should I eat it?',
-        answer: 'Enjoy one bar shortly before an exam, interview, presentation or another high-stakes moment. A-Bar is designed to act in less than 20 minutes. Timing and experience vary between people.'
+        answer: 'Enjoy one bar shortly before an exam, interview, presentation or another high-stakes moment. A specific onset time has not been established for A-Bar. Timing and experience vary between people.'
       },
       {
         question: 'Will it make me drowsy?',

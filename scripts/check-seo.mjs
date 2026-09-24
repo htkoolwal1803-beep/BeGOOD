@@ -28,7 +28,7 @@ try {
   const sitemap = await get('/sitemap.xml')
   check(sitemap.status===200,'Sitemap responds 200')
   const urls = [...sitemap.html.matchAll(/<loc>(.*?)<\/loc>/g)].map(m=>m[1])
-  check(urls.length===14 && new Set(urls).size===14,'14 distinct public URLs')
+  check(urls.length===15 && new Set(urls).size===15,'15 distinct public URLs')
   check(!urls.some(url=>/checkout|admin|upcoming|subscribe/.test(url)),'No private or unlaunched URLs in sitemap')
   const titles = new Set()
   for(const url of urls) {

@@ -16,7 +16,7 @@ const values = [
 const ingredients = [
   { icon: Brain, name: 'L-Theanine', text: 'Studied for supporting relaxed alertness without drowsiness.' },
   { icon: Sparkles, name: 'Magnesium Glycinate', text: 'Supports normal nervous-system and psychological function.' },
-  { icon: Leaf, name: 'Chicory Root', text: 'A prebiotic root ingredient included to support the magnesium-absorption strategy.' }
+  { icon: Leaf, name: 'Chicory Root', text: 'Chicory root is a source of fibre included in the formulation.' }
 ]
 
 export default function AboutPage() {

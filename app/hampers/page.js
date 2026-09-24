@@ -170,7 +170,7 @@ export default function HampersPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-lg mb-1">100% natural ingredients</h3>
-                    <p className="text-[#464c49]">No added sugar, no preservatives - the healthiest bar you can have.</p>
+                    <p className="text-[#464c49]">Sweetened with dates and honey. See A-Bar ingredients and nutrition for details.</p>
                   </div>
                 </div>
               </div>

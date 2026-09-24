@@ -30,6 +30,7 @@ export default function Footer() {
               {[
                 ['/shop', 'Shop A-Bar'],
                 ['/how-it-works', 'How it works'],
+                ['/research', 'Research & nutrition'],
                 ['/about', 'Our story'],
                 ['/faq', 'Questions'],
                 ['/contact', 'Contact']
