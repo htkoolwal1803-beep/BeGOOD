@@ -142,6 +142,7 @@ test('failed review sends retry with the same link and successful sends are not 
   const api = routes(db, async () => { sends++; return fail ? { ok: false, reason: 'http_503' } : { ok: true } })
   const first = await api.GET(request('cron/retention'))
   assert.equal(first.body.summary.failed, 3)
+  assert.deepEqual(first.body.summary.failures, [{ reason: 'http_503', detail: 'http_503', count: 3 }])
   assert.equal(db.data.review_requests[0].status, 'failed')
   assert.equal(db.data.orders[0].reviewEmailSentAt, undefined)
   const token = db.data.review_requests[0].token
