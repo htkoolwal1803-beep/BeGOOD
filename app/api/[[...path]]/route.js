@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid'
 import crypto from 'crypto'
 import { cartHasHamper, getProductById, RETIRED_PRODUCT_IDS } from '@/lib/products'
 import { resolveDeliveryFee } from '@/lib/constants'
-import { sendEmail, layout, siteUrl, siteLink } from '@/lib/email'
+import { sendEmail, getEmailStatus, layout, siteUrl, siteLink } from '@/lib/email'
 import { TEMPLATE_KEYS, DEFAULT_TEMPLATES, mergeTemplate, fillTemplate, bodyToHtml, whatsappBody } from '@/lib/emailTemplates'
 import { sendWhatsAppTemplate, isWhatsAppConfigured, toWhatsAppNumber } from '@/lib/whatsapp'
 import { feedbackToReview, hasAdverseReport } from '@/lib/feedbackToReview'
@@ -187,6 +187,9 @@ export async function GET(request) {
     }
 
   try {
+    if (segments[0] === 'admin' && segments[1] === 'email-status' && segments.length === 2) {
+      return NextResponse.json({ success: true, email: await getEmailStatus() })
+    }
     // GET /api/products
     if (segments[0] === 'products' && segments.length === 1) {
       // In a real app, this would come from database
@@ -1283,7 +1286,7 @@ export async function POST(request) {
         types: [...enabled],
         usage: 0, reviewRequests: 0, replenishment: 0, skipped: 0,
         duplicatesCollapsed: 0, cancelledSkipped: 0,
-        viaWhatsApp: 0, viaEmail: 0, failed: 0
+        viaWhatsApp: 0, viaEmail: 0, failed: 0, failures: []
       }
       const wouldSend = { usage: [], reviewRequests: [], replenishment: [] }
 
@@ -1333,7 +1336,14 @@ export async function POST(request) {
 
         const mail = await sendEmail(payload)
         if (mail.ok) summary.viaEmail++
-        else summary.failed++
+        else {
+          summary.failed++
+          const reason = mail.reason || 'unknown'
+          const detail = mail.detail || reason
+          const existing = summary.failures.find(f => f.reason === reason && f.detail === detail)
+          if (existing) existing.count++
+          else summary.failures.push({ reason, detail, count: 1 })
+        }
         return mail
       }
 
