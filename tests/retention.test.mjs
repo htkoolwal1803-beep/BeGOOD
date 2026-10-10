@@ -193,4 +193,3 @@ test('missing/invalid dates never fall back to purchase time; late delivery rema
   assert.equal(matches(order('direct', 0, { shippedAt: null, deliveredAt: ago(4) }), query), true)
   assert.equal(matches(order('fresh', 100, { shippedAt: null, deliveredAt: null, updatedAt: ago(1) }), query), false)
 })
-
