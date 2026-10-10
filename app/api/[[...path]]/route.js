@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { MongoClient } from 'mongodb'
 import { v4 as uuidv4 } from 'uuid'
 import crypto from 'crypto'
-import { cartHasHamper, getProductById } from '@/lib/products'
+import { cartHasHamper, getProductById, RETIRED_PRODUCT_IDS } from '@/lib/products'
 import { resolveDeliveryFee } from '@/lib/constants'
 import { sendEmail, layout, siteUrl, siteLink } from '@/lib/email'
 import { TEMPLATE_KEYS, DEFAULT_TEMPLATES, mergeTemplate, fillTemplate, bodyToHtml, whatsappBody } from '@/lib/emailTemplates'
@@ -1504,6 +1504,10 @@ export async function POST(request) {
         }
       }
       
+      if (Array.isArray(body.products) && body.products.some(product => RETIRED_PRODUCT_IDS.includes(product.productId || product.id))) {
+        return NextResponse.json({ success: false, error: 'This product is no longer available. Please choose an item from the shop.' }, { status: 400 })
+      }
+
       // Hampers are prepaid only. The UI hides COD for them, but a crafted
       // request could still reach here, so reject it server-side too.
       if (body.paymentMethod === 'cod' && cartHasHamper(body.products)) {
