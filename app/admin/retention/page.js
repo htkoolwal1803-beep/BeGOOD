@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Button from '@/components/Button'
-import { adminFetch, setAdminKey } from '@/lib/adminAuth'
+import { adminFetch, setAdminKey, hasAdminKey } from '@/lib/adminAuth'
 import { useEffect } from 'react'
 import { Lock, Loader2, ArrowLeft, Mail, Eye, Send, AlertTriangle, Pencil, RotateCcw, Check } from 'lucide-react'
 
@@ -29,6 +29,26 @@ export default function AdminRetentionPage() {
   const [error, setError] = useState('')
   const [testTo, setTestTo] = useState('')
   const [testResult, setTestResult] = useState(null)
+  const [emailStatus, setEmailStatus] = useState(null)
+
+  useEffect(() => {
+    if (hasAdminKey()) {
+      adminFetch('/api/admin/email-status').then(r => {
+        if (r.ok) setAuthenticated(true)
+      }).catch(() => {})
+    }
+  }, [])
+
+  const checkEmail = async () => {
+    setEmailStatus(null)
+    try {
+      const res = await adminFetch('/api/admin/email-status')
+      const data = await res.json()
+      setEmailStatus(data.email || { ok: false, detail: 'Could not check the email connection.' })
+    } catch {
+      setEmailStatus({ ok: false, detail: 'Could not check the email connection.' })
+    }
+  }
 
   // Editable email wording, loaded from the server once signed in.
   const [templates, setTemplates] = useState([])
@@ -39,6 +59,7 @@ export default function AdminRetentionPage() {
 
   useEffect(() => {
     if (!authenticated) return
+    checkEmail()
     adminFetch('/api/admin/email-templates')
       .then((r) => r.json())
       .then((d) => { if (d.success) setTemplates(d.templates) })
@@ -119,7 +140,8 @@ export default function AdminRetentionPage() {
       if (dry) qs.set('dryRun', '1')
       const res = await adminFetch(`/api/cron/retention?${qs.toString()}`, { method: 'POST' })
       const data = await res.json()
-      if (data.success) setResult(data)
+      if (data.skipped) setError('Another send is already running. Wait for it to finish before trying again.')
+      else if (data.success && data.summary) setResult(data)
       else setError(data.error || 'Something went wrong')
     } catch (e) {
       setError('Request failed. Please try again.')
@@ -193,6 +215,13 @@ export default function AdminRetentionPage() {
         </div>
 
         <div className="max-w-3xl space-y-6">
+          <div className="brand-card p-5 sm:p-6">
+            <h2 className="font-semibold text-lg mb-2">Email connection</h2>
+            <p className={`text-sm mb-3 ${emailStatus?.ok === false ? 'text-red-700' : 'text-[#59615b]'}`}>
+              {emailStatus?.detail || 'Checking Brevo connection...'}
+            </p>
+            <Button variant="outline" onClick={checkEmail}>Check connection again</Button>
+          </div>
           {/* Edit exactly what gets sent. Saved wording is used by the daily
               cron and by the test send, so what you read here is what goes out. */}
           <div className="brand-card p-5 sm:p-6">
@@ -328,13 +357,13 @@ export default function AdminRetentionPage() {
               {testResult && (
                 <div className="mt-4 rounded-xl border border-[#c3d5c0] bg-[#dce6d7]/50 p-4">
                   <p className="text-sm font-semibold text-[#3f5a46] mb-2">
-                    Sent to {testResult.testEmail}
+                    {testResult.sent.some(x => !x.ok) ? 'Test send has failures' : 'Accepted by Brevo'} — {testResult.testEmail}
                   </p>
                   <ul className="text-xs text-[#4a5a4d] space-y-1">
                     {testResult.sent.map((x) => (
                       <li key={x.key}>
                         {x.ok ? '✓' : '✗'} {x.subject}
-                        {!x.ok && x.reason ? ` (${x.reason})` : ''}
+                        {!x.ok ? ` (${x.detail || x.reason || 'failed'})` : ''}
                       </li>
                     ))}
                   </ul>
@@ -438,8 +467,14 @@ export default function AdminRetentionPage() {
           {result && (
             <div className="brand-card p-5 sm:p-6">
               <h2 className="font-semibold text-lg mb-1">
-                {result.summary.dryRun ? 'Preview — nothing was sent' : 'Done'}
+                {result.summary.dryRun ? 'Preview — nothing was sent' : result.summary.failed ? 'Send completed with failures' : (result.summary.usage + result.summary.reviewRequests + result.summary.replenishment) ? 'Messages accepted for delivery' : 'No messages sent'}
               </h2>
+              {!!result.summary.failed && (
+                <div className="text-sm text-red-700 mb-4" role="alert">
+                  <p>{result.summary.failed} messages failed and remain due for retry.</p>
+                  {(result.summary.failures || []).map((f, i) => <p key={i}>{f.count} failed: {f.detail} ({f.reason})</p>)}
+                </div>
+              )}
               <p className="text-sm text-[#59615b] mb-4">
                 Window: delivered customers shipped up to {result.summary.reviewMaxAge} days ago
               </p>
