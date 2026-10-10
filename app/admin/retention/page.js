@@ -391,7 +391,7 @@ export default function AdminRetentionPage() {
             </div>
 
             <label className="block text-sm font-semibold mb-2">
-              Include customers who ordered up to this many days ago
+              Include delivered customers shipped up to this many days ago
             </label>
             <input
               type="number"
@@ -402,8 +402,10 @@ export default function AdminRetentionPage() {
               className="w-full min-w-0 sm:w-48 px-4 py-3 border border-[#d9cbb5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6f8a74]"
             />
             <p className="text-xs text-[#8b938b] mt-2 mb-5">
-              The daily cron uses 21. Use ~200 once to reach everyone who ordered before
-              this system existed — otherwise those customers are never asked.
+              Automatic messages run daily after delivery, on days 3, 7 and 25 from shipping.
+              If no shipping date was recorded, the delivery date is used. Missed sends retry
+              automatically. Use ~200 to preview older delivered customers from before
+              this system existed.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3">
@@ -439,7 +441,7 @@ export default function AdminRetentionPage() {
                 {result.summary.dryRun ? 'Preview — nothing was sent' : 'Done'}
               </h2>
               <p className="text-sm text-[#59615b] mb-4">
-                Window: customers who ordered up to {result.summary.reviewMaxAge} days ago
+                Window: delivered customers shipped up to {result.summary.reviewMaxAge} days ago
               </p>
 
               {result.summary.dryRun ? (

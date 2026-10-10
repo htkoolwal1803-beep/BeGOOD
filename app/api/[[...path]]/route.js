@@ -2,12 +2,15 @@ import { NextResponse } from 'next/server'
 import { MongoClient } from 'mongodb'
 import { v4 as uuidv4 } from 'uuid'
 import crypto from 'crypto'
-import { cartHasHamper, getProductById } from '@/lib/products'
+import { cartHasHamper, getProductById, RETIRED_PRODUCT_IDS } from '@/lib/products'
 import { resolveDeliveryFee } from '@/lib/constants'
 import { sendEmail, layout, siteUrl, siteLink } from '@/lib/email'
 import { TEMPLATE_KEYS, DEFAULT_TEMPLATES, mergeTemplate, fillTemplate, bodyToHtml, whatsappBody } from '@/lib/emailTemplates'
 import { sendWhatsAppTemplate, isWhatsAppConfigured, toWhatsAppNumber } from '@/lib/whatsapp'
 import { feedbackToReview, hasAdverseReport } from '@/lib/feedbackToReview'
+import { retentionQuery, fulfillmentUpdate, acquireRetentionRun } from '@/lib/retention.mjs'
+
+export const maxDuration = 300
 
 /**
  * Admin API guard.
@@ -172,6 +175,11 @@ function getPathSegments(pathname) {
 export async function GET(request) {
   const pathname = request.nextUrl.pathname
   const segments = getPathSegments(pathname)
+
+  // Vercel Cron invokes GET; keep the admin's POST on the same handler.
+  if (segments[0] === 'cron' && segments[1] === 'retention' && segments.length === 2) {
+    return POST(request)
+  }
 
     // Every admin route requires the admin password, except the login check.
     if (segments[0] === 'admin' && segments[1] !== 'auth' && !requireAdmin(request)) {
@@ -1133,15 +1141,16 @@ export async function POST(request) {
       const { db } = await connectToDatabase()
       const site = siteUrl()
       const now = Date.now()
-      const daysAgo = (n) => new Date(now - n * 86400000)
 
       // ?dryRun=1  - report exactly who would be emailed, send nothing.
-      // ?reviewMaxAge=200 - widen the review window so customers who ordered
-      //   before this system existed can still be asked. Without it the window
-      //   is 7-21 days and every older customer is silently skipped forever.
+      // ?reviewMaxAge=200 - optionally limit the fulfillment age in a manual run.
+      // Automatic runs have no expiry, allowing retries after delivery delays.
       const url = new URL(request.url)
       const dryRun = url.searchParams.get('dryRun') === '1'
-      const reviewMaxAge = Math.min(400, parseInt(url.searchParams.get('reviewMaxAge') || '21', 10) || 21)
+      // Scheduled retries must not expire silently after a provider outage.
+      const reviewMaxAge = url.searchParams.has('reviewMaxAge')
+        ? Math.max(7, Math.min(400, parseInt(url.searchParams.get('reviewMaxAge'), 10) || 21))
+        : null
 
       // ?testEmail=you@example.com - send one sample of each email to a single
       // address so the exact wording, layout and deliverability can be checked
@@ -1209,6 +1218,11 @@ export async function POST(request) {
         return NextResponse.json({ success: true, testEmail, sent, reviewLink: testReviewLink })
       }
 
+      const runToken = dryRun ? null : await acquireRetentionRun(db, now)
+      if (!dryRun && !runToken) {
+        return NextResponse.json({ success: true, skipped: 'retention_already_running' })
+      }
+      try {
       // Saved wording wins over the coded defaults.
       const savedTemplates = await db.collection('email_templates').find({}).toArray()
       const savedByKey = Object.fromEntries(savedTemplates.map((t) => [t.key, t]))
@@ -1246,10 +1260,6 @@ export async function POST(request) {
           : ALL_TYPES
       )
 
-      // Cancelled orders are not a relationship to nurture. Orders with no
-      // status at all are kept - the field predates the admin status dropdown.
-      const notCancelled = { status: { $not: /^cancell?ed$/i } }
-
       /**
        * One message per person, not per order.
        *
@@ -1273,7 +1283,7 @@ export async function POST(request) {
         types: [...enabled],
         usage: 0, reviewRequests: 0, replenishment: 0, skipped: 0,
         duplicatesCollapsed: 0, cancelledSkipped: 0,
-        viaWhatsApp: 0, viaEmail: 0
+        viaWhatsApp: 0, viaEmail: 0, failed: 0
       }
       const wouldSend = { usage: [], reviewRequests: [], replenishment: [] }
 
@@ -1323,6 +1333,7 @@ export async function POST(request) {
 
         const mail = await sendEmail(payload)
         if (mail.ok) summary.viaEmail++
+        else summary.failed++
         return mail
       }
 
@@ -1330,12 +1341,9 @@ export async function POST(request) {
       // The most under-rated message here. A-Bar is usage-dependent: eaten five
       // minutes before an exam it will seem not to work, and that customer is
       // gone without ever telling us why.
-      const usageRaw = enabled.has('usage') ? await db.collection('orders').find({
-        createdAt: { $lte: daysAgo(3).toISOString(), $gte: daysAgo(6).toISOString() },
-        usageEmailSentAt: { $exists: false },
-        email: { $exists: true, $ne: null, $ne: '' },
-        ...notCancelled
-      }).limit(200).toArray() : []
+      const usageRaw = enabled.has('usage') ? await db.collection('orders').find(
+        retentionQuery(3, now, { usageEmailSentAt: null })
+      ).sort({ shippedAt: -1, deliveredAt: -1, updatedAt: -1 }).limit(200).toArray() : []
       const usageOrders = oneOrderPerEmail(usageRaw)
       summary.duplicatesCollapsed += usageRaw.length - usageOrders.length
 
@@ -1354,11 +1362,9 @@ export async function POST(request) {
       }
 
       // --- Day 7: review request + ₹20 ---------------------------------------
-      const reviewRaw = enabled.has('reviewRequests') ? await db.collection('orders').find({
-        createdAt: { $lte: daysAgo(7).toISOString(), $gte: daysAgo(reviewMaxAge).toISOString() },
-        email: { $exists: true, $ne: null, $ne: '' },
-        ...notCancelled
-      }).limit(200).toArray() : []
+      const reviewRaw = enabled.has('reviewRequests') ? await db.collection('orders').find(
+        retentionQuery(7, now, { reviewEmailSentAt: null }, reviewMaxAge)
+      ).sort({ shippedAt: -1, deliveredAt: -1, updatedAt: -1 }).limit(200).toArray() : []
       const reviewOrders = oneOrderPerEmail(reviewRaw)
       summary.duplicatesCollapsed += reviewRaw.length - reviewOrders.length
 
@@ -1366,11 +1372,16 @@ export async function POST(request) {
         // Match on the address as well as the order: someone who was already
         // asked after an earlier order should not be asked again.
         const existing = await db.collection('review_requests').findOne({
-          $or: [{ orderId: o.orderId }, { email: o.email }]
+          $or: [{ orderId: o.orderId }, { email: o.email }],
+          status: { $in: ['sent', 'submitted', 'completed'] }
         })
-        if (existing) { summary.skipped++; continue }
+        if (existing) {
+          if (!dryRun) await db.collection('orders').updateOne({ orderId: o.orderId }, { $set: { reviewEmailSentAt: existing.sentAt || new Date().toISOString() } })
+          summary.skipped++; continue
+        }
 
-        const token = uuidv4().replace(/-/g, '')
+        const pending = await db.collection('review_requests').findOne({ orderId: o.orderId, status: { $in: ['pending', 'failed'] } })
+        const token = pending?.token || uuidv4().replace(/-/g, '')
         const productIds = (o.products || []).map((p) => p.productId).filter(Boolean)
 
         if (dryRun) {
@@ -1378,7 +1389,7 @@ export async function POST(request) {
           continue
         }
 
-        await db.collection('review_requests').insertOne({
+        if (!pending) await db.collection('review_requests').insertOne({
           id: uuidv4(),
           orderId: o.orderId,
           phone: o.phone,
@@ -1386,8 +1397,7 @@ export async function POST(request) {
           customerName: o.customerName || '',
           productIds,
           token,
-          sentAt: new Date().toISOString(),
-          status: 'sent'
+          status: 'pending'
         })
 
         const msg = render('reviewRequest', { name: o.customerName || 'there', site }, siteLink(`review/${token}`))
@@ -1397,16 +1407,21 @@ export async function POST(request) {
           subject: msg.subject,
           html: msg.html
         }, 'reviewRequest', [o.customerName || 'there'], `review/${token}`)
-        if (r.ok) summary.reviewRequests++
+        await db.collection('review_requests').updateOne({ token }, {
+          $set: r.ok
+            ? { status: 'sent', sentAt: new Date().toISOString() }
+            : { status: 'failed', lastAttemptAt: new Date().toISOString(), failureReason: r.reason || 'send_failed' }
+        })
+        if (r.ok) {
+          await db.collection('orders').updateOne({ orderId: o.orderId }, { $set: { reviewEmailSentAt: new Date().toISOString() } })
+          summary.reviewRequests++
+        }
       }
 
       // --- Day 25: replenishment --------------------------------------------
-      const replenRaw = enabled.has('replenishment') ? await db.collection('orders').find({
-        createdAt: { $lte: daysAgo(25).toISOString(), $gte: daysAgo(40).toISOString() },
-        reminderSentAt: { $exists: false },
-        email: { $exists: true, $ne: null, $ne: '' },
-        ...notCancelled
-      }).limit(200).toArray() : []
+      const replenRaw = enabled.has('replenishment') ? await db.collection('orders').find(
+        retentionQuery(25, now, { reminderSentAt: null })
+      ).sort({ shippedAt: -1, deliveredAt: -1, updatedAt: -1 }).limit(200).toArray() : []
       const replenOrders = oneOrderPerEmail(replenRaw)
       summary.duplicatesCollapsed += replenRaw.length - replenOrders.length
 
@@ -1422,7 +1437,7 @@ export async function POST(request) {
           createdAt: { $gt: o.createdAt }
         }) : null
         if (later) {
-          await db.collection('orders').updateOne({ orderId: o.orderId }, { $set: { reminderSentAt: 'skipped_reordered' } })
+          if (!dryRun) await db.collection('orders').updateOne({ orderId: o.orderId }, { $set: { reminderSentAt: 'skipped_reordered' } })
           summary.skipped++
           continue
         }
@@ -1441,6 +1456,9 @@ export async function POST(request) {
       }
 
       return NextResponse.json({ success: true, summary, wouldSend: dryRun ? wouldSend : undefined })
+      } finally {
+        if (runToken) await db.collection('job_locks').deleteOne({ _id: 'retention', token: runToken })
+      }
     }
 
     // POST /api/pending-payment - Store pending payment data before initiating Razorpay
@@ -1486,6 +1504,10 @@ export async function POST(request) {
         }
       }
       
+      if (Array.isArray(body.products) && body.products.some(product => RETIRED_PRODUCT_IDS.includes(product.productId || product.id))) {
+        return NextResponse.json({ success: false, error: 'This product is no longer available. Please choose an item from the shop.' }, { status: 400 })
+      }
+
       // Hampers are prepaid only. The UI hides COD for them, but a crafted
       // request could still reach here, so reject it server-side too.
       if (body.paymentMethod === 'cod' && cartHasHamper(body.products)) {
@@ -2419,11 +2441,14 @@ export async function PUT(request) {
     // PUT /api/admin/orders/:id - Update order status
     if (segments[0] === 'admin' && segments[1] === 'orders' && segments.length === 3) {
       const { status } = await request.json()
+      if (!['Pending', 'Confirmed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'].includes(status)) {
+        return NextResponse.json({ success: false, message: 'Invalid order status' }, { status: 400 })
+      }
       const { db } = await connectToDatabase()
       
       const result = await db.collection('orders').updateOne(
         { orderId: segments[2] },
-        { $set: { status, updatedAt: new Date().toISOString() } }
+        fulfillmentUpdate(status)
       )
       
       if (result.matchedCount === 0) {
