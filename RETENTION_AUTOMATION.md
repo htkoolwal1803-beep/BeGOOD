@@ -42,4 +42,3 @@ duplicate on retry; the provider APIs do not offer transactional delivery.
    `summary.failed`, and confirm send timestamps are written on success.
 
 Local regression verification: `node --test tests/*.test.mjs`.
-
