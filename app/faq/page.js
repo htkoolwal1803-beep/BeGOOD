@@ -62,7 +62,7 @@ const groups = [
       },
       {
         question: 'Which payment methods are available?',
-        answer: 'Online payment is securely handled by Razorpay and can include UPI, cards and netbanking. Cash on delivery is available for eligible products; hampers are prepaid only.'
+        answer: 'Online payment is securely handled by Razorpay and can include UPI, cards and netbanking. Cash on delivery is available for eligible products.'
       },
       {
         question: 'What if my order arrives damaged or incorrect?',
@@ -211,5 +211,3 @@ export default function FAQPage() {
     </div>
   )
 }
-
-
